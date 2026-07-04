@@ -169,6 +169,7 @@ rsync -avz --delete -e "ssh -i ~/.ssh/skinemsya_deploy" dist/ deploy@skinemsya-v
 
 | Симптом | Что проверить |
 | --- | --- |
+| `npm ci` падает в CI (emnapi / lock file) | Пересобери lock: `npx npm@10 install`, закоммить `package-lock.json` |
 | Белый экран / 404 | `ls /opt/skinemsya/deploy/frontend/index.html` |
 | API не отвечает | Backend задеплоен? `curl https://skinemsya-vse.ru/api/v1/...` |
 | Mini App не открывается | Домен в BotFather, HTTPS (Caddy) |
