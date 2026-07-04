@@ -174,6 +174,7 @@ rsync -avz --delete -e "ssh -i ~/.ssh/skinemsya_deploy" dist/ deploy@skinemsya-v
 | API не отвечает | Backend задеплоен? `curl https://skinemsya-vse.ru/api/v1/...` |
 | Mini App не открывается | Домен в BotFather, HTTPS (Caddy) |
 | Deploy падает на SSH | `SSH_PRIVATE_KEY`, `authorized_keys` на сервере |
+| `Permission denied (publickey)` | Приватный ключ в secret, публичный — в `authorized_keys`; проверь `ssh -i ~/.ssh/skinemsya_deploy deploy@<HOST>` |
 | Typecheck падает в CI | `npm run typecheck` локально |
 
 ---
