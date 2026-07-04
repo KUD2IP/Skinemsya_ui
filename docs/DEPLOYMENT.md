@@ -11,7 +11,7 @@ Backend деплоится **отдельно** из репозитория [Ski
 | URL | Назначение |
 | --- | --- |
 | `https://skinemsya-vse.ru` | Mini App (статика из `dist/`) |
-| `https://skinemsya-vse.ru/api/v1/...` | Backend API (прокси Caddy) |
+| `https://skinemsya-vse.ru/api/v1/...` | Backend API (прокси nginx) |
 
 Фронт **не требует** `VITE_API_BASE_URL` на staging: запросы идут на `/api/v1` того же домена (см. `src/shared/config/env.ts`).
 
@@ -23,7 +23,7 @@ Backend деплоится **отдельно** из репозитория [Ski
 
 1. VPS с Docker (Ubuntu 24.04)
 2. DNS `skinemsya-vse.ru` → IP сервера
-3. Backend workflow выполнен хотя бы раз (подняты Caddy, Postgres, backend)
+3. Backend workflow выполнен хотя бы раз (Postgres, backend в Docker; nginx на хосте)
 4. Каталог `/opt/skinemsya/deploy/frontend/` существует на сервере
 
 Подготовка сервера описана в backend-репозитории: `docs/deployment/staging-server.md` (части 1–3).
@@ -92,7 +92,7 @@ Workflow: [`.github/workflows/frontend.yml`](../.github/workflows/frontend.yml)
 | `Build` | Push в `main`/`master` | `npm run build` → artifact `dist/` |
 | `Deploy to staging` | Вручную (Run workflow) | `rsync dist/` → `/opt/skinemsya/deploy/frontend/` |
 
-Caddy отдаёт файлы из `deploy/frontend/` — **перезапуск контейнеров не нужен**.
+nginx отдаёт файлы из `deploy/frontend/` — **перезапуск не нужен**.
 
 ---
 
@@ -100,7 +100,7 @@ Caddy отдаёт файлы из `deploy/frontend/` — **перезапуск
 
 ### Порядок
 
-1. **Сначала backend** — поднимет Caddy, API, БД
+1. **Сначала backend + nginx** — API и HTTPS
 2. **Потом frontend** — положит статику в `deploy/frontend/`
 
 ### Шаги (фронт)
@@ -172,7 +172,7 @@ rsync -avz --delete -e "ssh -i ~/.ssh/skinemsya_deploy" dist/ deploy@skinemsya-v
 | `npm ci` падает в CI (emnapi / lock file) | Пересобери lock: `npx npm@10 install`, закоммить `package-lock.json` |
 | Белый экран / 404 | `ls /opt/skinemsya/deploy/frontend/index.html` |
 | API не отвечает | Backend задеплоен? `curl https://skinemsya-vse.ru/api/v1/...` |
-| Mini App не открывается | Домен в BotFather, HTTPS (Caddy) |
+| Mini App не открывается | Домен в BotFather, HTTPS (nginx + certbot) |
 | Deploy падает на SSH | `SSH_PRIVATE_KEY`, `authorized_keys` на сервере |
 | `Permission denied (publickey)` | Приватный ключ в secret, публичный — в `authorized_keys`; проверь `ssh -i ~/.ssh/skinemsya_deploy deploy@<HOST>` |
 | Typecheck падает в CI | `npm run typecheck` локально |

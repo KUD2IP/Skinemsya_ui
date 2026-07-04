@@ -13,9 +13,9 @@ import {
   sheetBackdrop,
   sheetDragSnap,
   sheetPanel,
-  useKeyboardInset,
   usePrefersReducedMotion,
   useTransientWillChange,
+  useVisualViewportLayout,
 } from '@/shared/lib';
 import * as css from './Sheet.css';
 import { useOverlayStore } from './sheet.store';
@@ -49,12 +49,13 @@ export function Sheet({
   const titleId = useId();
   const descId = useId();
   const reduced = usePrefersReducedMotion();
-  const keyboardInset = useKeyboardInset();
+  const { keyboardInset, offsetTop, visibleHeight } = useVisualViewportLayout();
   const dragY = useMotionValue(0);
   const dragControls = useDragControls();
   const wasOpen = useRef(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
+  const exitSlideOffset = useRef<number | string>('100%');
   const [panelHeight, setPanelHeight] = useState(0);
   const [animating, setAnimating] = useState(false);
   const registerSheet = useOverlayStore((s) => s.registerSheet);
@@ -70,7 +71,10 @@ export function Sheet({
 
     const measure = () => {
       const height = node.offsetHeight;
-      if (height > 0) setPanelHeight(height);
+      if (height > 0) {
+        setPanelHeight(height);
+        exitSlideOffset.current = height;
+      }
     };
 
     measure();
@@ -114,18 +118,24 @@ export function Sheet({
     if (!body) return;
 
     const scrollFocusedField = (target: HTMLElement) => {
-      const run = () => {
-        target.scrollIntoView({ block: 'center', behavior: 'smooth' });
-      };
-      run();
-      window.setTimeout(run, 280);
+      const padding = 20;
+      const bodyRect = body.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+
+      if (targetRect.bottom > bodyRect.bottom - padding) {
+        body.scrollTop += targetRect.bottom - bodyRect.bottom + padding;
+      } else if (targetRect.top < bodyRect.top + padding) {
+        body.scrollTop -= bodyRect.top + padding - targetRect.top;
+      }
     };
 
     const onFocusIn = (event: FocusEvent) => {
       const target = event.target;
       if (!(target instanceof HTMLElement)) return;
       if (!target.matches('input, textarea, select, [contenteditable="true"]')) return;
-      scrollFocusedField(target);
+
+      requestAnimationFrame(() => scrollFocusedField(target));
+      window.setTimeout(() => scrollFocusedField(target), 320);
     };
 
     body.addEventListener('focusin', onFocusIn);
@@ -155,8 +165,8 @@ export function Sheet({
 
   const panelTransition = reduced ? { duration: 0 } : sheetPanel;
   const backdropTransition = reduced ? { duration: 0 } : sheetBackdrop;
-  const slideOffset = panelHeight > 0 ? panelHeight : '100%';
-  const keyboardOpen = keyboardInset > 0;
+  const slideOffset = panelHeight > 0 ? panelHeight : exitSlideOffset.current;
+  const keyboardOpen = keyboardInset > 48;
 
   return (
     <AnimatePresence initial={false} mode="sync" onExitComplete={handleExitComplete}>
@@ -170,14 +180,21 @@ export function Sheet({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, pointerEvents: 'none' }}
             transition={backdropTransition}
-            onClick={close}
+            onClick={() => {
+              if (keyboardOpen) return;
+              close();
+            }}
           />
 
           <div
-            className={css.positioner({ layer })}
+            className={cx(css.positioner({ layer }), keyboardOpen && css.positionerKeyboard)}
             style={
               keyboardOpen
-                ? ({ marginBottom: keyboardInset } as CSSProperties)
+                ? ({
+                    top: offsetTop,
+                    height: visibleHeight,
+                    bottom: 'auto',
+                  } as CSSProperties)
                 : undefined
             }
           >
@@ -191,7 +208,7 @@ export function Sheet({
               style={
                 keyboardOpen
                   ? ({
-                      maxHeight: `calc(100dvh - ${keyboardInset}px - 16px)`,
+                      maxHeight: `min(92%, ${visibleHeight - 16}px)`,
                       '--sheet-keyboard-inset': `${keyboardInset}px`,
                     } as CSSProperties)
                   : undefined

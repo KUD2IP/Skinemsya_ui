@@ -38,6 +38,10 @@ export const positioner = recipe({
   defaultVariants: { layer: 'base' },
 });
 
+export const positionerKeyboard = style({
+  transition: 'top 0.28s cubic-bezier(0.32, 0.72, 0, 1), height 0.28s cubic-bezier(0.32, 0.72, 0, 1)',
+});
+
 export const content = style({
   width: '100%',
   maxWidth: vars.layout.contentMaxWidth,
@@ -51,6 +55,7 @@ export const content = style({
   boxShadow: vars.shadow.lg,
   pointerEvents: 'auto',
   touchAction: 'pan-y',
+  transition: 'max-height 0.28s cubic-bezier(0.32, 0.72, 0, 1)',
   '@media': {
     [`screen and (max-width: 359px)`]: {
       borderTopLeftRadius: vars.radius.xl,

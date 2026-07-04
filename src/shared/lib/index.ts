@@ -71,6 +71,7 @@ export type { PhoneCountry } from './phoneCountries';
 export { useMediaQuery, usePrefersReducedMotion } from './useMediaQuery';
 export { useRefreshAnimation } from './useRefreshAnimation';
 export { useKeyboardInset } from './useKeyboardInset';
+export { useVisualViewportLayout, type VisualViewportLayout } from './useVisualViewportLayout';
 export {
   normalizeTelegramUsername,
   isValidTelegramUsername,
