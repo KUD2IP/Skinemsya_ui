@@ -37,6 +37,7 @@
 | [docs/TECH_STACK.md](docs/TECH_STACK.md) | Выбор фреймворка и библиотек, обоснование «анти-ИИ-вида». |
 | [docs/PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md) | Доменно-ориентированная структура папок, правила выноса переиспользуемых компонентов, нейминг. |
 | [docs/API.md](docs/API.md) | Контракт бэкенда: эндпоинты, флоу авторизации, обработка ошибок, паттерны запросов. |
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | **Деплой на staging** через GitHub Actions (VPS, SSH, secrets). |
 | [docs/TELEGRAM_MINIAPP.md](docs/TELEGRAM_MINIAPP.md) | Интеграция с Telegram: SDK, тема, haptics, кнопки, safe-area, адаптивность. |
 | [AGENTS.md](AGENTS.md) | Инструкция для ИИ-агентов (на английском). Читается **перед каждой** генерацией кода. |
 
@@ -58,6 +59,19 @@
 3. **Все переиспользуемые компоненты** живут в `src/shared/ui` отдельными модулями.
 4. **Каждый экран** имеет скелетон загрузки; запуск приложения сопровождается анимацией Rive.
 5. **Полная адаптивность** под все разрешения и safe-area Telegram.
+
+---
+
+## Деплой на staging (GitHub Actions)
+
+1. Подготовь сервер и задеплой backend (см. backend-репозиторий → `docs/deployment/staging-server.md`)
+2. Добавь secrets в GitHub → Settings → Secrets and variables → Actions (`SSH_PRIVATE_KEY`, `STAGING_HOST`, `STAGING_USER`)
+3. Push в `main` → дождись сборки
+4. **Actions → Frontend CI/CD → Run workflow** → включи **Deploy to staging**
+
+Подробная инструкция: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
+
+CI/CD workflow: [.github/workflows/frontend.yml](.github/workflows/frontend.yml)
 
 ---
 
