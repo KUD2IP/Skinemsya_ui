@@ -9,6 +9,7 @@ export const backdrop = recipe({
     zIndex: Number(vars.z.overlay),
     background: vars.color.bg.overlay,
     pointerEvents: 'auto',
+    touchAction: 'none',
   },
   variants: {
     layer: {
@@ -28,6 +29,7 @@ export const positioner = recipe({
     justifyContent: 'center',
     pointerEvents: 'none',
     zIndex: Number(vars.z.modal),
+    overflow: 'hidden',
   },
   variants: {
     layer: {
@@ -36,10 +38,6 @@ export const positioner = recipe({
     },
   },
   defaultVariants: { layer: 'base' },
-});
-
-export const positionerKeyboard = style({
-  transition: 'top 0.28s cubic-bezier(0.32, 0.72, 0, 1), height 0.28s cubic-bezier(0.32, 0.72, 0, 1)',
 });
 
 export const content = style({
@@ -55,7 +53,6 @@ export const content = style({
   boxShadow: vars.shadow.lg,
   pointerEvents: 'auto',
   touchAction: 'pan-y',
-  transition: 'max-height 0.28s cubic-bezier(0.32, 0.72, 0, 1)',
   '@media': {
     [`screen and (max-width: 359px)`]: {
       borderTopLeftRadius: vars.radius.xl,
@@ -110,14 +107,15 @@ export const header = style({
 
 export const body = style({
   flex: 1,
+  minHeight: 0,
   overflowY: 'auto',
   overscrollBehavior: 'contain',
   WebkitOverflowScrolling: 'touch',
-  scrollPaddingBottom: 'calc(var(--sheet-keyboard-inset, 0px) + 24px)',
-  padding: `0 ${vars.space[6]} calc(${vars.space[7]} + ${vars.layout.safeBottom} + var(--sheet-keyboard-inset, 0px))`,
+  scrollPaddingBottom: '24px',
+  padding: `0 ${vars.space[6]} calc(${vars.space[7]} + ${vars.layout.safeBottom})`,
   '@media': {
     [`screen and (max-width: 359px)`]: {
-      padding: `0 ${vars.space[5]} calc(${vars.space[6]} + ${vars.layout.safeBottom} + var(--sheet-keyboard-inset, 0px))`,
+      padding: `0 ${vars.space[5]} calc(${vars.space[6]} + ${vars.layout.safeBottom})`,
     },
   },
 });
