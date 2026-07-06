@@ -2,27 +2,15 @@ import { z } from 'zod';
 import {
   DEFAULT_PHONE_COUNTRY_ID,
   getPhoneCountry,
-  isCardLike,
   isValidInternationalPhone,
   nationalLengthBounds,
   normalizeInternationalPhone,
-  validateCard,
 } from '@/shared/lib';
 import { resolvePreferredBankForSave } from './banks';
-
-const emptyToUndefined = (value: string | undefined) => {
-  const trimmed = value?.trim() ?? '';
-  return trimmed === '' ? undefined : trimmed;
-};
 
 /** Валидация формы профиля. Лимиты соответствуют бэкенду (docs/API.md). */
 export const profileFormSchema = z
   .object({
-    paymentDetails: z
-      .string()
-      .max(2000, 'Не более 2000 символов')
-      .optional()
-      .or(z.literal('')),
     preferredBankPreset: z.string().max(100).optional().or(z.literal('')),
     preferredBankCustom: z
       .string()
@@ -33,18 +21,6 @@ export const profileFormSchema = z
     phoneNational: z.string().optional().or(z.literal('')),
   })
   .superRefine((data, ctx) => {
-    const payment = data.paymentDetails?.trim() ?? '';
-    if (payment && isCardLike(payment)) {
-      const result = validateCard(payment);
-      if (!result.valid) {
-        ctx.addIssue({
-          code: 'custom',
-          path: ['paymentDetails'],
-          message: result.error ?? 'Неверный номер карты',
-        });
-      }
-    }
-
     const national = data.phoneNational?.trim() ?? '';
     if (!national) return;
 
@@ -84,7 +60,6 @@ export function toUpdateProfilePayload(
     : null;
 
   return {
-    paymentDetails: emptyToUndefined(values.paymentDetails),
     phone: normalizedPhone ?? undefined,
     preferredBank: resolvePreferredBankForSave(
       values.preferredBankPreset,

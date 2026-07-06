@@ -5,6 +5,7 @@ import type { EventResponse, PositionResponse } from '@/shared/api';
 import { useUploadFile } from '@/features/files/api/queries';
 import { useGroupMembersQuery } from '@/features/groups/api/queries';
 import { useProfileQuery } from '@/features/profile/api/queries';
+import { EditProfileSheet } from '@/features/profile/ui/EditProfileSheet';
 import { useSendToDistribution } from '@/features/events/api/queries';
 import { isApiError } from '@/shared/api';
 import {
@@ -26,6 +27,7 @@ import {
 } from '@/shared/ui';
 import {
   useMarkShared,
+  useUnmarkShared,
   useDeletePosition,
   useEventReceiptsQuery,
   usePositionsQuery,
@@ -65,6 +67,7 @@ export function EventPositionsScreen({
   const uploadFile = useUploadFile();
   const processReceipt = useProcessReceipt(eventId);
   const markShared = useMarkShared(eventId);
+  const unmarkShared = useUnmarkShared(eventId);
   const deletePosition = useDeletePosition(eventId);
   const splitTips = useSplitTips(eventId);
   const sendToDistribution = useSendToDistribution(eventId, groupId);
@@ -72,6 +75,7 @@ export function EventPositionsScreen({
   const [adding, setAdding] = useState(false);
   const [editingPosition, setEditingPosition] = useState<PositionResponse | null>(null);
   const [confirmLaunch, setConfirmLaunch] = useState(false);
+  const [requisitesOpen, setRequisitesOpen] = useState(false);
   const [parsePhase, setParsePhase] = useState<ParsePhase>('idle');
   const [parseError, setParseError] = useState<string | null>(null);
   const sheetOpen = useAnySheetOpen();
@@ -81,8 +85,10 @@ export function EventPositionsScreen({
     (event.payerId === currentUserId || event.createdBy === currentUserId);
 
   const isPayer = currentUserId === event.payerId;
-  const payerHasDetails =
-    !isPayer || Boolean(payerProfile?.paymentDetails?.trim());
+  const localRequisitesReady = Boolean(
+    payerProfile?.phone?.trim() || payerProfile?.paymentDetails?.trim(),
+  );
+  const payerHasDetails = isPayer ? localRequisitesReady : event.payerRequisitesReady;
 
   const totalKopecks = useMemo(
     () => (positions ?? []).reduce((sum, p) => sum + p.totalPriceKopecks, 0),
@@ -223,17 +229,23 @@ export function EventPositionsScreen({
               </div>
             ) : null}
 
-            {!payerHasDetails && isPayer && canLaunch ? (
+            {!payerHasDetails && canLaunch ? (
               <div className={css.gateCard}>
-                <span>Добавьте реквизиты плательщика, чтобы запустить сбор</span>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => void navigate({ to: '/profile' })}
-                >
-                  Перейти в профиль
-                </Button>
+                <span>
+                  {isPayer
+                    ? 'Добавьте телефон для СБП, чтобы запустить сбор'
+                    : 'Плательщик должен указать телефон для СБП в профиле'}
+                </span>
+                {isPayer ? (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setRequisitesOpen(true)}
+                  >
+                    Добавить телефон
+                  </Button>
+                ) : null}
               </div>
             ) : null}
 
@@ -249,14 +261,27 @@ export function EventPositionsScreen({
                       toast.error(isApiError(error) ? error.message : 'Не удалось отметить');
                     })
                   }
-                  markingShared={markShared.isPending}
+                  markingShared={
+                    markShared.isPending && markShared.variables?.id === position.id
+                  }
+                  onUnmarkShared={(id) =>
+                    void unmarkShared.mutateAsync(id).catch((error) => {
+                      haptics.error();
+                      toast.error(isApiError(error) ? error.message : 'Не удалось отменить');
+                    })
+                  }
+                  unmarkingShared={
+                    unmarkShared.isPending && unmarkShared.variables === position.id
+                  }
                   onDelete={(id) =>
                     void deletePosition.mutateAsync(id).catch((error) => {
                       haptics.error();
                       toast.error(isApiError(error) ? error.message : 'Не удалось удалить');
                     })
                   }
-                  deleting={deletePosition.isPending}
+                  deleting={
+                    deletePosition.isPending && deletePosition.variables === position.id
+                  }
                 />
               ))}
             </Stack>
@@ -323,6 +348,17 @@ export function EventPositionsScreen({
           </Button>
         </Stack>
       </Sheet>
+
+      {payerProfile ? (
+        <EditProfileSheet
+          open={requisitesOpen}
+          onOpenChange={setRequisitesOpen}
+          user={payerProfile}
+          focusField="phone"
+          title="Реквизиты для сбора"
+          description="Укажите телефон для СБП, чтобы участники могли перевести вам деньги."
+        />
+      ) : null}
     </Screen>
   );
 }

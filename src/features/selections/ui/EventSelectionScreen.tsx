@@ -233,36 +233,39 @@ export function EventSelectionScreen({
                   key={position.id}
                   className={soldOut ? `${css.row} ${css.rowSoldOut}` : css.row}
                 >
-                  <div className={css.rowMain}>
+                  <div className={css.rowTop}>
                     <span className={soldOut ? css.nameSoldOut : css.name}>{position.name}</span>
+                    <span className={css.price}>{formatMoney(position.totalPriceKopecks)}</span>
+                  </div>
+                  <div className={css.rowBottom}>
                     <span className={css.meta}>
                       {formatMoney(positionUnitPriceKopecks(position))}/шт ·{' '}
                       {soldOut ? 'разобрали' : `осталось ${max} из ${totalUnits}`}
                     </span>
+                    {!soldOut ? (
+                      <div className={css.qtyStepper}>
+                        <button
+                          type="button"
+                          className={css.qtyBtn}
+                          aria-label="Меньше"
+                          disabled={qty <= 0}
+                          onClick={() => adjustQty(position.id, -1, max)}
+                        >
+                          −
+                        </button>
+                        <span className={css.qtyValue}>{qty}</span>
+                        <button
+                          type="button"
+                          className={css.qtyBtn}
+                          aria-label="Больше"
+                          disabled={qty >= max}
+                          onClick={() => adjustQty(position.id, 1, max)}
+                        >
+                          +
+                        </button>
+                      </div>
+                    ) : null}
                   </div>
-                  {!soldOut ? (
-                    <div className={css.qtyStepper}>
-                      <button
-                        type="button"
-                        className={css.qtyBtn}
-                        aria-label="Меньше"
-                        disabled={qty <= 0}
-                        onClick={() => adjustQty(position.id, -1, max)}
-                      >
-                        −
-                      </button>
-                      <span className={css.qtyValue}>{qty}</span>
-                      <button
-                        type="button"
-                        className={css.qtyBtn}
-                        aria-label="Больше"
-                        disabled={qty >= max}
-                        onClick={() => adjustQty(position.id, 1, max)}
-                      >
-                        +
-                      </button>
-                    </div>
-                  ) : null}
                 </div>
               );
             })}
@@ -274,8 +277,11 @@ export function EventSelectionScreen({
                   .filter((p) => p.shared)
                   .map((position) => (
                     <div key={position.id} className={css.row}>
-                      <div className={css.rowMain}>
+                      <div className={css.rowTop}>
                         <span className={css.name}>{position.name}</span>
+                        <span className={css.price}>{formatMoney(position.totalPriceKopecks)}</span>
+                      </div>
+                      <div className={css.rowBottom}>
                         <span className={css.meta}>
                           {formatMoney(Math.round(position.totalPriceKopecks / Math.max(participantCount, 1)))} с вас
                         </span>

@@ -12,16 +12,15 @@ import { preferredBankFormDefaults } from '../model/banks';
 import type { UserResponse } from '@/shared/api';
 import { isApiError } from '@/shared/api';
 import { parseStoredPhone, haptics } from '@/shared/lib';
-import { Button, Sheet, Stack, toast } from '@/shared/ui';
+import { Button, Stack, toast } from '@/shared/ui';
 import { RequisitesFields, type RequisitesFocusField } from './RequisitesFields';
+import * as css from './ProfileScreen.css';
 
-interface EditProfileSheetProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+interface ProfileFieldEditorProps {
   user: UserResponse;
-  focusField?: RequisitesFocusField;
-  title?: string;
-  description?: string;
+  field: RequisitesFocusField;
+  onCancel: () => void;
+  onSaved: () => void;
 }
 
 function phoneDefaults(user: UserResponse): Pick<ProfileFormValues, 'phoneCountryId' | 'phoneNational'> {
@@ -39,14 +38,7 @@ function bankDefaults(user: UserResponse): Pick<
   return preferredBankFormDefaults(user.preferredBank);
 }
 
-export function EditProfileSheet({
-  open,
-  onOpenChange,
-  user,
-  focusField,
-  title = 'Редактировать профиль',
-  description = 'Реквизиты для расчётов видят участники ваших сборов.',
-}: EditProfileSheetProps) {
+export function ProfileFieldEditor({ user, field, onCancel, onSaved }: ProfileFieldEditorProps) {
   const update = useUpdateProfile();
   const {
     control,
@@ -66,29 +58,27 @@ export function EditProfileSheet({
   const preferredBankPreset = watch('preferredBankPreset');
 
   useEffect(() => {
-    if (open) {
-      reset({
-        ...bankDefaults(user),
-        ...phoneDefaults(user),
-      });
-    }
-  }, [open, user, reset]);
+    reset({
+      ...bankDefaults(user),
+      ...phoneDefaults(user),
+    });
+  }, [user, reset]);
 
   const onSubmit = handleSubmit(async (values) => {
     try {
       await update.mutateAsync(toUpdateProfilePayload(values, user.notificationSettings));
       haptics.success();
-      toast.saved('Профиль обновлён');
-      onOpenChange(false);
+      toast.saved('Сохранено');
+      onSaved();
     } catch (error) {
       haptics.error();
       if (isApiError(error)) {
-        error.fields?.forEach((field) => {
-          if (field.field === 'phone') {
-            setError('phoneNational', { message: field.message });
+        error.fields?.forEach((f) => {
+          if (f.field === 'phone') {
+            setError('phoneNational', { message: f.message });
           }
-          if (field.field === 'preferredBank') {
-            setError('preferredBankCustom', { message: field.message });
+          if (f.field === 'preferredBank') {
+            setError('preferredBankCustom', { message: f.message });
           }
         });
         toast.error(error.message);
@@ -99,23 +89,18 @@ export function EditProfileSheet({
   });
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange} title={title} description={description}>
+    <div className={css.inlineEditor}>
       <form onSubmit={onSubmit}>
-        <Stack gap={6}>
+        <Stack gap={4}>
           <RequisitesFields
             control={control}
             errors={errors}
             preferredBankPreset={preferredBankPreset}
-            focusField={focusField}
+            focusField={field}
+            onlyField={field}
           />
-
           <Stack direction="row" gap={3}>
-            <Button
-              type="button"
-              variant="secondary"
-              fullWidth
-              onClick={() => onOpenChange(false)}
-            >
+            <Button type="button" variant="secondary" fullWidth onClick={onCancel}>
               Отмена
             </Button>
             <Button type="submit" fullWidth loading={isSubmitting || update.isPending}>
@@ -124,6 +109,6 @@ export function EditProfileSheet({
           </Stack>
         </Stack>
       </form>
-    </Sheet>
+    </div>
   );
 }

@@ -16,21 +16,33 @@ export const receiptLink = style({
 
 export const row = style({
   display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  gap: vars.space[4],
+  flexDirection: 'column',
+  gap: vars.space[2],
   padding: vars.space[4],
   borderRadius: vars.radius.lg,
   background: vars.color.bg.elevated,
   border: `1px solid ${vars.color.border.subtle}`,
 });
 
-export const rowMain = style({
+export const rowTop = style({
   display: 'flex',
-  flexDirection: 'column',
-  gap: vars.space[1],
-  flex: 1,
-  minWidth: 0,
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: vars.space[3],
+});
+
+export const rowBottom = style({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: vars.space[3],
+});
+
+export const price = style({
+  fontSize: vars.fontSize.body,
+  fontWeight: 600,
+  color: vars.color.text.primary,
+  whiteSpace: 'nowrap',
 });
 
 export const name = style({
@@ -58,7 +70,12 @@ export const qtyValue = style({
 export const qtyStepper = style({
   display: 'flex',
   alignItems: 'center',
-  gap: vars.space[3],
+  gap: vars.space[2],
+  padding: `${vars.space[1]} ${vars.space[2]}`,
+  borderRadius: vars.radius.md,
+  background: vars.color.bg.base,
+  border: `1px solid ${vars.color.border.subtle}`,
+  flexShrink: 0,
 });
 
 export const qtyBtn = style({

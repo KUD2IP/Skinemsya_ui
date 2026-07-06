@@ -13,7 +13,7 @@ export const card = style({
 
 export const header = style({
   display: 'flex',
-  alignItems: 'flex-start',
+  alignItems: 'center',
   justifyContent: 'space-between',
   gap: vars.space[3],
 });
@@ -37,9 +37,13 @@ export const price = style({
 });
 
 export const actions = style({
-  display: 'flex',
-  flexWrap: 'wrap',
+  display: 'grid',
+  gridTemplateColumns: 'repeat(3, 1fr)',
   gap: vars.space[2],
+});
+
+export const actionButton = style({
+  minWidth: 0,
 });
 
 export const lowConfidence = style({
@@ -57,6 +61,10 @@ export const lowConfidenceRow = style({
 export const sharedBadge = style({
   fontSize: vars.fontSize.caption,
   color: vars.color.green[300],
+});
+
+export const tipsBadge = style({
+  alignSelf: 'flex-start',
 });
 
 export const page = style({

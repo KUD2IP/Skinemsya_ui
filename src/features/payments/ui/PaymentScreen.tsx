@@ -1,7 +1,7 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { CaretLeft, Copy } from '@phosphor-icons/react';
-import type { EventResponse } from '@/shared/api';
+import type { EventResponse, PaymentStatus } from '@/shared/api';
 import { useUploadFile } from '@/features/files/api/queries';
 import { isApiError } from '@/shared/api';
 import { formatMoney, formatPhone, haptics } from '@/shared/lib';
@@ -27,6 +27,19 @@ interface PaymentScreenProps {
   currentUserId?: number;
 }
 
+function paymentStatusMessage(status: PaymentStatus): string | null {
+  switch (status) {
+    case 'DEBTOR_CONFIRMED':
+      return 'Долг отправлен. Ожидаем подтверждение от плательщика.';
+    case 'PAYER_CONFIRMED':
+      return 'Плательщик подтвердил перевод.';
+    case 'DISPUTED':
+      return 'Плательщик не увидел перевод. Отправь перевод снова.';
+    default:
+      return null;
+  }
+}
+
 export function PaymentScreen({
   groupId,
   eventId,
@@ -40,6 +53,35 @@ export function PaymentScreen({
   const inputRef = useRef<HTMLInputElement>(null);
   const [screenshotFileId, setScreenshotFileId] = useState<number | null>(null);
   const [uploading, setUploading] = useState(false);
+
+  const paymentStatus = details?.status;
+  const isWaitingForPayer = paymentStatus === 'DEBTOR_CONFIRMED';
+  const isConfirmed = paymentStatus === 'PAYER_CONFIRMED';
+  const canSubmit = !isWaitingForPayer && !isConfirmed;
+  const statusMessage = paymentStatus ? paymentStatusMessage(paymentStatus) : null;
+
+  useEffect(() => {
+    if (paymentStatus === 'DISPUTED' || paymentStatus === 'CREATED') {
+      setScreenshotFileId(null);
+    }
+  }, [paymentStatus]);
+
+  useEffect(() => {
+    if (!isWaitingForPayer) return;
+
+    const poll = () => void refetch();
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') poll();
+    };
+
+    document.addEventListener('visibilitychange', onVisible);
+    const intervalId = window.setInterval(poll, 3_000);
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      window.clearInterval(intervalId);
+    };
+  }, [isWaitingForPayer, refetch]);
 
   const copyText = async (text: string, successMessage: string) => {
     try {
@@ -78,9 +120,10 @@ export function PaymentScreen({
   };
 
   const handleConfirm = async () => {
-    if (screenshotFileId == null) return;
     try {
-      await confirmDebtor.mutateAsync({ screenshotFileId });
+      await confirmDebtor.mutateAsync(
+        screenshotFileId != null ? { screenshotFileId } : {},
+      );
       haptics.success();
       toast.success('Отправлено на проверку');
     } catch (error) {
@@ -88,9 +131,6 @@ export function PaymentScreen({
       toast.error(isApiError(error) ? error.message : 'Не удалось отправить');
     }
   };
-
-  const alreadySent =
-    details?.status === 'DEBTOR_CONFIRMED' || details?.status === 'PAYER_CONFIRMED';
 
   return (
     <Screen
@@ -132,19 +172,21 @@ export function PaymentScreen({
               {details.preferredBank ? (
                 <p className={css.detailsMeta}>{preferredBankLabel(details.preferredBank)}</p>
               ) : null}
-              <div className={css.detailRow}>
-                <Stack gap={1} flex={1}>
-                  <span className={css.detailLabel}>Карта</span>
-                  <p className={css.detailsText}>{details.paymentDetails}</p>
-                </Stack>
-                <IconButton
-                  variant="bare"
-                  aria-label="Скопировать карту"
-                  onClick={() => void copyCard()}
-                >
-                  <Icon icon={Copy} size="sm" />
-                </IconButton>
-              </div>
+              {details.paymentDetails?.trim() ? (
+                <div className={css.detailRow}>
+                  <Stack gap={1} flex={1}>
+                    <span className={css.detailLabel}>Карта</span>
+                    <p className={css.detailsText}>{details.paymentDetails}</p>
+                  </Stack>
+                  <IconButton
+                    variant="bare"
+                    aria-label="Скопировать карту"
+                    onClick={() => void copyCard()}
+                  >
+                    <Icon icon={Copy} size="sm" />
+                  </IconButton>
+                </div>
+              ) : null}
               {details.phone ? (
                 <div className={css.detailRow}>
                   <Stack gap={1} flex={1}>
@@ -163,41 +205,52 @@ export function PaymentScreen({
             </Stack>
           </div>
 
-          <p className={css.hint}>Переведи в банке и вернись сюда с подтверждением перевода</p>
+          {canSubmit ? (
+            <>
+              <p className={css.hint}>
+                {paymentStatus === 'DISPUTED'
+                  ? 'Отправь перевод повторно. Чек можно прикрепить, но это необязательно'
+                  : 'Переведи в банке и нажми «Отправил». Чек можно прикрепить, но это необязательно'}
+              </p>
 
-          <input
-            ref={inputRef}
-            type="file"
-            accept="image/*,application/pdf,.pdf"
-            className={css.hiddenInput}
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) void handleScreenshot(file);
-              e.target.value = '';
-            }}
-          />
+              <input
+                ref={inputRef}
+                type="file"
+                accept="image/*,application/pdf,.pdf"
+                className={css.hiddenInput}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) void handleScreenshot(file);
+                  e.target.value = '';
+                }}
+              />
 
-          <Button
-            type="button"
-            variant="secondary"
-            loading={uploading}
-            onClick={() => inputRef.current?.click()}
-          >
-            {screenshotFileId ? 'Чек прикреплён' : 'Прикрепить чек перевода'}
-          </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                loading={uploading}
+                onClick={() => inputRef.current?.click()}
+              >
+                {screenshotFileId ? 'Чек прикреплён' : 'Прикрепить чек перевода'}
+              </Button>
 
-          <Button
-            type="button"
-            fullWidth
-            disabled={screenshotFileId == null || alreadySent}
-            loading={confirmDebtor.isPending}
-            onClick={() => void handleConfirm()}
-          >
-            Отправил
-          </Button>
-
-          {alreadySent ? (
-            <p className={css.hint}>Перевод отправлен на проверку плательщику</p>
+              <Button
+                type="button"
+                fullWidth
+                loading={confirmDebtor.isPending}
+                onClick={() => void handleConfirm()}
+              >
+                Отправил
+              </Button>
+            </>
+          ) : statusMessage ? (
+            <div
+              className={
+                isConfirmed ? css.statusCardSuccess : css.statusCardWaiting
+              }
+            >
+              <p className={css.statusMessage}>{statusMessage}</p>
+            </div>
           ) : null}
         </Stack>
       )}

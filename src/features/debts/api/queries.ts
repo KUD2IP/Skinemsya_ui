@@ -24,6 +24,14 @@ export function useEventDebtsQuery(eventId: number) {
       }
     },
     enabled: eventId > 0,
+    refetchInterval: (query) => {
+      const debts = query.state.data;
+      if (!debts?.some((d) => d.status === 'PENDING_CONFIRMATION')) {
+        return false;
+      }
+      return 3_000;
+    },
+    refetchIntervalInBackground: true,
   });
 }
 

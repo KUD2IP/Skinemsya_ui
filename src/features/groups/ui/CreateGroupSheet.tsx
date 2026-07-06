@@ -1,11 +1,7 @@
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { getInitDataRaw } from '@/features/auth/lib/initData';
-import {
-  useCreateChatLinkedGroup,
-  useCreateStandaloneGroup,
-} from '../api/queries';
+import { useCreateStandaloneGroup } from '../api/queries';
 import { createGroupSchema, type CreateGroupFormValues } from '../model/schema';
 import { isApiError } from '@/shared/api';
 import { haptics } from '@/shared/lib';
@@ -19,8 +15,6 @@ interface CreateGroupSheetProps {
 
 export function CreateGroupSheet({ open, onOpenChange, onCreated }: CreateGroupSheetProps) {
   const createStandalone = useCreateStandaloneGroup();
-  const createChatLinked = useCreateChatLinkedGroup();
-  const hasInitData = Boolean(getInitDataRaw());
 
   const {
     register,
@@ -53,24 +47,6 @@ export function CreateGroupSheet({ open, onOpenChange, onCreated }: CreateGroupS
     }
   });
 
-  const handleChatLinked = async () => {
-    const initData = getInitDataRaw();
-    if (!initData) {
-      toast.error('Откройте приложение из чата Telegram');
-      return;
-    }
-    try {
-      const group = await createChatLinked.mutateAsync({ initData });
-      haptics.success();
-      toast.saved('Группа привязана к чату');
-      onOpenChange(false);
-      onCreated?.(group.id);
-    } catch (error) {
-      haptics.error();
-      toast.error(isApiError(error) ? error.message : 'Не удалось привязать чат');
-    }
-  };
-
   return (
     <Sheet
       open={open}
@@ -92,18 +68,6 @@ export function CreateGroupSheet({ open, onOpenChange, onCreated }: CreateGroupS
           <Button type="submit" fullWidth loading={isSubmitting || createStandalone.isPending}>
             Создать
           </Button>
-
-          {hasInitData ? (
-            <Button
-              type="button"
-              variant="secondary"
-              fullWidth
-              loading={createChatLinked.isPending}
-              onClick={() => void handleChatLinked()}
-            >
-              Из текущего чата Telegram
-            </Button>
-          ) : null}
         </Stack>
       </form>
     </Sheet>

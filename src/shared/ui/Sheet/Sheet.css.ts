@@ -9,7 +9,6 @@ export const backdrop = recipe({
     zIndex: Number(vars.z.overlay),
     background: vars.color.bg.overlay,
     pointerEvents: 'auto',
-    touchAction: 'none',
   },
   variants: {
     layer: {
@@ -29,7 +28,6 @@ export const positioner = recipe({
     justifyContent: 'center',
     pointerEvents: 'none',
     zIndex: Number(vars.z.modal),
-    overflow: 'hidden',
   },
   variants: {
     layer: {
@@ -43,7 +41,8 @@ export const positioner = recipe({
 export const content = style({
   width: '100%',
   maxWidth: vars.layout.contentMaxWidth,
-  maxHeight: 'min(92dvh, calc(var(--tg-viewport-stable-height, 100dvh) - 24px))',
+  maxHeight: 'min(92%, calc(100% - 16px))',
+  minHeight: 0,
   display: 'flex',
   flexDirection: 'column',
   overflow: 'hidden',
@@ -68,6 +67,13 @@ export const content = style({
 export const contentAnimating = style({
   transform: 'translateZ(0)',
   backfaceVisibility: 'hidden',
+});
+
+export const panelInner = style({
+  display: 'flex',
+  flexDirection: 'column',
+  minHeight: 0,
+  flex: 1,
 });
 
 export const grabberRow = style({
@@ -106,7 +112,7 @@ export const header = style({
 });
 
 export const body = style({
-  flex: 1,
+  flex: '1 1 auto',
   minHeight: 0,
   overflowY: 'auto',
   overscrollBehavior: 'contain',

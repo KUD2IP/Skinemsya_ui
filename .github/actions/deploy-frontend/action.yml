@@ -1,0 +1,105 @@
+name: Deploy frontend to production
+description: Rsync static dist to VPS with smoke check and rollback
+
+inputs:
+  version:
+    description: Deployed frontend version label
+    required: true
+  health_url:
+    description: Public URL for smoke check
+    required: false
+    default: https://skinemsya-vse.ru/
+  ssh_private_key:
+    description: SSH private key
+    required: true
+  production_host:
+    description: Production VPS host
+    required: true
+  production_user:
+    description: SSH user
+    required: true
+  production_ssh_port:
+    description: SSH port
+    required: false
+    default: '22'
+  ssh_known_hosts:
+    description: Optional known_hosts entries
+    required: false
+    default: ''
+  dist_path:
+    description: Local path to built static files
+    required: false
+    default: dist
+
+runs:
+  using: composite
+  steps:
+    - name: Setup SSH
+      id: ssh
+      uses: ./.github/actions/setup-ssh
+      with:
+        host: ${{ inputs.production_host }}
+        user: ${{ inputs.production_user }}
+        port: ${{ inputs.production_ssh_port }}
+        private_key: ${{ inputs.ssh_private_key }}
+        known_hosts: ${{ inputs.ssh_known_hosts }}
+
+    - name: Deploy static files
+      shell: bash
+      env:
+        PRODUCTION_HOST: ${{ inputs.production_host }}
+        PRODUCTION_USER: ${{ inputs.production_user }}
+        SSH_OPTS: ${{ steps.ssh.outputs.ssh_opts }}
+        FRONTEND_PATH: /opt/skinemsya/deploy/frontend
+        HEALTH_URL: ${{ inputs.health_url }}
+        APP_VERSION: ${{ inputs.version }}
+        DIST_PATH: ${{ inputs.dist_path }}
+      run: |
+        set -euo pipefail
+        ssh $SSH_OPTS "${PRODUCTION_USER}@${PRODUCTION_HOST}" bash -s <<'EOSSH'
+        set -euo pipefail
+        FRONTEND_PATH="/opt/skinemsya/deploy/frontend"
+        PREVIOUS_PATH="${FRONTEND_PATH}.previous"
+        mkdir -p "${FRONTEND_PATH}"
+        rm -rf "${PREVIOUS_PATH}"
+        if [ -n "$(ls -A "${FRONTEND_PATH}" 2>/dev/null || true)" ]; then
+          cp -a "${FRONTEND_PATH}" "${PREVIOUS_PATH}"
+        fi
+        EOSSH
+
+        rsync -avz --delete -e "ssh $SSH_OPTS" "${DIST_PATH}/" \
+          "${PRODUCTION_USER}@${PRODUCTION_HOST}:${FRONTEND_PATH}/"
+
+        ssh $SSH_OPTS "${PRODUCTION_USER}@${PRODUCTION_HOST}" \
+          "printf '%s\n' '${APP_VERSION}' > ${FRONTEND_PATH}/.version && chmod 644 ${FRONTEND_PATH}/.version"
+
+        ok=0
+        for i in $(seq 1 20); do
+          if curl -fsS "${HEALTH_URL}" | grep -Eqi '<html|<!doctype'; then
+            ok=1
+            break
+          fi
+          echo "Smoke check attempt ${i}/20..."
+          sleep 5
+        done
+
+        if [ "${ok}" -ne 1 ]; then
+          echo "Smoke check failed for frontend version ${APP_VERSION}" >&2
+          ssh $SSH_OPTS "${PRODUCTION_USER}@${PRODUCTION_HOST}" bash -s <<'EOSSH' || true
+        set -euo pipefail
+        FRONTEND_PATH="/opt/skinemsya/deploy/frontend"
+        PREVIOUS_PATH="${FRONTEND_PATH}.previous"
+        if [ -d "${PREVIOUS_PATH}" ]; then
+          rm -rf "${FRONTEND_PATH}"
+          mv "${PREVIOUS_PATH}" "${FRONTEND_PATH}"
+          echo "Rolled back frontend to previous static files."
+        else
+          echo "No previous frontend build to rollback." >&2
+        fi
+        EOSSH
+          exit 1
+        fi
+
+        ssh $SSH_OPTS "${PRODUCTION_USER}@${PRODUCTION_HOST}" \
+          "rm -rf ${FRONTEND_PATH}.previous"
+        echo "Deployed frontend version ${APP_VERSION} successfully."

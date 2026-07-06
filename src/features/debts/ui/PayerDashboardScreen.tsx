@@ -1,7 +1,7 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { CaretLeft } from '@phosphor-icons/react';
-import type { EventResponse } from '@/shared/api';
+import type { DebtResponse, EventResponse } from '@/shared/api';
 import { useGroupMembersQuery } from '@/features/groups/api/queries';
 import {
   useConfirmAll,
@@ -9,7 +9,7 @@ import {
   useDispute,
 } from '@/features/payments/api/queries';
 import { isApiError } from '@/shared/api';
-import { debtStatusLabel, eventStatusLabel, formatMoney, haptics, memberDisplayLabel } from '@/shared/lib';
+import { debtStatusLabel, eventStatusLabel, formatMoney, haptics, memberDisplayLabel, paymentStatusLabel } from '@/shared/lib';
 import {
   Badge,
   Button,
@@ -21,6 +21,8 @@ import {
   Stack,
   toast,
 } from '@/shared/ui';
+import { useCloseEvent } from '@/features/events/api/queries';
+import { FilePreview } from '@/features/files/ui/FilePreview';
 import {
   useEventDebtsQuery,
   useParticipantsStatusQuery,
@@ -35,11 +37,63 @@ interface PayerDashboardScreenProps {
   currentUserId?: number;
 }
 
-function debtBadgeTone(status: string): 'neutral' | 'warning' | 'success' {
-  if (status === 'PAID' || status === 'PENDING_CONFIRMATION') {
-    return status === 'PAID' ? 'success' : 'warning';
+function participantBadgeTone(
+  debt: DebtResponse | undefined,
+  fallbackDebtStatus: string,
+): 'neutral' | 'warning' | 'success' | 'danger' {
+  if (debt?.paymentStatus === 'DISPUTED') {
+    return 'danger';
+  }
+  if (debt?.paymentStatus === 'DEBTOR_CONFIRMED') {
+    return 'warning';
+  }
+  const status = debt?.status ?? fallbackDebtStatus;
+  if (status === 'PAID') {
+    return 'success';
+  }
+  if (status === 'PENDING_CONFIRMATION') {
+    return 'warning';
   }
   return 'neutral';
+}
+
+function canPayerConfirm(debt: DebtResponse): boolean {
+  return debt.status === 'PENDING_CONFIRMATION'
+    && (!debt.paymentStatus || debt.paymentStatus === 'DEBTOR_CONFIRMED' || debt.paymentStatus === 'DISPUTED');
+}
+
+function canPayerDispute(debt: DebtResponse): boolean {
+  return debt.status === 'PENDING_CONFIRMATION'
+    && (!debt.paymentStatus || debt.paymentStatus === 'DEBTOR_CONFIRMED');
+}
+
+function shouldShowPaymentProof(debt: DebtResponse): boolean {
+  return debt.screenshotFileId != null
+    && (debt.paymentStatus === 'DEBTOR_CONFIRMED' || debt.paymentStatus === 'DISPUTED');
+}
+
+function participantStatusLabel(
+  debt: DebtResponse | undefined,
+  fallbackDebtStatus: string,
+  selectionCompleted: boolean,
+  eventStatus: EventResponse['status'],
+): string {
+  if (debt?.paymentStatus === 'DISPUTED') {
+    return paymentStatusLabel('DISPUTED');
+  }
+  if (debt?.paymentStatus === 'DEBTOR_CONFIRMED' || debt?.status === 'PENDING_CONFIRMATION') {
+    return paymentStatusLabel('DEBTOR_CONFIRMED');
+  }
+  if (debt?.status === 'PAID') {
+    return debtStatusLabel('PAID');
+  }
+  if (debt?.status === 'UNPAID' && (eventStatus === 'CALCULATED' || selectionCompleted)) {
+    return debtStatusLabel('UNPAID');
+  }
+  if (!selectionCompleted) {
+    return 'Выбирает';
+  }
+  return debtStatusLabel(debt?.status ?? fallbackDebtStatus);
 }
 
 export function PayerDashboardScreen({
@@ -50,12 +104,13 @@ export function PayerDashboardScreen({
 }: PayerDashboardScreenProps) {
   const navigate = useNavigate();
   const { data: status, isLoading, isError, refetch } = useParticipantsStatusQuery(eventId);
-  const { data: debts } = useEventDebtsQuery(eventId);
+  const { data: debts, refetch: refetchDebts } = useEventDebtsQuery(eventId);
   const { data: members } = useGroupMembersQuery(groupId);
   const remind = useRemindMutation(eventId);
   const confirmAll = useConfirmAll(eventId, groupId);
   const confirmPayer = useConfirmPayer(eventId, groupId);
   const dispute = useDispute(eventId, groupId);
+  const closeEvent = useCloseEvent(eventId, groupId);
 
   const memberMap = useMemo(
     () => new Map((members ?? []).map((m) => [m.userId, m])),
@@ -66,6 +121,34 @@ export function PayerDashboardScreen({
     () => (debts ?? []).filter((d) => d.status === 'PENDING_CONFIRMATION'),
     [debts],
   );
+
+  useEffect(() => {
+    if (pendingDebts.length === 0) return;
+
+    const poll = () => void refetchDebts();
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') poll();
+    };
+
+    document.addEventListener('visibilitychange', onVisible);
+    const intervalId = window.setInterval(poll, 3_000);
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      window.clearInterval(intervalId);
+    };
+  }, [pendingDebts.length, refetchDebts]);
+
+  const canCloseEvent = useMemo(() => {
+    if (event.status !== 'CALCULATED') {
+      return false;
+    }
+    const payerDebts = (debts ?? []).filter((d) => d.creditorId === currentUserId);
+    if (payerDebts.length === 0) {
+      return true;
+    }
+    return payerDebts.every((d) => d.status === 'PAID');
+  }, [debts, event.status, currentUserId]);
 
   const handleConfirmAll = async () => {
     try {
@@ -108,6 +191,17 @@ export function PayerDashboardScreen({
     } catch (error) {
       haptics.error();
       toast.error(isApiError(error) ? error.message : 'Не удалось отправить напоминание');
+    }
+  };
+
+  const handleCloseEvent = async () => {
+    try {
+      await closeEvent.mutateAsync();
+      haptics.success();
+      toast.success('Сбор закрыт');
+    } catch (error) {
+      haptics.error();
+      toast.error(isApiError(error) ? error.message : 'Не удалось закрыть сбор');
     }
   };
 
@@ -167,6 +261,16 @@ export function PayerDashboardScreen({
                 Всё на месте
               </Button>
             ) : null}
+            {canCloseEvent ? (
+              <Button
+                type="button"
+                variant="tonal"
+                loading={closeEvent.isPending}
+                onClick={() => void handleCloseEvent()}
+              >
+                Сбор закрыт
+              </Button>
+            ) : null}
             <Button
               type="button"
               variant="secondary"
@@ -186,9 +290,14 @@ export function PayerDashboardScreen({
                 const label = member
                   ? memberDisplayLabel(member.displayName, member.telegramUsername)
                   : `Участник #${participant.userId}`;
-                const statusLabel = participant.selectionCompleted
-                  ? debtStatusLabel(debt?.status ?? participant.debtStatus)
-                  : 'Выбирает';
+                const statusLabel = participantStatusLabel(
+                  debt,
+                  participant.debtStatus,
+                  participant.selectionCompleted,
+                  event.status,
+                );
+                const showConfirm = debt ? canPayerConfirm(debt) : false;
+                const showDispute = debt ? canPayerDispute(debt) : false;
 
                 return (
                   <div key={participant.userId} className={css.participantRow}>
@@ -199,32 +308,44 @@ export function PayerDashboardScreen({
                           <span className={css.participantAmount}>{formatMoney(debt.amountKopecks)}</span>
                         ) : null}
                       </div>
-                      <Badge tone={debtBadgeTone(debt?.status ?? participant.debtStatus)}>
+                      <Badge tone={participantBadgeTone(debt, participant.debtStatus)}>
                         {statusLabel}
                       </Badge>
                     </div>
-                    {debt?.status === 'PENDING_CONFIRMATION' ? (
+                    {debt && shouldShowPaymentProof(debt) ? (
+                      <FilePreview
+                        fileId={debt.screenshotFileId!}
+                        variant="link"
+                        linkLabel="Чек перевода"
+                        sheetTitle="Чек перевода"
+                      />
+                    ) : null}
+                    {showConfirm || showDispute ? (
                       <div className={css.actionRow}>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="tonal"
-                          fullWidth
-                          loading={confirmPayer.isPending}
-                          onClick={() => void handleConfirmOne(debt.id)}
-                        >
-                          Всё на месте
-                        </Button>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="secondary"
-                          fullWidth
-                          loading={dispute.isPending}
-                          onClick={() => void handleDispute(debt.id)}
-                        >
-                          Не пришло
-                        </Button>
+                        {showConfirm ? (
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="tonal"
+                            fullWidth
+                            loading={confirmPayer.isPending}
+                            onClick={() => void handleConfirmOne(debt!.id)}
+                          >
+                            Всё на месте
+                          </Button>
+                        ) : null}
+                        {showDispute ? (
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="secondary"
+                            fullWidth
+                            loading={dispute.isPending}
+                            onClick={() => void handleDispute(debt!.id)}
+                          >
+                            Не пришло
+                          </Button>
+                        ) : null}
                       </div>
                     ) : null}
                   </div>
