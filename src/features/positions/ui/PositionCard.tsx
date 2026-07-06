@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, type ReactNode } from 'react';
 import { PencilSimple, Users } from '@phosphor-icons/react';
 import type { PositionResponse } from '@/shared/api';
 import { formatMoney, haptics, positionUnitPriceKopecks } from '@/shared/lib';
@@ -9,15 +9,46 @@ interface PositionCardProps {
   position: PositionResponse;
   onMarkShared: (id: number) => void;
   markingShared?: boolean;
+  onUnmarkShared?: (id: number) => void;
+  unmarkingShared?: boolean;
   onEdit?: (position: PositionResponse) => void;
   onDelete?: (id: number) => void;
   deleting?: boolean;
+}
+
+function ActionButton({
+  children,
+  loading,
+  onClick,
+  leftIcon,
+}: {
+  children: ReactNode;
+  loading?: boolean;
+  onClick: () => void;
+  leftIcon?: ReactNode;
+}) {
+  return (
+    <Button
+      type="button"
+      variant="secondary"
+      size="sm"
+      fullWidth
+      className={css.actionButton}
+      loading={loading}
+      leftIcon={leftIcon}
+      onClick={onClick}
+    >
+      {children}
+    </Button>
+  );
 }
 
 export function PositionCard({
   position,
   onMarkShared,
   markingShared,
+  onUnmarkShared,
+  unmarkingShared,
   onEdit,
   onDelete,
   deleting,
@@ -33,6 +64,7 @@ export function PositionCard({
           <div className={css.meta}>
             {position.quantity} шт.
             {unitPrice != null ? ` · ${formatMoney(unitPrice)}/шт` : null}
+            {position.shared ? ' · На всех' : null}
           </div>
         </div>
         <span className={css.price}>{formatMoney(position.totalPriceKopecks)}</span>
@@ -49,46 +81,44 @@ export function PositionCard({
         </div>
       ) : null}
 
-      {position.shared ? (
-        <span className={css.sharedBadge}>На всех</span>
-      ) : (
-        <div className={css.actions}>
-          {onEdit ? (
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              leftIcon={<Icon icon={PencilSimple} size="sm" />}
-              onClick={() => onEdit(position)}
-            >
-              Изменить
-            </Button>
-          ) : null}
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
+      <div className={css.actions}>
+        {onEdit ? (
+          <ActionButton
+            leftIcon={<Icon icon={PencilSimple} size="md" />}
+            onClick={() => onEdit(position)}
+          >
+            Изменить
+          </ActionButton>
+        ) : (
+          <span />
+        )}
+        {position.shared && onUnmarkShared ? (
+          <ActionButton loading={unmarkingShared} onClick={() => onUnmarkShared(position.id)}>
+            Не на всех
+          </ActionButton>
+        ) : (
+          <ActionButton
             leftIcon={<Icon icon={Users} size="sm" />}
             loading={markingShared}
             onClick={() => onMarkShared(position.id)}
           >
             На всех
-          </Button>
-          {onDelete ? (
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              loading={deleting}
-              onClick={() => onDelete(position.id)}
-            >
-              Удалить
-            </Button>
-          ) : null}
-        </div>
-      )}
+          </ActionButton>
+        )}
+        {onDelete ? (
+          <ActionButton loading={deleting} onClick={() => onDelete(position.id)}>
+            Удалить
+          </ActionButton>
+        ) : (
+          <span />
+        )}
+      </div>
 
-      {position.tips ? <Badge tone="warning">Чаевые</Badge> : null}
+      {position.tips ? (
+        <Badge tone="warning" className={css.tipsBadge}>
+          Чаевые
+        </Badge>
+      ) : null}
     </article>
   );
 }

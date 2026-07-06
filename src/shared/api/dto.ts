@@ -93,6 +93,7 @@ export interface EventResponse {
   payerId: number;
   createdBy: number;
   status: EventStatus;
+  payerRequisitesReady: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -184,6 +185,8 @@ export interface DebtResponse {
   creditorId: number;
   amountKopecks: number;
   status: DebtStatus;
+  paymentStatus?: PaymentStatus | null;
+  screenshotFileId?: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -238,7 +241,7 @@ export interface PaymentResponse {
 }
 
 export interface ConfirmDebtorRequest {
-  screenshotFileId: number;
+  screenshotFileId?: number | null;
 }
 
 export type ApiErrorCode =

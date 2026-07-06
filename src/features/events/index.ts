@@ -10,5 +10,6 @@ export {
   useUpdateEvent,
   useDeleteEvent,
   useSendToDistribution,
+  useCloseEvent,
   eventKeys,
 } from './api/queries';

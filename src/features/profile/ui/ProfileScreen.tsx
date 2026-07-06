@@ -2,19 +2,18 @@ import { useState } from 'react';
 import {
   ArrowClockwise,
   Bank,
-  CreditCard,
-  PencilSimple,
+  CaretRight,
   Phone,
   BellSimple,
 } from '@phosphor-icons/react';
 import { useProfileQuery, useUpdateProfile } from '../api/queries';
 import { preferredBankLabel } from '../model/banks';
 import { ProfileSkeleton } from './ProfileSkeleton';
-import { EditProfileSheet } from './EditProfileSheet';
+import { ProfileFieldEditor } from './ProfileFieldEditor';
+import type { RequisitesFocusField } from './RequisitesFields';
 import * as css from './ProfileScreen.css';
 import {
   Avatar,
-  Badge,
   Button,
   Card,
   EmptyState,
@@ -23,6 +22,7 @@ import {
   ListItem,
   RefreshIconButton,
   Screen,
+  Sheet,
   Stack,
   Switch,
   toast,
@@ -42,7 +42,8 @@ export function ProfileScreen() {
   const { data: user, isLoading, isError, refetch, isFetching } = useProfileQuery();
   const { refresh, refreshing } = useRefreshAnimation(() => refetch(), isFetching);
   const update = useUpdateProfile();
-  const [editing, setEditing] = useState(false);
+  const [editingField, setEditingField] = useState<RequisitesFocusField | null>(null);
+  const [notificationsInfoOpen, setNotificationsInfoOpen] = useState(false);
 
   return (
     <Screen
@@ -74,31 +75,47 @@ export function ProfileScreen() {
                   <span className={css.heroName}>{user.displayName}</span>
                   <span className={css.heroMeta}>Telegram ID: {user.telegramUserId}</span>
                 </Stack>
-                <Badge tone="brand">Активен</Badge>
               </div>
             </Card>
 
             <Stack gap={3}>
               <span className={css.sectionLabel}>Реквизиты</span>
-              <List>
-                <ListItem
-                  leading={<Icon icon={CreditCard} />}
-                  title="Для перевода"
-                  subtitle={
-                    user.paymentDetails ?? 'Не указаны — добавьте, чтобы вам могли скинуться'
-                  }
-                />
-                <ListItem
-                  leading={<Icon icon={Bank} />}
-                  title="Предпочитаемый банк"
-                  subtitle={preferredBankLabel(user.preferredBank) ?? 'Не указан'}
-                />
-                <ListItem
-                  leading={<Icon icon={Phone} />}
-                  title="Телефон"
-                  subtitle={user.phone ? formatPhone(user.phone) : 'Не указан'}
-                />
-              </List>
+              <Card padding="none">
+                <List>
+                  {editingField === 'bank' ? (
+                    <ProfileFieldEditor
+                      user={user}
+                      field="bank"
+                      onCancel={() => setEditingField(null)}
+                      onSaved={() => setEditingField(null)}
+                    />
+                  ) : (
+                    <ListItem
+                      leading={<Icon icon={Bank} />}
+                      title="Предпочитаемый банк"
+                      subtitle={preferredBankLabel(user.preferredBank) ?? 'Не указан'}
+                      trailing={<Icon icon={CaretRight} size="sm" />}
+                      onClick={() => setEditingField('bank')}
+                    />
+                  )}
+                  {editingField === 'phone' ? (
+                    <ProfileFieldEditor
+                      user={user}
+                      field="phone"
+                      onCancel={() => setEditingField(null)}
+                      onSaved={() => setEditingField(null)}
+                    />
+                  ) : (
+                    <ListItem
+                      leading={<Icon icon={Phone} />}
+                      title="Телефон"
+                      subtitle={user.phone ? formatPhone(user.phone) : 'Не указан'}
+                      trailing={<Icon icon={CaretRight} size="sm" />}
+                      onClick={() => setEditingField('phone')}
+                    />
+                  )}
+                </List>
+              </Card>
             </Stack>
 
             <Stack gap={3}>
@@ -115,7 +132,6 @@ export function ProfileScreen() {
                     onChange={(next) => {
                       update.mutate(
                         {
-                          paymentDetails: user.paymentDetails ?? undefined,
                           phone: user.phone ?? undefined,
                           preferredBank: user.preferredBank ?? undefined,
                           notificationSettings: JSON.stringify({ push: next }),
@@ -129,18 +145,35 @@ export function ProfileScreen() {
                   />
                 </Stack>
               </Card>
+              <p className={css.settingsHint}>
+                Личные уведомления о переводах — только после /start в чате с ботом.{' '}
+                <button
+                  type="button"
+                  className={css.settingsHintLink}
+                  onClick={() => setNotificationsInfoOpen(true)}
+                >
+                  Подробнее
+                </button>
+              </p>
+              <Sheet
+                open={notificationsInfoOpen}
+                onOpenChange={setNotificationsInfoOpen}
+                title="Личные уведомления"
+              >
+                <Stack gap={4}>
+                  <p className={css.sheetText}>
+                    Без /start в личном чате с ботом не придут:
+                  </p>
+                  <ul className={css.sheetList}>
+                    <li>проверка перевода — плательщику</li>
+                    <li>спор по переводу — должнику</li>
+                  </ul>
+                  <p className={css.sheetText}>
+                    В групповом чате всё работает: запуск сбора, напоминания, сообщения о переводах.
+                  </p>
+                </Stack>
+              </Sheet>
             </Stack>
-
-            <Button
-              fullWidth
-              size="lg"
-              leftIcon={<Icon icon={PencilSimple} size="sm" />}
-              onClick={() => setEditing(true)}
-            >
-              Редактировать профиль
-            </Button>
-
-            <EditProfileSheet open={editing} onOpenChange={setEditing} user={user} />
           </Stack>
         )}
     </Screen>

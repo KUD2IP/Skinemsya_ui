@@ -72,3 +72,26 @@ export const hiddenInput = style({
   whiteSpace: 'nowrap',
   border: 0,
 });
+
+export const statusCardWaiting = style({
+  padding: vars.space[5],
+  borderRadius: vars.radius.lg,
+  background: vars.color.warningBg,
+  border: `1px solid ${vars.color.border.subtle}`,
+  textAlign: 'center',
+});
+
+export const statusCardSuccess = style({
+  padding: vars.space[5],
+  borderRadius: vars.radius.lg,
+  background: vars.color.successBg,
+  border: `1px solid ${vars.color.border.subtle}`,
+  textAlign: 'center',
+});
+
+export const statusMessage = style({
+  margin: 0,
+  fontSize: vars.fontSize.body,
+  lineHeight: vars.lineHeight.body,
+  color: vars.color.text.primary,
+});

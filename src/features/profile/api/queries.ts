@@ -32,6 +32,7 @@ export function useUpdateProfile() {
     },
     onSuccess: (data) => {
       queryClient.setQueryData(profileKeys.me, data);
+      queryClient.invalidateQueries({ queryKey: ['events'] });
     },
   });
 }

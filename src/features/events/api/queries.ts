@@ -122,6 +122,23 @@ export function useSendToDistribution(eventId: number, groupId: number) {
   });
 }
 
+export function useCloseEvent(eventId: number, groupId: number) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      try {
+        return await api.post(`events/${eventId}/close`).json<EventResponse>();
+      } catch (error) {
+        throw await toApiError(error);
+      }
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(eventKeys.detail(eventId), data);
+      void queryClient.invalidateQueries({ queryKey: eventKeys.byGroup(groupId) });
+    },
+  });
+}
+
 export function flattenPageItems<T>(pages: PageResult<T>[] | undefined): T[] {
   return pages?.flatMap((page) => page.items) ?? [];
 }

@@ -455,6 +455,7 @@ function ProfileScreen() {
 | `POST` | `/events/{eventId}/receipts/{id}/split-tips` | разделить чаевые |
 | `GET` | `/files/{fileId}/content?sharedAccess=true` | изображение чека для участников сбора |
 | `POST` | `/events/{eventId}/send-to-distribution` | запустить сбор → `DISTRIBUTION` (допускается 1 участник) |
+| `POST` | `/events/{eventId}/close` | плательщик закрывает сбор → `COMPLETED` (все долги должны быть `PAID`) |
 
 ### Selections (event в `DISTRIBUTION`)
 
@@ -467,7 +468,7 @@ function ProfileScreen() {
 
 | Method | Path | Описание |
 | --- | --- | --- |
-| `GET` | `/events/{eventId}/debts` | долги сбора (доступны сразу после `complete-selection` должника) |
+| `GET` | `/events/{eventId}/debts` | долги сбора; в ответе `paymentStatus` (`DEBTOR_CONFIRMED`, `DISPUTED`, …) для UI плательщика |
 | `GET` | `/debts/summary` | сводка для главного экрана |
 | `GET` | `/events/{eventId}/participants-status` | прогресс и статусы участников |
 
