@@ -65,6 +65,8 @@ export function useUpdatePosition(eventId: number) {
 
 export function useDeletePosition(eventId: number) {
   const queryClient = useQueryClient();
+  const queryKey = positionKeys.byEvent(eventId);
+
   return useMutation({
     mutationFn: async (id: number) => {
       try {
@@ -73,14 +75,29 @@ export function useDeletePosition(eventId: number) {
         throw await toApiError(error);
       }
     },
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: positionKeys.byEvent(eventId) });
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previous = queryClient.getQueryData<PositionResponse[]>(queryKey);
+      queryClient.setQueryData<PositionResponse[]>(queryKey, (old) =>
+        old?.filter((position) => position.id !== id),
+      );
+      return { previous };
+    },
+    onError: (_error, _id, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKey, context.previous);
+      }
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey });
     },
   });
 }
 
 export function useMarkShared(eventId: number) {
   const queryClient = useQueryClient();
+  const queryKey = positionKeys.byEvent(eventId);
+
   return useMutation({
     mutationFn: async ({ id, body }: { id: number; body: MarkSharedRequest }) => {
       try {
@@ -91,8 +108,56 @@ export function useMarkShared(eventId: number) {
         throw await toApiError(error);
       }
     },
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: positionKeys.byEvent(eventId) });
+    onMutate: async ({ id }) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previous = queryClient.getQueryData<PositionResponse[]>(queryKey);
+      queryClient.setQueryData<PositionResponse[]>(queryKey, (old) =>
+        old?.map((position) =>
+          position.id === id ? { ...position, shared: true } : position,
+        ),
+      );
+      return { previous };
+    },
+    onError: (_error, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKey, context.previous);
+      }
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey });
+    },
+  });
+}
+
+export function useUnmarkShared(eventId: number) {
+  const queryClient = useQueryClient();
+  const queryKey = positionKeys.byEvent(eventId);
+
+  return useMutation({
+    mutationFn: async (id: number) => {
+      try {
+        return await api.post(`positions/${id}/unmark-shared`).json<PositionResponse>();
+      } catch (error) {
+        throw await toApiError(error);
+      }
+    },
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previous = queryClient.getQueryData<PositionResponse[]>(queryKey);
+      queryClient.setQueryData<PositionResponse[]>(queryKey, (old) =>
+        old?.map((position) =>
+          position.id === id ? { ...position, shared: false } : position,
+        ),
+      );
+      return { previous };
+    },
+    onError: (_error, _id, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKey, context.previous);
+      }
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey });
     },
   });
 }

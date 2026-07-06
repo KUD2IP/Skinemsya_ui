@@ -1,0 +1,81 @@
+name: Frontend Hotfix
+
+on:
+  push:
+    branches: ['hotfix/**']
+  workflow_dispatch:
+    inputs:
+      deploy_production:
+        description: Emergency deploy hotfix build to production
+        type: boolean
+        default: false
+
+concurrency:
+  group: frontend-hotfix-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  resolve-version:
+    name: Resolve hotfix version
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.deploy_production)
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      sha_tag: ${{ steps.version.outputs.sha_tag }}
+    steps:
+      - name: Extract version
+        id: version
+        run: |
+          set -euo pipefail
+          branch="${GITHUB_REF_NAME}"
+          base="${branch#hotfix/}"
+          if [[ "${base}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            version="${base}"
+          else
+            version="${base}-hotfix"
+          fi
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "sha_tag=sha-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+  verify:
+    name: Typecheck and build
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.deploy_production)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/frontend-verify
+        with:
+          upload_dist: ${{ github.event_name == 'workflow_dispatch' && 'true' || 'false' }}
+          artifact_name: frontend-dist-hotfix
+
+  emergency-deploy:
+    name: Emergency production deploy
+    if: github.event_name == 'workflow_dispatch' && inputs.deploy_production
+    needs: [resolve-version, verify]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: production
+      url: https://skinemsya-vse.ru
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist-hotfix
+          path: dist
+
+      - uses: ./.github/actions/deploy-frontend
+        with:
+          version: ${{ needs.resolve-version.outputs.version }}
+          health_url: https://skinemsya-vse.ru/
+          ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+          production_host: ${{ secrets.PRODUCTION_HOST }}
+          production_user: ${{ secrets.PRODUCTION_USER }}
+          production_ssh_port: ${{ secrets.PRODUCTION_SSH_PORT || '22' }}
+          ssh_known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }}

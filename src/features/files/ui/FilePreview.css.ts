@@ -27,6 +27,14 @@ export const fullImage = style({
   borderRadius: vars.radius.md,
 });
 
+export const fullPdf = style({
+  display: 'block',
+  width: '100%',
+  minHeight: 480,
+  border: 'none',
+  borderRadius: vars.radius.md,
+});
+
 export const error = style({
   color: vars.color.text.secondary,
   fontSize: vars.fontSize.bodySm,

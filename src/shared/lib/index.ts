@@ -70,8 +70,9 @@ export {
 export type { PhoneCountry } from './phoneCountries';
 export { useMediaQuery, usePrefersReducedMotion } from './useMediaQuery';
 export { useRefreshAnimation } from './useRefreshAnimation';
-export { useKeyboardInset } from './useKeyboardInset';
-export { useVisualViewportLayout, type VisualViewportLayout } from './useVisualViewportLayout';
+export { useVisualViewportFrame, type VisualViewportFrame } from './useVisualViewportFrame';
+export { useBodyScrollLock } from './useBodyScrollLock';
+export { scrollElementIntoContainer } from './scrollElementIntoContainer';
 export {
   normalizeTelegramUsername,
   isValidTelegramUsername,

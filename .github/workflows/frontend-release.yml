@@ -1,0 +1,69 @@
+name: Frontend Release
+
+on:
+  push:
+    branches: ['release/**']
+
+concurrency:
+  group: frontend-release-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  resolve-version:
+    name: Resolve version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      sha_tag: ${{ steps.version.outputs.sha_tag }}
+    steps:
+      - name: Extract semver from branch
+        id: version
+        run: |
+          set -euo pipefail
+          branch="${GITHUB_REF_NAME}"
+          version="${branch#release/}"
+          if ! [[ "${version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.]+)?$ ]]; then
+            echo "Release branch must be release/X.Y.Z, got: ${branch}" >&2
+            exit 1
+          fi
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "sha_tag=sha-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+  verify:
+    name: Typecheck and build
+    needs: [resolve-version]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/frontend-verify
+        with:
+          upload_dist: 'true'
+          artifact_name: frontend-dist-${{ needs.resolve-version.outputs.version }}-rc
+
+  draft-release:
+    name: Draft GitHub Release
+    needs: [resolve-version, verify]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create draft release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.resolve-version.outputs.version }}-rc
+          name: v${{ needs.resolve-version.outputs.version }}-rc
+          draft: true
+          prerelease: true
+          generate_release_notes: true
+          body: |
+            Release candidate for frontend **v${{ needs.resolve-version.outputs.version }}**.
+
+            Artifact: `frontend-dist-${{ needs.resolve-version.outputs.version }}-rc`
+            Tag: `${{ needs.resolve-version.outputs.sha_tag }}`

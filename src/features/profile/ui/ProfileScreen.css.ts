@@ -38,3 +38,43 @@ export const valueMono = style({
 export const muted = style({
   color: vars.color.text.muted,
 });
+
+export const settingsHint = style({
+  margin: 0,
+  paddingInline: vars.space[2],
+  fontSize: vars.fontSize.bodySm,
+  lineHeight: vars.lineHeight.body,
+  color: vars.color.text.muted,
+});
+
+export const settingsHintLink = style({
+  padding: 0,
+  border: 'none',
+  background: 'none',
+  font: 'inherit',
+  fontSize: 'inherit',
+  lineHeight: 'inherit',
+  color: vars.color.text.link,
+  cursor: 'pointer',
+  textDecoration: 'underline',
+});
+
+export const sheetText = style({
+  margin: 0,
+  fontSize: vars.fontSize.body,
+  lineHeight: vars.lineHeight.body,
+  color: vars.color.text.secondary,
+});
+
+export const sheetList = style({
+  margin: 0,
+  paddingLeft: vars.space[5],
+  fontSize: vars.fontSize.body,
+  lineHeight: vars.lineHeight.body,
+  color: vars.color.text.secondary,
+});
+
+export const inlineEditor = style({
+  padding: vars.space[4],
+  borderTop: `1px solid ${vars.color.border.subtle}`,
+});

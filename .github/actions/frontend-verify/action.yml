@@ -1,0 +1,44 @@
+name: Frontend verify
+description: Install dependencies, typecheck and production build
+
+inputs:
+  node_version:
+    description: Node.js version
+    required: false
+    default: '22'
+  upload_dist:
+    description: Upload dist artifact
+    required: false
+    default: 'false'
+  artifact_name:
+    description: Artifact name when upload_dist is true
+    required: false
+    default: frontend-dist
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node_version }}
+        cache: npm
+
+    - name: Install dependencies
+      shell: bash
+      run: npm ci
+
+    - name: Typecheck
+      shell: bash
+      run: npm run typecheck
+
+    - name: Build
+      shell: bash
+      run: npm run build
+
+    - name: Upload dist artifact
+      if: inputs.upload_dist == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.artifact_name }}
+        path: dist/
+        retention-days: 7

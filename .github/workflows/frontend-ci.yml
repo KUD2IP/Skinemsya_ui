@@ -1,0 +1,25 @@
+name: Frontend CI
+
+on:
+  pull_request:
+    branches: [develop, master, 'release/**', 'hotfix/**']
+
+concurrency:
+  group: frontend-ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Typecheck and build
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/frontend-verify
+        with:
+          upload_dist: 'false'

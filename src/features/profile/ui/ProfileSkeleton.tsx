@@ -20,7 +20,6 @@ export function ProfileSkeleton() {
           <Stack gap={2} style={{ padding: 8 }}>
             <Skeleton height={48} />
             <Skeleton height={48} />
-            <Skeleton height={48} />
           </Stack>
         </Card>
       </Stack>

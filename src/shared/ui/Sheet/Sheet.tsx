@@ -7,14 +7,17 @@ import {
   useMotionValue,
   type PanInfo,
 } from 'motion/react';
-import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import {
   cx,
   sheetBackdrop,
   sheetDragSnap,
   sheetPanel,
+  scrollElementIntoContainer,
+  useBodyScrollLock,
   usePrefersReducedMotion,
   useTransientWillChange,
+  useVisualViewportFrame,
 } from '@/shared/lib';
 import * as css from './Sheet.css';
 import { useOverlayStore } from './sheet.store';
@@ -22,21 +25,7 @@ import { useOverlayStore } from './sheet.store';
 const DISMISS_OFFSET = 88;
 const DISMISS_VELOCITY = 380;
 const WILL_CHANGE_MS = 420;
-const SHEET_SCROLL_SELECTOR = '[data-sheet-scroll]';
-
-function getVisibleBottom(): number {
-  const viewport = window.visualViewport;
-  if (!viewport) return window.innerHeight - 16;
-  return viewport.offsetTop + viewport.height - 16;
-}
-
-/** Поднимает поле внутри шторки, если его перекрывает клавиатура. Без сдвига самой шторки. */
-function scrollFieldIntoView(body: HTMLElement, field: HTMLElement) {
-  const rect = field.getBoundingClientRect();
-  const visibleBottom = getVisibleBottom();
-  if (rect.bottom <= visibleBottom) return;
-  body.scrollTop += rect.bottom - visibleBottom + 12;
-}
+const KEYBOARD_OPEN_HEIGHT_RATIO = 0.85;
 
 export interface SheetProps {
   open: boolean;
@@ -63,43 +52,35 @@ export function Sheet({
   const titleId = useId();
   const descId = useId();
   const reduced = usePrefersReducedMotion();
+  const viewportFrame = useVisualViewportFrame(open);
+  useBodyScrollLock(open);
   const dragY = useMotionValue(0);
   const dragControls = useDragControls();
   const wasOpen = useRef(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
-  const exitSlideOffset = useRef<number | string>('100%');
   const [panelHeight, setPanelHeight] = useState(0);
   const [animating, setAnimating] = useState(false);
   const registerSheet = useOverlayStore((s) => s.registerSheet);
   const unregisterSheet = useOverlayStore((s) => s.unregisterSheet);
   const layer = nested ? 'nested' : 'base';
 
+  const keyboardOpen =
+    typeof window !== 'undefined' &&
+    viewportFrame.height < window.innerHeight * KEYBOARD_OPEN_HEIGHT_RATIO;
+
   useTransientWillChange(panelRef, open ? 'open' : 'closed', WILL_CHANGE_MS);
 
   useLayoutEffect(() => {
-    if (!open) return;
+    if (!open) {
+      setPanelHeight(0);
+      return;
+    }
     const node = panelRef.current;
     if (!node) return;
 
-    const measure = () => {
-      const height = node.offsetHeight;
-      if (height > 0) {
-        setPanelHeight(height);
-        exitSlideOffset.current = height;
-      }
-    };
-
-    measure();
-    const frame = requestAnimationFrame(measure);
-
-    const observer = new ResizeObserver(measure);
-    observer.observe(node);
-
-    return () => {
-      cancelAnimationFrame(frame);
-      observer.disconnect();
-    };
+    const height = node.offsetHeight;
+    if (height > 0) setPanelHeight(height);
   }, [open, title, description]);
 
   useEffect(() => {
@@ -110,55 +91,14 @@ export function Sheet({
 
   useEffect(() => {
     if (!open) return;
-
     dragY.set(0);
-
-    const scrollY = window.scrollY;
-    const { body: docBody, documentElement: html } = document;
-
-    const prev = {
-      bodyOverflow: docBody.style.overflow,
-      htmlOverflow: html.style.overflow,
-      bodyPosition: docBody.style.position,
-      bodyTop: docBody.style.top,
-      bodyLeft: docBody.style.left,
-      bodyRight: docBody.style.right,
-      bodyWidth: docBody.style.width,
-    };
-
-    docBody.style.overflow = 'hidden';
-    html.style.overflow = 'hidden';
-    docBody.style.position = 'fixed';
-    docBody.style.top = `-${scrollY}px`;
-    docBody.style.left = '0';
-    docBody.style.right = '0';
-    docBody.style.width = '100%';
-
-    const blockBackgroundScroll = (event: TouchEvent) => {
-      const target = event.target;
-      if (target instanceof Element && target.closest(SHEET_SCROLL_SELECTOR)) return;
-      event.preventDefault();
-    };
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onOpenChange(false);
     };
-
-    document.addEventListener('touchmove', blockBackgroundScroll, { passive: false });
     document.addEventListener('keydown', onKeyDown);
 
-    return () => {
-      docBody.style.overflow = prev.bodyOverflow;
-      html.style.overflow = prev.htmlOverflow;
-      docBody.style.position = prev.bodyPosition;
-      docBody.style.top = prev.bodyTop;
-      docBody.style.left = prev.bodyLeft;
-      docBody.style.right = prev.bodyRight;
-      docBody.style.width = prev.bodyWidth;
-      document.removeEventListener('touchmove', blockBackgroundScroll);
-      document.removeEventListener('keydown', onKeyDown);
-      window.scrollTo(0, scrollY);
-    };
+    return () => document.removeEventListener('keydown', onKeyDown);
   }, [open, onOpenChange, dragY]);
 
   useEffect(() => {
@@ -170,8 +110,7 @@ export function Sheet({
       const target = event.target;
       if (!(target instanceof HTMLElement)) return;
       if (!target.matches('input, textarea, select, [contenteditable="true"]')) return;
-
-      window.setTimeout(() => scrollFieldIntoView(body, target), 360);
+      requestAnimationFrame(() => scrollElementIntoContainer(target, body));
     };
 
     body.addEventListener('focusin', onFocusIn);
@@ -197,11 +136,28 @@ export function Sheet({
     }
   };
 
+  const handleAnimationComplete = () => {
+    setAnimating(false);
+    const node = panelRef.current;
+    if (node && node.offsetHeight > 0) {
+      setPanelHeight(node.offsetHeight);
+    }
+  };
+
   if (open) wasOpen.current = true;
 
   const panelTransition = reduced ? { duration: 0 } : sheetPanel;
   const backdropTransition = reduced ? { duration: 0 } : sheetBackdrop;
-  const slideOffset = panelHeight > 0 ? panelHeight : exitSlideOffset.current;
+  const slideOffset = panelHeight > 0 ? panelHeight : '100%';
+
+  const positionerStyle: CSSProperties = {
+    top: viewportFrame.top,
+    left: viewportFrame.left,
+    width: viewportFrame.width,
+    height: viewportFrame.height,
+    right: 'auto',
+    bottom: 'auto',
+  };
 
   return (
     <AnimatePresence initial={false} mode="sync" onExitComplete={handleExitComplete}>
@@ -218,7 +174,7 @@ export function Sheet({
             onClick={close}
           />
 
-          <div className={css.positioner({ layer })}>
+          <div className={css.positioner({ layer })} style={positionerStyle}>
             <motion.div
               ref={panelRef}
               role="dialog"
@@ -231,11 +187,12 @@ export function Sheet({
               exit={{ y: slideOffset }}
               transition={panelTransition}
               onAnimationStart={() => setAnimating(true)}
-              onAnimationComplete={() => setAnimating(false)}
+              onAnimationComplete={handleAnimationComplete}
             >
               <motion.div
+                className={css.panelInner}
                 style={{ y: dragY }}
-                drag={reduced ? false : 'y'}
+                drag={reduced || keyboardOpen ? false : 'y'}
                 dragControls={dragControls}
                 dragListener={false}
                 dragConstraints={{ top: 0 }}
@@ -245,7 +202,7 @@ export function Sheet({
                 <div
                   className={css.grabberRow}
                   onPointerDown={(event) => {
-                    if (reduced) return;
+                    if (reduced || keyboardOpen) return;
                     dragControls.start(event);
                   }}
                 >
@@ -267,7 +224,7 @@ export function Sheet({
                   </div>
                 ) : null}
 
-                <div ref={bodyRef} className={css.body} data-sheet-scroll>
+                <div ref={bodyRef} className={css.body} data-sheet-body>
                   {children}
                 </div>
               </motion.div>
