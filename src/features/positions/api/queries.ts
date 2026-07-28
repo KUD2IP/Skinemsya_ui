@@ -186,8 +186,10 @@ export function useProcessReceipt(eventId: number) {
   return useMutation({
     mutationFn: async (body: ProcessReceiptRequest) => {
       try {
+        // OCR на 1 vCPU часто >15 с (дефолт ky) — иначе TimeoutError «Сервер не отвечает»,
+        // хотя бек продолжает работу и позиции появляются после перезагрузки.
         return await api
-          .post(`events/${eventId}/receipts`, { json: body })
+          .post(`events/${eventId}/receipts`, { json: body, timeout: 120_000 })
           .json<ReceiptResponse>();
       } catch (error) {
         throw await toApiError(error);
