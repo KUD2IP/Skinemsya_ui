@@ -186,13 +186,20 @@ export function useProcessReceipt(eventId: number) {
   return useMutation({
     mutationFn: async (body: ProcessReceiptRequest) => {
       try {
-        // OCR на 1 vCPU часто >15 с (дефолт ky) — иначе TimeoutError «Сервер не отвечает»,
-        // хотя бек продолжает работу и позиции появляются после перезагрузки.
+        // Без клиентского abort: на VPS OCR часто дольше дефолтных 15–60 с.
+        // Логика бека та же; меняется только ожидание ответа HTTP.
         return await api
-          .post(`events/${eventId}/receipts`, { json: body, timeout: 120_000 })
+          .post(`events/${eventId}/receipts`, { json: body, timeout: false })
           .json<ReceiptResponse>();
       } catch (error) {
-        throw await toApiError(error);
+        const apiError = await toApiError(error);
+        // Если прокси/клиент оборвали долгий POST, бек часто всё равно дописывает чек.
+        // Дожидаемся финального статуса по fileId — позиции появятся без reload Mini App.
+        if (apiError.status === 0 || apiError.status === 502 || apiError.status === 504) {
+          const recovered = await waitForReceiptResult(eventId, body.fileId);
+          if (recovered) return recovered;
+        }
+        throw apiError;
       }
     },
     onSuccess: () => {
@@ -200,6 +207,29 @@ export function useProcessReceipt(eventId: number) {
       void queryClient.invalidateQueries({ queryKey: receiptKeys.byEvent(eventId) });
     },
   });
+}
+
+async function waitForReceiptResult(
+  eventId: number,
+  fileId: number,
+  maxWaitMs = 120_000,
+): Promise<ReceiptResponse | null> {
+  const deadline = Date.now() + maxWaitMs;
+  while (Date.now() < deadline) {
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      const receipts = await api
+        .get(`events/${eventId}/receipts`, { timeout: 15_000 })
+        .json<ReceiptResponse[]>();
+      const match = receipts.find((receipt) => receipt.fileId === fileId);
+      if (match?.status === 'PROCESSED' || match?.status === 'FAILED') {
+        return match;
+      }
+    } catch {
+      // краткий сбой сети при опросе — пробуем дальше
+    }
+  }
+  return null;
 }
 
 export function useSplitTips(eventId: number) {

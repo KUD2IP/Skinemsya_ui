@@ -10,7 +10,9 @@ function isAuthPath(url: string): boolean {
 export const api = ky.create({
   prefix: API_BASE_URL,
   retry: 0,
-  timeout: 15000,
+  // На слабом VPS OCR легко >15 с. Дефолт ky иначе даёт TimeoutError
+  // «Сервер не отвечает», хотя бек уже сохранил позиции.
+  timeout: 180_000,
   hooks: {
     beforeRequest: [
       ({ request }) => {
