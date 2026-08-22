@@ -1,12 +1,6 @@
 import { useState } from 'react';
-import {
-  ArrowClockwise,
-  Bank,
-  CaretRight,
-  Phone,
-  BellSimple,
-} from '@phosphor-icons/react';
-import { useProfileQuery, useUpdateProfile } from '../api/queries';
+import { ArrowClockwise, Bank, CaretRight, Phone } from '@phosphor-icons/react';
+import { useProfileQuery } from '../api/queries';
 import { preferredBankLabel } from '../model/banks';
 import { ProfileSkeleton } from './ProfileSkeleton';
 import { ProfileFieldEditor } from './ProfileFieldEditor';
@@ -22,28 +16,14 @@ import {
   ListItem,
   RefreshIconButton,
   Screen,
-  Sheet,
   Stack,
-  Switch,
-  toast,
 } from '@/shared/ui';
 import { formatPhone, useRefreshAnimation } from '@/shared/lib';
-
-function readPushEnabled(settings: string | null): boolean {
-  if (!settings) return false;
-  try {
-    return Boolean((JSON.parse(settings) as { push?: boolean }).push);
-  } catch {
-    return false;
-  }
-}
 
 export function ProfileScreen() {
   const { data: user, isLoading, isError, refetch, isFetching } = useProfileQuery();
   const { refresh, refreshing } = useRefreshAnimation(() => refetch(), isFetching);
-  const update = useUpdateProfile();
   const [editingField, setEditingField] = useState<RequisitesFocusField | null>(null);
-  const [notificationsInfoOpen, setNotificationsInfoOpen] = useState(false);
 
   return (
     <Screen
@@ -116,63 +96,6 @@ export function ProfileScreen() {
                   )}
                 </List>
               </Card>
-            </Stack>
-
-            <Stack gap={3}>
-              <span className={css.sectionLabel}>Настройки</span>
-              <Card padding="sm">
-                <Stack direction="row" align="center" gap={4}>
-                  <Icon icon={BellSimple} />
-                  <Stack gap={0} flex={1}>
-                    <span>Уведомления</span>
-                  </Stack>
-                  <Switch
-                    checked={readPushEnabled(user.notificationSettings)}
-                    disabled={refreshing || update.isPending}
-                    onChange={(next) => {
-                      update.mutate(
-                        {
-                          phone: user.phone ?? undefined,
-                          preferredBank: user.preferredBank ?? undefined,
-                          notificationSettings: JSON.stringify({ push: next }),
-                        },
-                        {
-                          onSuccess: () => toast.saved('Настройки сохранены'),
-                          onError: () => toast.error('Не удалось сохранить'),
-                        },
-                      );
-                    }}
-                  />
-                </Stack>
-              </Card>
-              <p className={css.settingsHint}>
-                Личные уведомления о переводах — только после /start в чате с ботом.{' '}
-                <button
-                  type="button"
-                  className={css.settingsHintLink}
-                  onClick={() => setNotificationsInfoOpen(true)}
-                >
-                  Подробнее
-                </button>
-              </p>
-              <Sheet
-                open={notificationsInfoOpen}
-                onOpenChange={setNotificationsInfoOpen}
-                title="Личные уведомления"
-              >
-                <Stack gap={4}>
-                  <p className={css.sheetText}>
-                    Без /start в личном чате с ботом не придут:
-                  </p>
-                  <ul className={css.sheetList}>
-                    <li>проверка перевода — плательщику</li>
-                    <li>спор по переводу — должнику</li>
-                  </ul>
-                  <p className={css.sheetText}>
-                    В групповом чате всё работает: запуск сбора, напоминания, сообщения о переводах.
-                  </p>
-                </Stack>
-              </Sheet>
             </Stack>
           </Stack>
         )}

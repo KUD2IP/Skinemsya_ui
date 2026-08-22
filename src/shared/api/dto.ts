@@ -85,6 +85,12 @@ export interface AddGroupMemberRequest {
   telegramUsername: string;
 }
 
+export interface InviteLinkResponse {
+  url: string;
+  startParam: string;
+  shareText: string;
+}
+
 export interface EventResponse {
   id: number;
   groupId: number;
