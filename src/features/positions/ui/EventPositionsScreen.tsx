@@ -100,8 +100,6 @@ export function EventPositionsScreen({
     return tipsPosition?.receiptId ?? null;
   }, [positions]);
 
-  const participantCount = event.expectedParticipantCount;
-
   const handleReceiptFile = async (file: File) => {
     setParsePhase('uploading');
     setParseError(null);

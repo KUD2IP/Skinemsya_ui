@@ -127,7 +127,7 @@ export function CreateEventSheet({
                 <CountField
                   value={field.value ?? 2}
                   invalid={Boolean(errors.expectedParticipantCount)}
-                  onChange={field.onChange}
+                  onChange={(next) => field.onChange(next === '' ? 2 : next)}
                 />
               )}
             />

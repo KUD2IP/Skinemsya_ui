@@ -78,11 +78,11 @@ export function EditEventSheet({ open, onOpenChange, event }: EditEventSheetProp
               control={control}
               render={({ field }) => (
                 <CountField
-                  value={field.value ?? ''}
+                  value={field.value ?? 2}
                   min={2}
                   max={99}
                   invalid={Boolean(errors.expectedParticipantCount)}
-                  onChange={field.onChange}
+                  onChange={(next) => field.onChange(next === '' ? 2 : next)}
                 />
               )}
             />
