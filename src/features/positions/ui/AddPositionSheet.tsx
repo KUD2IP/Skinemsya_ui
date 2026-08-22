@@ -67,7 +67,7 @@ export function AddPositionSheet({ open, onOpenChange, eventId }: AddPositionShe
       <form onSubmit={onSubmit}>
         <Stack gap={6}>
           <FieldGroup label="Название" error={errors.name?.message}>
-            <Input placeholder="Блюдо или позиция" invalid={Boolean(errors.name)} {...register('name')} />
+            <Input placeholder="Название позиции" invalid={Boolean(errors.name)} {...register('name')} />
           </FieldGroup>
           <FieldGroup label="Количество" error={errors.quantity?.message}>
             <Input

@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useGroupMembersQuery } from '@/features/groups/api/queries';
 import { useProfileQuery } from '@/features/profile/api/queries';
 import { useCreateEvent } from '../api/queries';
+import { CountField } from './CountField';
 import {
   eventFormSchema,
   toCreateEventPayload,
@@ -49,12 +50,13 @@ export function CreateEventSheet({
 
   const {
     register,
+    control,
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
   } = useForm<EventFormValues>({
     resolver: zodResolver(eventFormSchema),
-    defaultValues: { name: '', description: '' },
+    defaultValues: { name: '', description: '', expectedParticipantCount: 2 },
   });
 
   const payerOptions = useMemo(
@@ -95,7 +97,7 @@ export function CreateEventSheet({
   });
 
   const handleClosed = () => {
-    reset();
+    reset({ name: '', description: '', expectedParticipantCount: 2 });
     setPayerId(0);
   };
 
@@ -112,6 +114,23 @@ export function CreateEventSheet({
           </FieldGroup>
           <FieldGroup label="Описание" hint="Необязательно" error={errors.description?.message}>
             <Textarea placeholder="Детали сбора" invalid={Boolean(errors.description)} {...register('description')} />
+          </FieldGroup>
+          <FieldGroup
+            label="Сколько человек"
+            hint="Сколько было за столом — общие позиции делятся на это число"
+            error={errors.expectedParticipantCount?.message}
+          >
+            <Controller
+              name="expectedParticipantCount"
+              control={control}
+              render={({ field }) => (
+                <CountField
+                  value={field.value ?? 2}
+                  invalid={Boolean(errors.expectedParticipantCount)}
+                  onChange={field.onChange}
+                />
+              )}
+            />
           </FieldGroup>
           <FieldGroup label="Плательщик">
             {membersLoading ? (

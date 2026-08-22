@@ -52,6 +52,7 @@ export const content = style({
   boxShadow: vars.shadow.lg,
   pointerEvents: 'auto',
   touchAction: 'pan-y',
+  overscrollBehavior: 'none',
   '@media': {
     [`screen and (max-width: 359px)`]: {
       borderTopLeftRadius: vars.radius.xl,
@@ -76,26 +77,6 @@ export const panelInner = style({
   flex: 1,
 });
 
-export const grabberRow = style({
-  flexShrink: 0,
-  display: 'flex',
-  justifyContent: 'center',
-  padding: `${vars.space[3]} ${vars.space[6]} 0`,
-  cursor: 'grab',
-  touchAction: 'none',
-  userSelect: 'none',
-  selectors: {
-    '&:active': { cursor: 'grabbing' },
-  },
-});
-
-export const grabber = style({
-  width: '40px',
-  height: '4px',
-  borderRadius: vars.radius.full,
-  background: vars.color.border.strong,
-});
-
 export const header = style({
   display: 'flex',
   flexDirection: 'column',
@@ -103,12 +84,24 @@ export const header = style({
   gap: vars.space[2],
   flexShrink: 0,
   textAlign: 'left',
-  padding: `${vars.space[4]} ${vars.space[6]} ${vars.space[5]}`,
+  padding: `${vars.space[4]} ${vars.space[4]} ${vars.space[5]} ${vars.space[6]}`,
   '@media': {
     [`screen and (max-width: 359px)`]: {
-      padding: `${vars.space[4]} ${vars.space[5]} ${vars.space[5]}`,
+      padding: `${vars.space[4]} ${vars.space[3]} ${vars.space[5]} ${vars.space[5]}`,
     },
   },
+});
+
+export const headerTop = style({
+  display: 'flex',
+  alignItems: 'flex-start',
+  justifyContent: 'space-between',
+  gap: vars.space[3],
+  width: '100%',
+});
+
+export const titleSpacer = style({
+  flex: 1,
 });
 
 export const body = style({
@@ -132,7 +125,9 @@ export const titleText = style({
   fontWeight: 600,
   color: vars.color.text.primary,
   textAlign: 'left',
-  width: '100%',
+  flex: 1,
+  minWidth: 0,
+  paddingTop: vars.space[1],
   '@media': {
     [`screen and (max-width: 359px)`]: {
       fontSize: vars.fontSize.h3,

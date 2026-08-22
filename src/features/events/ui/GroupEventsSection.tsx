@@ -13,6 +13,7 @@ import {
   Skeleton,
   Stack,
 } from '@/shared/ui';
+import { eventCapacityLabel } from '../model/eventRoster';
 import { eventStatusLabel, formatDateTime } from '@/shared/lib';
 
 function eventStatusTone(status: EventStatus): 'neutral' | 'warning' | 'brand' | 'success' {
@@ -68,7 +69,7 @@ export function GroupEventsSection({ groupId, onCreateEvent }: GroupEventsSectio
                 key={event.id}
                 leading={<Icon icon={CalendarBlank} />}
                 title={event.name}
-                subtitle={formatDateTime(event.updatedAt)}
+                subtitle={`${eventCapacityLabel(event)} · ${formatDateTime(event.updatedAt)}`}
                 trailing={
                   <Badge tone={eventStatusTone(event.status)}>
                     {eventStatusLabel(event.status)}

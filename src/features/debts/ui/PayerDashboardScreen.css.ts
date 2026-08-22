@@ -33,6 +33,20 @@ export const participantHeader = style({
   justifyContent: 'space-between',
   gap: vars.space[3],
   minWidth: 0,
+  width: '100%',
+  padding: 0,
+  border: 'none',
+  background: 'transparent',
+  cursor: 'pointer',
+  textAlign: 'left',
+  color: 'inherit',
+  font: 'inherit',
+});
+
+export const caret = style({
+  flexShrink: 0,
+  color: vars.color.text.muted,
+  marginTop: 2,
 });
 
 export const participantMain = style({

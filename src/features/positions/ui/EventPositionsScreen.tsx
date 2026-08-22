@@ -3,10 +3,11 @@ import { useNavigate } from '@tanstack/react-router';
 import { CaretLeft } from '@phosphor-icons/react';
 import type { EventResponse, PositionResponse } from '@/shared/api';
 import { useUploadFile } from '@/features/files/api/queries';
-import { useGroupMembersQuery } from '@/features/groups/api/queries';
 import { useProfileQuery } from '@/features/profile/api/queries';
 import { EditProfileSheet } from '@/features/profile/ui/EditProfileSheet';
 import { useSendToDistribution } from '@/features/events/api/queries';
+import { EventCapacityBar } from '@/features/events/ui/EventCapacityBar';
+import { DeleteEventControl } from '@/features/events/ui/DeleteEventControl';
 import { isApiError } from '@/shared/api';
 import {
   eventStatusLabel,
@@ -62,7 +63,6 @@ export function EventPositionsScreen({
   const navigate = useNavigate();
   const { data: positions, isLoading, isError, refetch } = usePositionsQuery(eventId);
   const { data: receipts } = useEventReceiptsQuery(eventId);
-  const { data: members } = useGroupMembersQuery(groupId);
   const { data: payerProfile } = useProfileQuery();
   const uploadFile = useUploadFile();
   const processReceipt = useProcessReceipt(eventId);
@@ -100,7 +100,7 @@ export function EventPositionsScreen({
     return tipsPosition?.receiptId ?? null;
   }, [positions]);
 
-  const participantCount = members?.length ?? 0;
+  const participantCount = event.expectedParticipantCount;
 
   const handleReceiptFile = async (file: File) => {
     setParsePhase('uploading');
@@ -180,6 +180,7 @@ export function EventPositionsScreen({
       ) : (
         <div className={css.page}>
           <div className={css.screenBody}>
+            <EventCapacityBar event={event} currentUserId={currentUserId} />
             <div className={css.uploadRow}>
               <ReceiptUploadButton
                 onFileSelected={(file) => void handleReceiptFile(file)}
@@ -292,15 +293,15 @@ export function EventPositionsScreen({
                 description="Загрузите чек или добавьте позиции вручную."
               />
             ) : null}
+
+            <DeleteEventControl groupId={groupId} event={event} currentUserId={currentUserId} />
           </div>
 
           {canLaunch && !sheetOpen && (positions?.length ?? 0) > 0 ? (
             <div className={css.stickyFooter}>
               <div className={css.footerPreview}>
                 <span>
-                  {participantCount === 1
-                    ? '1 участник — остальные добавятся автоматически'
-                    : `${participantCount} участников`}
+                  {event.joinedCount}/{event.expectedParticipantCount} в сборе
                 </span>
                 <span className={css.footerTotal}>Итого: {formatMoney(totalKopecks)}</span>
               </div>
@@ -332,7 +333,7 @@ export function EventPositionsScreen({
         open={confirmLaunch}
         onOpenChange={setConfirmLaunch}
         title="Запустить сбор?"
-        description="Участники смогут выбирать блюда. Изменить список потом нельзя."
+        description="Участники смогут выбирать позиции. Изменить список потом нельзя."
       >
         <Stack gap={3}>
           <Button

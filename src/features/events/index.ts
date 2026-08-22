@@ -9,7 +9,11 @@ export {
   useCreateEvent,
   useUpdateEvent,
   useDeleteEvent,
+  useRemoveEventParticipant,
   useSendToDistribution,
+  useJoinEvent,
+  useLeaveEvent,
+  useUpdateExpectedParticipants,
   useCloseEvent,
   eventKeys,
 } from './api/queries';

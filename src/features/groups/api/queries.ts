@@ -6,10 +6,12 @@ import type {
   CreateStandaloneGroupRequest,
   GroupMemberViewResponse,
   GroupResponse,
+  InviteLinkResponse,
   PageResult,
   UpdateGroupRequest,
 } from '@/shared/api';
 import { pageHasMore } from '@/shared/api/dto';
+import { eventKeys } from '@/features/events/api/queries';
 import { normalizeTelegramUsername } from '@/shared/lib';
 
 const PAGE_SIZE = 20;
@@ -167,6 +169,20 @@ export function useGroupMembersQuery(groupId: number) {
   });
 }
 
+export function useGroupInviteLinkQuery(groupId: number, enabled = true) {
+  return useQuery({
+    queryKey: [...groupKeys.detail(groupId), 'invite-link'] as const,
+    queryFn: async () => {
+      try {
+        return await api.get(`groups/${groupId}/invite-link`).json<InviteLinkResponse>();
+      } catch (error) {
+        throw await toApiError(error);
+      }
+    },
+    enabled: enabled && groupId > 0,
+  });
+}
+
 export function useAddGroupMember(groupId: number) {
   const queryClient = useQueryClient();
   return useMutation({
@@ -183,6 +199,24 @@ export function useAddGroupMember(groupId: number) {
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: groupKeys.members(groupId) });
+    },
+  });
+}
+
+export function useRemoveGroupMember(groupId: number) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (memberUserId: number) => {
+      try {
+        await api.delete(`groups/${groupId}/members/${memberUserId}`);
+      } catch (error) {
+        throw await toApiError(error);
+      }
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: groupKeys.members(groupId) });
+      void queryClient.invalidateQueries({ queryKey: groupKeys.detail(groupId) });
+      void queryClient.invalidateQueries({ queryKey: eventKeys.byGroup(groupId) });
     },
   });
 }

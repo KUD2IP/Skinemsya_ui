@@ -64,13 +64,7 @@ export function GroupDetailScreen({
       void navigate({ to: '/' });
     } catch (error) {
       haptics.error();
-      toast.error(
-        isApiError(error)
-          ? error.code === 'DOMAIN_RULE_VIOLATION'
-            ? `${error.message} Удалите сборы не в черновике или завершите их.`
-            : error.message
-          : 'Не удалось удалить группу',
-      );
+      toast.error(isApiError(error) ? error.message : 'Не удалось удалить группу');
     } finally {
       setConfirmDelete(false);
     }
@@ -155,7 +149,7 @@ export function GroupDetailScreen({
             open={confirmDelete}
             onOpenChange={setConfirmDelete}
             title="Удалить группу?"
-            description="Нельзя удалить группу, пока есть сборы не в статусе «Черновик». Удалите или завершите их, либо удалите черновики."
+            description="Вместе с группой удалятся все её сборы. Это нельзя отменить."
           >
             <Stack gap={3}>
               <Button

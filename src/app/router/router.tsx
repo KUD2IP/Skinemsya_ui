@@ -11,6 +11,7 @@ import { TabPagerLayout } from '@/app/layout/TabPagerLayout';
 import { GroupDetailPage } from '@/app/pages/GroupDetailPage';
 import { GroupMembersPage } from '@/app/pages/GroupMembersPage';
 import { EventDetailPage } from '@/app/pages/EventDetailPage';
+import { EventParticipantsPage } from '@/app/pages/EventParticipantsPage';
 
 const rootRoute = createRootRoute({
   component: function RootLayout() {
@@ -61,6 +62,15 @@ const eventDetailRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/groups/$groupId/events/$eventId',
   component: EventDetailPage,
+  validateSearch: (search: Record<string, unknown>): { edit?: boolean } => ({
+    edit: search.edit === true || search.edit === '1' || search.edit === 'true' ? true : undefined,
+  }),
+});
+
+const eventParticipantsRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/groups/$groupId/events/$eventId/participants',
+  component: EventParticipantsPage,
 });
 
 const routeTree = rootRoute.addChildren([
@@ -69,6 +79,7 @@ const routeTree = rootRoute.addChildren([
     groupDetailRoute,
     groupMembersRoute,
     eventDetailRoute,
+    eventParticipantsRoute,
   ]),
 ]);
 

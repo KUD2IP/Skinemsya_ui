@@ -10,6 +10,7 @@ export {
   useUpdateGroup,
   useDeleteGroup,
   useAddGroupMember,
+  useRemoveGroupMember,
   useGroupMembersQuery,
   groupKeys,
 } from './api/queries';

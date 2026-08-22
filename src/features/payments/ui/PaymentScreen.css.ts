@@ -50,11 +50,6 @@ export const detailsText = style({
   lineHeight: vars.lineHeight.body,
 });
 
-export const detailsMeta = style({
-  fontSize: vars.fontSize.bodySm,
-  color: vars.color.text.muted,
-});
-
 export const hint = style({
   fontSize: vars.fontSize.bodySm,
   color: vars.color.text.muted,

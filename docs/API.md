@@ -445,7 +445,7 @@ function ProfileScreen() {
 
 | Method | Path | Описание |
 | --- | --- | --- |
-| `GET` | `/events/{eventId}/positions` | список позиций |
+| `GET` | `/events/{eventId}/positions` | список позиций; после выбора — `mySelectedQuantity` и `selectedBy: [{ userId, quantity }]` у всех участников. Shared-позиции отдают пустой `selectedBy` |
 | `POST` | `/events/{eventId}/positions` | `{ name, quantity, totalPriceKopecks }` |
 | `PUT` | `/positions/{id}` | обновление позиции |
 | `DELETE` | `/positions/{id}` | удаление |
@@ -463,6 +463,7 @@ function ProfileScreen() {
 | --- | --- | --- |
 | `PUT` | `/events/{eventId}/selections` | `{ selections: [{ positionId, quantity }] }` |
 | `POST` | `/events/{eventId}/complete-selection` | завершить выбор участника; создаёт предварительный долг для должника |
+| `POST` | `/events/{eventId}/reopen-selection` | открыть выбор заново, пока долги `UNPAID`; в `CALCULATED` откатывает сбор в `DISTRIBUTION`. 409, если кто-то уже нажал «Отправил» |
 
 ### Debts
 

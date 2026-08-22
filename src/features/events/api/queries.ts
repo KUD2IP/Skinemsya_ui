@@ -1,7 +1,15 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, toApiError } from '@/shared/api';
-import type { CreateEventRequest, EventResponse, PageResult, UpdateEventRequest } from '@/shared/api';
+import type {
+  CreateEventRequest,
+  EventResponse,
+  InviteLinkResponse,
+  PageResult,
+  UpdateEventRequest,
+  UpdateExpectedParticipantsRequest,
+} from '@/shared/api';
 import { pageHasMore } from '@/shared/api/dto';
+import { debtKeys } from '@/features/debts/api/queries';
 
 const PAGE_SIZE = 20;
 
@@ -39,6 +47,20 @@ export function useGroupEventsQuery(groupId: number) {
       return page.items;
     },
     enabled: groupId > 0,
+  });
+}
+
+export function useEventInviteLinkQuery(eventId: number, enabled = true) {
+  return useQuery({
+    queryKey: [...eventKeys.detail(eventId), 'invite-link'] as const,
+    queryFn: async () => {
+      try {
+        return await api.get(`events/${eventId}/invite-link`).json<InviteLinkResponse>();
+      } catch (error) {
+        throw await toApiError(error);
+      }
+    },
+    enabled: enabled && eventId > 0,
   });
 }
 
@@ -89,6 +111,27 @@ export function useUpdateEvent(eventId: number, groupId: number) {
   });
 }
 
+export function useUpdateExpectedParticipants(eventId: number, groupId: number) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (body: UpdateExpectedParticipantsRequest) => {
+      try {
+        return await api
+          .put(`events/${eventId}/expected-participants`, { json: body })
+          .json<EventResponse>();
+      } catch (error) {
+        throw await toApiError(error);
+      }
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(eventKeys.detail(eventId), data);
+      void queryClient.invalidateQueries({ queryKey: eventKeys.byGroup(groupId) });
+      void queryClient.invalidateQueries({ queryKey: debtKeys.participants(eventId) });
+      void queryClient.invalidateQueries({ queryKey: debtKeys.byEvent(eventId) });
+    },
+  });
+}
+
 export function useDeleteEvent(groupId: number) {
   const queryClient = useQueryClient();
   return useMutation({
@@ -99,8 +142,30 @@ export function useDeleteEvent(groupId: number) {
         throw await toApiError(error);
       }
     },
-    onSuccess: () => {
+    onSuccess: (_data, eventId) => {
+      void queryClient.removeQueries({ queryKey: eventKeys.detail(eventId) });
       void queryClient.invalidateQueries({ queryKey: eventKeys.byGroup(groupId) });
+    },
+  });
+}
+
+export function useRemoveEventParticipant(eventId: number, groupId: number) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (targetUserId: number) => {
+      try {
+        return await api
+          .delete(`events/${eventId}/participants/${targetUserId}`)
+          .json<EventResponse>();
+      } catch (error) {
+        throw await toApiError(error);
+      }
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(eventKeys.detail(eventId), data);
+      void queryClient.invalidateQueries({ queryKey: eventKeys.byGroup(groupId) });
+      void queryClient.invalidateQueries({ queryKey: debtKeys.participants(eventId) });
+      void queryClient.invalidateQueries({ queryKey: debtKeys.byEvent(eventId) });
     },
   });
 }
@@ -117,6 +182,42 @@ export function useSendToDistribution(eventId: number, groupId: number) {
     },
     onSuccess: (data) => {
       queryClient.setQueryData(eventKeys.detail(eventId), data);
+      void queryClient.invalidateQueries({ queryKey: eventKeys.byGroup(groupId) });
+    },
+  });
+}
+
+export function useJoinEvent(eventId: number, groupId: number) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      try {
+        return await api.post(`events/${eventId}/join`).json<EventResponse>();
+      } catch (error) {
+        throw await toApiError(error);
+      }
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(eventKeys.detail(eventId), data);
+      void queryClient.invalidateQueries({ queryKey: eventKeys.byGroup(groupId) });
+      void queryClient.invalidateQueries({ queryKey: debtKeys.participants(eventId) });
+      void queryClient.invalidateQueries({ queryKey: debtKeys.byEvent(eventId) });
+    },
+  });
+}
+
+export function useLeaveEvent(eventId: number, groupId: number) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      try {
+        return await api.post(`events/${eventId}/leave`).json<EventResponse>();
+      } catch (error) {
+        throw await toApiError(error);
+      }
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: eventKeys.detail(eventId) });
       void queryClient.invalidateQueries({ queryKey: eventKeys.byGroup(groupId) });
     },
   });

@@ -1,13 +1,15 @@
+import { Trash } from '@phosphor-icons/react';
 import type { GroupMemberViewResponse } from '@/shared/api';
-import { Avatar } from '@/shared/ui';
+import { Avatar, Icon, IconButton } from '@/shared/ui';
 import { avatarToneFromSeed, formatTelegramUsername } from '@/shared/lib';
 import * as css from './GroupMembers.css';
 
 interface MemberRowProps {
   member: GroupMemberViewResponse;
+  onRemove?: (member: GroupMemberViewResponse) => void;
 }
 
-export function MemberRow({ member }: MemberRowProps) {
+export function MemberRow({ member, onRemove }: MemberRowProps) {
   return (
     <div className={css.memberRow} role="listitem">
       <Avatar
@@ -24,6 +26,15 @@ export function MemberRow({ member }: MemberRowProps) {
         ) : null}
       </span>
       {member.role === 'OWNER' ? <span className={css.rolePill}>Владелец</span> : null}
+      {onRemove ? (
+        <IconButton
+          variant="bare"
+          aria-label={`Удалить ${member.displayName}`}
+          onClick={() => onRemove(member)}
+        >
+          <Icon icon={Trash} size="sm" />
+        </IconButton>
+      ) : null}
     </div>
   );
 }

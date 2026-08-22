@@ -1,6 +1,6 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { CaretLeft } from '@phosphor-icons/react';
+import { CaretDown, CaretLeft, CaretRight } from '@phosphor-icons/react';
 import type { DebtResponse, EventResponse } from '@/shared/api';
 import { useGroupMembersQuery } from '@/features/groups/api/queries';
 import {
@@ -22,7 +22,13 @@ import {
   toast,
 } from '@/shared/ui';
 import { useCloseEvent } from '@/features/events/api/queries';
+import { EventCapacityBar } from '@/features/events/ui/EventCapacityBar';
+import { DeleteEventControl } from '@/features/events/ui/DeleteEventControl';
 import { FilePreview } from '@/features/files/ui/FilePreview';
+import { usePositionsQuery } from '@/features/positions/api/queries';
+import { SelectionSummary } from '@/features/selections/ui/SelectionSummary';
+import { selectionItemsForUser } from '@/features/selections/model/selectionSummary';
+import { useSelectionReopen } from '@/features/selections/model/useSelectionReopen';
 import {
   useEventDebtsQuery,
   useParticipantsStatusQuery,
@@ -106,6 +112,13 @@ export function PayerDashboardScreen({
   const { data: status, isLoading, isError, refetch } = useParticipantsStatusQuery(eventId);
   const { data: debts, refetch: refetchDebts } = useEventDebtsQuery(eventId);
   const { data: members } = useGroupMembersQuery(groupId);
+  const { data: positions } = usePositionsQuery(eventId);
+  const { canReopen, handleReopen, isReopening } = useSelectionReopen(
+    eventId,
+    groupId,
+    event.status,
+    debts,
+  );
   const remind = useRemindMutation(eventId);
   const confirmAll = useConfirmAll(eventId, groupId);
   const confirmPayer = useConfirmPayer(eventId, groupId);
@@ -207,6 +220,11 @@ export function PayerDashboardScreen({
 
   const completedPayments = status?.completedSelections ?? 0;
   const totalParticipants = status?.totalParticipants ?? 0;
+  const [expandedId, setExpandedId] = useState<number | null>(null);
+
+  const toggleExpanded = (id: number) => {
+    setExpandedId((current) => (current === id ? null : id));
+  };
 
   return (
     <Screen
@@ -238,15 +256,16 @@ export function PayerDashboardScreen({
         />
       ) : (
         <div className={css.body}>
+          <EventCapacityBar event={event} currentUserId={currentUserId} />
           <Stack gap={2}>
             <p className={css.progress}>
               {event.status === 'DISTRIBUTION'
-                ? `${completedPayments} из ${totalParticipants} выбрали`
+                ? `${completedPayments} из ${status.joinedCount ?? totalParticipants} выбрали`
                 : 'Проверь переводы участников'}
             </p>
             <p className={css.progressMeta}>
               {event.status === 'DISTRIBUTION'
-                ? 'Участники выбирают блюда'
+                ? 'Участники выбирают позиции'
                 : 'Подтверди получение или отметь проблему'}
             </p>
           </Stack>
@@ -279,6 +298,16 @@ export function PayerDashboardScreen({
             >
               Напомнить
             </Button>
+            {canReopen ? (
+              <Button
+                type="button"
+                variant="secondary"
+                loading={isReopening}
+                onClick={() => void handleReopen()}
+              >
+                Изменить выбор
+              </Button>
+            ) : null}
           </div>
 
           <Stack gap={3}>
@@ -298,10 +327,30 @@ export function PayerDashboardScreen({
                 );
                 const showConfirm = debt ? canPayerConfirm(debt) : false;
                 const showDispute = debt ? canPayerDispute(debt) : false;
+                const participantItems = selectionItemsForUser(
+                  positions,
+                  participant.userId,
+                  status.expectedParticipantCount ?? event.expectedParticipantCount,
+                  currentUserId,
+                  event.payerId,
+                );
+                const isExpanded = expandedId === participant.userId;
 
                 return (
                   <div key={participant.userId} className={css.participantRow}>
-                    <div className={css.participantHeader}>
+                    <button
+                      type="button"
+                      className={css.participantHeader}
+                      aria-expanded={isExpanded}
+                      onClick={() => {
+                        toggleExpanded(participant.userId);
+                      }}
+                    >
+                      <Icon
+                        icon={isExpanded ? CaretDown : CaretRight}
+                        size="sm"
+                        className={css.caret}
+                      />
                       <div className={css.participantMain}>
                         <span className={css.participantName}>{label}</span>
                         {debt ? (
@@ -311,7 +360,10 @@ export function PayerDashboardScreen({
                       <Badge tone={participantBadgeTone(debt, participant.debtStatus)}>
                         {statusLabel}
                       </Badge>
-                    </div>
+                    </button>
+                    {isExpanded ? (
+                      <SelectionSummary items={participantItems} variant="plain" />
+                    ) : null}
                     {debt && shouldShowPaymentProof(debt) ? (
                       <FilePreview
                         fileId={debt.screenshotFileId!}
@@ -321,7 +373,10 @@ export function PayerDashboardScreen({
                       />
                     ) : null}
                     {showConfirm || showDispute ? (
-                      <div className={css.actionRow}>
+                      <div
+                        className={css.actionRow}
+                        onClick={(event) => event.stopPropagation()}
+                      >
                         {showConfirm ? (
                           <Button
                             type="button"
@@ -352,6 +407,7 @@ export function PayerDashboardScreen({
                 );
               })}
           </Stack>
+          <DeleteEventControl groupId={groupId} event={event} currentUserId={currentUserId} />
         </div>
       )}
     </Screen>

@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { CaretLeft, Copy } from '@phosphor-icons/react';
 import type { EventResponse, PaymentStatus } from '@/shared/api';
 import { useUploadFile } from '@/features/files/api/queries';
+import { FilePreview } from '@/features/files/ui/FilePreview';
 import { isApiError } from '@/shared/api';
 import { formatMoney, formatPhone, haptics } from '@/shared/lib';
 import {
@@ -16,6 +17,13 @@ import {
   toast,
 } from '@/shared/ui';
 import { useConfirmDebtor, usePaymentDetailsQuery } from '../api/queries';
+import { useEventDebtsQuery } from '@/features/debts/api/queries';
+import { usePositionsQuery } from '@/features/positions/api/queries';
+import { SelectionSummary } from '@/features/selections/ui/SelectionSummary';
+import { selectionItemsForUser } from '@/features/selections/model/selectionSummary';
+import { EventCapacityBar } from '@/features/events/ui/EventCapacityBar';
+import { DeleteEventControl } from '@/features/events/ui/DeleteEventControl';
+import { useSelectionReopen } from '@/features/selections/model/useSelectionReopen';
 import { preferredBankLabel } from '@/features/profile/model/banks';
 import * as css from './PaymentScreen.css';
 
@@ -30,7 +38,7 @@ interface PaymentScreenProps {
 function paymentStatusMessage(status: PaymentStatus): string | null {
   switch (status) {
     case 'DEBTOR_CONFIRMED':
-      return 'Долг отправлен. Ожидаем подтверждение от плательщика.';
+      return 'Перевод отправлен. Ожидаем подтверждение от плательщика.';
     case 'PAYER_CONFIRMED':
       return 'Плательщик подтвердил перевод.';
     case 'DISPUTED':
@@ -45,20 +53,40 @@ export function PaymentScreen({
   eventId,
   event,
   debtId,
+  currentUserId,
 }: PaymentScreenProps) {
   const navigate = useNavigate();
   const { data: details, isLoading, isError, refetch } = usePaymentDetailsQuery(debtId);
+  const { data: positions } = usePositionsQuery(eventId);
+  const { data: debts } = useEventDebtsQuery(eventId);
+  const { canReopen, handleReopen, isReopening } = useSelectionReopen(
+    eventId,
+    groupId,
+    event.status,
+    debts,
+  );
   const uploadFile = useUploadFile();
   const confirmDebtor = useConfirmDebtor(debtId, eventId, groupId);
   const inputRef = useRef<HTMLInputElement>(null);
   const [screenshotFileId, setScreenshotFileId] = useState<number | null>(null);
   const [uploading, setUploading] = useState(false);
+  const myItems = selectionItemsForUser(
+    positions,
+    currentUserId,
+    event.expectedParticipantCount,
+    currentUserId,
+    event.payerId,
+  );
 
   const paymentStatus = details?.status;
   const isWaitingForPayer = paymentStatus === 'DEBTOR_CONFIRMED';
   const isConfirmed = paymentStatus === 'PAYER_CONFIRMED';
   const canSubmit = !isWaitingForPayer && !isConfirmed;
   const statusMessage = paymentStatus ? paymentStatusMessage(paymentStatus) : null;
+  const receiptFileId = useMemo(() => {
+    const fromDebt = debts?.find((debt) => debt.id === debtId)?.screenshotFileId;
+    return screenshotFileId ?? fromDebt ?? null;
+  }, [debts, debtId, screenshotFileId]);
 
   useEffect(() => {
     if (paymentStatus === 'DISPUTED' || paymentStatus === 'CREATED') {
@@ -91,12 +119,6 @@ export function PaymentScreen({
     } catch {
       toast.error('Не удалось скопировать');
     }
-  };
-
-  const copyCard = async () => {
-    if (!details?.paymentDetails) return;
-    const digits = details.paymentDetails.replace(/\D/g, '');
-    await copyText(digits || details.paymentDetails, 'Номер карты скопирован');
   };
 
   const copyPhone = async () => {
@@ -161,6 +183,7 @@ export function PaymentScreen({
         />
       ) : (
         <Stack gap={6}>
+          <EventCapacityBar event={event} currentUserId={currentUserId} />
           <div className={css.amountBlock}>
             <span className={css.amountLabel}>К переводу</span>
             <span className={css.amountValue}>{formatMoney(details.amountKopecks)}</span>
@@ -170,21 +193,13 @@ export function PaymentScreen({
             <Stack gap={3}>
               <span className={css.creditorName}>{details.creditorName}</span>
               {details.preferredBank ? (
-                <p className={css.detailsMeta}>{preferredBankLabel(details.preferredBank)}</p>
-              ) : null}
-              {details.paymentDetails?.trim() ? (
                 <div className={css.detailRow}>
                   <Stack gap={1} flex={1}>
-                    <span className={css.detailLabel}>Карта</span>
-                    <p className={css.detailsText}>{details.paymentDetails}</p>
+                    <span className={css.detailLabel}>Банк</span>
+                    <p className={css.detailsText}>
+                      {preferredBankLabel(details.preferredBank)}
+                    </p>
                   </Stack>
-                  <IconButton
-                    variant="bare"
-                    aria-label="Скопировать карту"
-                    onClick={() => void copyCard()}
-                  >
-                    <Icon icon={Copy} size="sm" />
-                  </IconButton>
                 </div>
               ) : null}
               {details.phone ? (
@@ -231,8 +246,16 @@ export function PaymentScreen({
                 loading={uploading}
                 onClick={() => inputRef.current?.click()}
               >
-                {screenshotFileId ? 'Чек прикреплён' : 'Прикрепить чек перевода'}
+                {receiptFileId ? 'Заменить чек перевода' : 'Прикрепить чек перевода'}
               </Button>
+              {receiptFileId != null ? (
+                <FilePreview
+                  fileId={receiptFileId}
+                  variant="link"
+                  linkLabel="Чек перевода"
+                  sheetTitle="Чек перевода"
+                />
+              ) : null}
 
               <Button
                 type="button"
@@ -244,14 +267,31 @@ export function PaymentScreen({
               </Button>
             </>
           ) : statusMessage ? (
-            <div
-              className={
-                isConfirmed ? css.statusCardSuccess : css.statusCardWaiting
-              }
-            >
-              <p className={css.statusMessage}>{statusMessage}</p>
-            </div>
+            <Stack gap={3}>
+              <div
+                className={
+                  isConfirmed ? css.statusCardSuccess : css.statusCardWaiting
+                }
+              >
+                <p className={css.statusMessage}>{statusMessage}</p>
+              </div>
+              {receiptFileId != null ? (
+                <FilePreview
+                  fileId={receiptFileId}
+                  variant="link"
+                  linkLabel="Чек перевода"
+                  sheetTitle="Чек перевода"
+                />
+              ) : null}
+            </Stack>
           ) : null}
+          <SelectionSummary
+            title="Твои позиции"
+            items={myItems}
+            onEdit={canReopen ? () => void handleReopen() : undefined}
+            editing={isReopening}
+          />
+          <DeleteEventControl groupId={groupId} event={event} currentUserId={currentUserId} />
         </Stack>
       )}
     </Screen>

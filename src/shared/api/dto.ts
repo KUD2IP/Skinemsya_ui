@@ -100,6 +100,9 @@ export interface EventResponse {
   createdBy: number;
   status: EventStatus;
   payerRequisitesReady: boolean;
+  expectedParticipantCount: number;
+  joinedCount: number;
+  currentUserJoined: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -108,12 +111,18 @@ export interface CreateEventRequest {
   name: string;
   description?: string;
   payerId: number;
+  expectedParticipantCount: number;
 }
 
 export interface UpdateEventRequest {
   name: string;
   description?: string;
   payerId: number;
+  expectedParticipantCount: number;
+}
+
+export interface UpdateExpectedParticipantsRequest {
+  expectedParticipantCount: number;
 }
 
 export interface FileResponse {
@@ -125,6 +134,11 @@ export interface FileResponse {
 }
 
 export type PositionSource = 'MANUAL' | 'RECEIPT';
+
+export interface PositionSelector {
+  userId: number;
+  quantity: number;
+}
 
 export interface PositionResponse {
   id: number;
@@ -141,6 +155,7 @@ export interface PositionResponse {
   remainingQuantity?: number | null;
   mySelectedQuantity?: number | null;
   soldOut?: boolean | null;
+  selectedBy?: PositionSelector[];
 }
 
 export type ReceiptStatus = 'UPLOADED' | 'PROCESSING' | 'PROCESSED' | 'FAILED';
@@ -212,6 +227,8 @@ export interface ParticipantStatusItem {
 
 export interface ParticipantsStatusResponse {
   totalParticipants: number;
+  expectedParticipantCount: number;
+  joinedCount: number;
   completedSelections: number;
   participants: ParticipantStatusItem[];
 }

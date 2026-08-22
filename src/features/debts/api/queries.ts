@@ -13,7 +13,7 @@ export const debtKeys = {
   participants: (eventId: number) => [...debtKeys.all, 'participants', eventId] as const,
 };
 
-export function useEventDebtsQuery(eventId: number) {
+export function useEventDebtsQuery(eventId: number, enabled = true) {
   return useQuery({
     queryKey: debtKeys.byEvent(eventId),
     queryFn: async () => {
@@ -23,7 +23,7 @@ export function useEventDebtsQuery(eventId: number) {
         throw await toApiError(error);
       }
     },
-    enabled: eventId > 0,
+    enabled: eventId > 0 && enabled,
     refetchInterval: (query) => {
       const debts = query.state.data;
       if (!debts?.some((d) => d.status === 'PENDING_CONFIRMATION')) {
@@ -48,7 +48,7 @@ export function useDebtSummaryQuery() {
   });
 }
 
-export function useParticipantsStatusQuery(eventId: number) {
+export function useParticipantsStatusQuery(eventId: number, enabled = true) {
   return useQuery({
     queryKey: debtKeys.participants(eventId),
     queryFn: async () => {
@@ -58,7 +58,7 @@ export function useParticipantsStatusQuery(eventId: number) {
         throw await toApiError(error);
       }
     },
-    enabled: eventId > 0,
+    enabled: eventId > 0 && enabled,
     refetchInterval: 15_000,
   });
 }

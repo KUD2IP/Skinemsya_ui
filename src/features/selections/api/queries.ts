@@ -3,6 +3,7 @@ import { api, toApiError } from '@/shared/api';
 import type { UpdateSelectionsRequest } from '@/shared/api';
 import { debtKeys } from '@/features/debts/api/queries';
 import { eventKeys } from '@/features/events/api/queries';
+import { positionKeys } from '@/features/positions/api/queries';
 
 export function useUpdateSelections(eventId: number) {
   return useMutation({
@@ -31,6 +32,27 @@ export function useCompleteSelection(eventId: number, groupId: number) {
       void queryClient.invalidateQueries({ queryKey: eventKeys.byGroup(groupId) });
       void queryClient.invalidateQueries({ queryKey: debtKeys.byEvent(eventId) });
       void queryClient.invalidateQueries({ queryKey: debtKeys.participants(eventId) });
+      void queryClient.invalidateQueries({ queryKey: positionKeys.byEvent(eventId) });
+    },
+  });
+}
+
+export function useReopenSelection(eventId: number, groupId: number) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      try {
+        await api.post(`events/${eventId}/reopen-selection`);
+      } catch (error) {
+        throw await toApiError(error);
+      }
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: eventKeys.detail(eventId) });
+      void queryClient.invalidateQueries({ queryKey: eventKeys.byGroup(groupId) });
+      void queryClient.invalidateQueries({ queryKey: debtKeys.byEvent(eventId) });
+      void queryClient.invalidateQueries({ queryKey: debtKeys.participants(eventId) });
+      void queryClient.invalidateQueries({ queryKey: positionKeys.byEvent(eventId) });
     },
   });
 }

@@ -1,17 +1,10 @@
 import { Portal } from '@ark-ui/react/portal';
-import {
-  animate,
-  AnimatePresence,
-  motion,
-  useDragControls,
-  useMotionValue,
-  type PanInfo,
-} from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { X } from '@phosphor-icons/react';
 import {
   cx,
   sheetBackdrop,
-  sheetDragSnap,
   sheetPanel,
   scrollElementIntoContainer,
   useBodyScrollLock,
@@ -19,13 +12,12 @@ import {
   useTransientWillChange,
   useVisualViewportFrame,
 } from '@/shared/lib';
+import { Icon } from '../Icon';
+import { IconButton } from '../IconButton';
 import * as css from './Sheet.css';
 import { useOverlayStore } from './sheet.store';
 
-const DISMISS_OFFSET = 88;
-const DISMISS_VELOCITY = 380;
 const WILL_CHANGE_MS = 420;
-const KEYBOARD_OPEN_HEIGHT_RATIO = 0.85;
 
 export interface SheetProps {
   open: boolean;
@@ -39,7 +31,21 @@ export interface SheetProps {
   nested?: boolean;
 }
 
-/** Нижняя шторка с плавной анимацией и свайпом вниз для закрытия. */
+function setTelegramVerticalSwipes(enabled: boolean) {
+  const webApp = (
+    window as Window & {
+      Telegram?: { WebApp?: { enableVerticalSwipes?: () => void; disableVerticalSwipes?: () => void } };
+    }
+  ).Telegram?.WebApp;
+  if (!webApp) return;
+  if (enabled) {
+    webApp.enableVerticalSwipes?.();
+    return;
+  }
+  webApp.disableVerticalSwipes?.();
+}
+
+/** Нижняя шторка: закрытие крестиком, без свайпа вниз. */
 export function Sheet({
   open,
   onOpenChange,
@@ -54,8 +60,6 @@ export function Sheet({
   const reduced = usePrefersReducedMotion();
   const viewportFrame = useVisualViewportFrame(open);
   useBodyScrollLock(open);
-  const dragY = useMotionValue(0);
-  const dragControls = useDragControls();
   const wasOpen = useRef(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
@@ -64,10 +68,6 @@ export function Sheet({
   const registerSheet = useOverlayStore((s) => s.registerSheet);
   const unregisterSheet = useOverlayStore((s) => s.unregisterSheet);
   const layer = nested ? 'nested' : 'base';
-
-  const keyboardOpen =
-    typeof window !== 'undefined' &&
-    viewportFrame.height < window.innerHeight * KEYBOARD_OPEN_HEIGHT_RATIO;
 
   useTransientWillChange(panelRef, open ? 'open' : 'closed', WILL_CHANGE_MS);
 
@@ -86,12 +86,17 @@ export function Sheet({
   useEffect(() => {
     if (!open) return;
     registerSheet();
-    return unregisterSheet;
+    setTelegramVerticalSwipes(false);
+    return () => {
+      unregisterSheet();
+      if (useOverlayStore.getState().sheetCount === 0) {
+        setTelegramVerticalSwipes(true);
+      }
+    };
   }, [open, registerSheet, unregisterSheet]);
 
   useEffect(() => {
     if (!open) return;
-    dragY.set(0);
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onOpenChange(false);
@@ -99,7 +104,7 @@ export function Sheet({
     document.addEventListener('keydown', onKeyDown);
 
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [open, onOpenChange, dragY]);
+  }, [open, onOpenChange]);
 
   useEffect(() => {
     if (!open) return;
@@ -119,16 +124,7 @@ export function Sheet({
 
   const close = () => onOpenChange(false);
 
-  const onDragEnd = (_event: PointerEvent, info: PanInfo) => {
-    if (info.offset.y > DISMISS_OFFSET || info.velocity.y > DISMISS_VELOCITY) {
-      close();
-      return;
-    }
-    void animate(dragY, 0, sheetDragSnap);
-  };
-
   const handleExitComplete = () => {
-    dragY.set(0);
     setAnimating(false);
     if (wasOpen.current) {
       wasOpen.current = false;
@@ -189,45 +185,36 @@ export function Sheet({
               onAnimationStart={() => setAnimating(true)}
               onAnimationComplete={handleAnimationComplete}
             >
-              <motion.div
-                className={css.panelInner}
-                style={{ y: dragY }}
-                drag={reduced || keyboardOpen ? false : 'y'}
-                dragControls={dragControls}
-                dragListener={false}
-                dragConstraints={{ top: 0 }}
-                dragElastic={{ top: 0, bottom: 0.65 }}
-                onDragEnd={onDragEnd}
-              >
-                <div
-                  className={css.grabberRow}
-                  onPointerDown={(event) => {
-                    if (reduced || keyboardOpen) return;
-                    dragControls.start(event);
-                  }}
-                >
-                  <div className={css.grabber} aria-hidden />
-                </div>
-
-                {title != null || description != null ? (
-                  <div className={css.header}>
+              <div className={css.panelInner}>
+                <div className={css.header}>
+                  <div className={css.headerTop}>
                     {title != null ? (
                       <h2 id={titleId} className={css.titleText}>
                         {title}
                       </h2>
-                    ) : null}
-                    {description != null ? (
-                      <p id={descId} className={css.descriptionText}>
-                        {description}
-                      </p>
-                    ) : null}
+                    ) : (
+                      <span className={css.titleSpacer} />
+                    )}
+                    <IconButton
+                      aria-label="Закрыть"
+                      variant="bare"
+                      size="sm"
+                      onClick={close}
+                    >
+                      <Icon icon={X} weight="bold" />
+                    </IconButton>
                   </div>
-                ) : null}
+                  {description != null ? (
+                    <p id={descId} className={css.descriptionText}>
+                      {description}
+                    </p>
+                  ) : null}
+                </div>
 
                 <div ref={bodyRef} className={css.body} data-sheet-body>
                   {children}
                 </div>
-              </motion.div>
+              </div>
             </motion.div>
           </div>
         </Portal>
