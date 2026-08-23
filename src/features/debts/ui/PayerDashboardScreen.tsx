@@ -2,34 +2,36 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { CaretDown, CaretLeft, CaretRight } from '@phosphor-icons/react';
 import type { DebtResponse, EventResponse } from '@/shared/api';
-import { useGroupMembersQuery } from '@/features/groups/api/queries';
+import { groupKeys, useGroupMembersQuery } from '@/features/groups/api/queries';
 import {
   useConfirmAll,
   useConfirmPayer,
   useDispute,
 } from '@/features/payments/api/queries';
 import { isApiError } from '@/shared/api';
-import { debtStatusLabel, eventStatusLabel, formatMoney, haptics, memberDisplayLabel, paymentStatusLabel } from '@/shared/lib';
+import { debtStatusLabel, eventStatusLabel, formatMoney, haptics, memberDisplayLabel, paymentStatusLabel, useScreenRefresh, zeroDebtStatusLabel } from '@/shared/lib';
 import {
   Badge,
   Button,
   EmptyState,
   Icon,
   IconButton,
+  RefreshIconButton,
   Screen,
   Skeleton,
   Stack,
   toast,
 } from '@/shared/ui';
-import { useCloseEvent } from '@/features/events/api/queries';
+import { eventKeys, useCloseEvent } from '@/features/events/api/queries';
 import { EventCapacityBar } from '@/features/events/ui/EventCapacityBar';
 import { DeleteEventControl } from '@/features/events/ui/DeleteEventControl';
 import { FilePreview } from '@/features/files/ui/FilePreview';
-import { usePositionsQuery } from '@/features/positions/api/queries';
+import { positionKeys, usePositionsQuery } from '@/features/positions/api/queries';
 import { SelectionSummary } from '@/features/selections/ui/SelectionSummary';
 import { selectionItemsForUser } from '@/features/selections/model/selectionSummary';
 import { useSelectionReopen } from '@/features/selections/model/useSelectionReopen';
 import {
+  debtKeys,
   useEventDebtsQuery,
   useParticipantsStatusQuery,
   useRemindMutation,
@@ -99,7 +101,11 @@ function participantStatusLabel(
   if (!selectionCompleted) {
     return 'Выбирает';
   }
-  return debtStatusLabel(debt?.status ?? fallbackDebtStatus);
+  const status = debt?.status ?? fallbackDebtStatus;
+  if (!status || status === 'NONE') {
+    return zeroDebtStatusLabel(true);
+  }
+  return debtStatusLabel(status);
 }
 
 export function PayerDashboardScreen({
@@ -109,8 +115,15 @@ export function PayerDashboardScreen({
   currentUserId,
 }: PayerDashboardScreenProps) {
   const navigate = useNavigate();
-  const { data: status, isLoading, isError, refetch } = useParticipantsStatusQuery(eventId);
+  const { data: status, isLoading, isError } = useParticipantsStatusQuery(eventId);
   const { data: debts, refetch: refetchDebts } = useEventDebtsQuery(eventId);
+  const { refresh, refreshing } = useScreenRefresh([
+    debtKeys.participants(eventId),
+    debtKeys.byEvent(eventId),
+    groupKeys.members(groupId),
+    positionKeys.byEvent(eventId),
+    eventKeys.detail(eventId),
+  ]);
   const { data: members } = useGroupMembersQuery(groupId);
   const { data: positions } = usePositionsQuery(eventId);
   const { canReopen, handleReopen, isReopening } = useSelectionReopen(
@@ -238,6 +251,8 @@ export function PayerDashboardScreen({
           <Icon icon={CaretLeft} weight="bold" />
         </IconButton>
       }
+      refreshing={refreshing && !isLoading}
+      headerAction={<RefreshIconButton refreshing={refreshing} onRefresh={() => void refresh()} />}
     >
       {isLoading ? (
         <Stack gap={4}>
@@ -249,7 +264,7 @@ export function PayerDashboardScreen({
         <EmptyState
           title="Не удалось загрузить статусы"
           actions={
-            <Button variant="secondary" onClick={() => void refetch()}>
+            <Button variant="secondary" loading={refreshing} onClick={() => void refresh()}>
               Повторить
             </Button>
           }

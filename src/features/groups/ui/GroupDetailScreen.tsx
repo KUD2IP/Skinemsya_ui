@@ -2,7 +2,8 @@ import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { CaretLeft, PencilSimple, Trash, UserPlus } from '@phosphor-icons/react';
-import { useDeleteGroup, useGroupQuery } from '../api/queries';
+import { groupKeys, useDeleteGroup, useGroupQuery } from '../api/queries';
+import { eventKeys } from '@/features/events/api/queries';
 import { useProfileQuery } from '@/features/profile/api/queries';
 import { AddMemberSheet } from './AddMemberSheet';
 import { EditGroupSheet } from './EditGroupSheet';
@@ -15,12 +16,13 @@ import {
   EmptyState,
   Icon,
   IconButton,
+  RefreshIconButton,
   Screen,
   Sheet,
   Stack,
   toast,
 } from '@/shared/ui';
-import { groupTypeLabel, haptics } from '@/shared/lib';
+import { groupTypeLabel, haptics, useScreenRefresh } from '@/shared/lib';
 
 interface GroupDetailScreenProps {
   groupId: number;
@@ -41,7 +43,12 @@ export function GroupDetailScreen({
 }: GroupDetailScreenProps) {
   const navigate = useNavigate();
   const { data: user } = useProfileQuery();
-  const { data: group, isLoading, isError, refetch } = useGroupQuery(groupId);
+  const { data: group, isLoading, isError } = useGroupQuery(groupId);
+  const { refresh, refreshing } = useScreenRefresh([
+    groupKeys.detail(groupId),
+    eventKeys.byGroup(groupId),
+    groupKeys.members(groupId),
+  ]);
   const deleteGroup = useDeleteGroup();
 
   const [editing, setEditing] = useState(false);
@@ -74,11 +81,13 @@ export function GroupDetailScreen({
     <Screen
       title={group?.name ?? 'Группа'}
       subtitle={group ? groupSubtitle(group.type, isOwner) : undefined}
+      refreshing={refreshing && !isLoading}
       headerLeading={
         <IconButton aria-label="Назад" onClick={() => void navigate({ to: '/' })}>
           <Icon icon={CaretLeft} weight="bold" />
         </IconButton>
       }
+      headerAction={<RefreshIconButton refreshing={refreshing} onRefresh={() => void refresh()} />}
     >
       {isLoading ? (
         <GroupsSkeleton />
@@ -87,7 +96,7 @@ export function GroupDetailScreen({
           title="Группа не найдена"
           description="Возможно, у вас нет доступа или группа была удалена."
           actions={
-            <Button variant="secondary" onClick={() => void refetch()}>
+            <Button variant="secondary" loading={refreshing} onClick={() => void refresh()}>
               Повторить
             </Button>
           }

@@ -116,6 +116,11 @@ export function debtStatusLabel(status: DebtStatus | string): string {
   return status;
 }
 
+/** Нет строки долга: нулевой выбор уже завершён или человек ещё не выбрал. */
+export function zeroDebtStatusLabel(selectionCompleted: boolean): string {
+  return selectionCompleted ? 'Готово' : 'Ещё не зашёл';
+}
+
 export function paymentStatusLabel(status: PaymentStatus): string {
   return PAYMENT_STATUS_LABELS[status];
 }

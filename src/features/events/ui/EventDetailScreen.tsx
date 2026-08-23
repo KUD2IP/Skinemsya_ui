@@ -1,17 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { CaretDown, CaretLeft, CaretRight } from '@phosphor-icons/react';
-import { PayerDashboardScreen, useParticipantsStatusQuery } from '@/features/debts';
+import { PayerDashboardScreen, debtKeys, useParticipantsStatusQuery } from '@/features/debts';
 import { useEventDebtsQuery } from '@/features/debts/api/queries';
-import { useGroupMembersQuery } from '@/features/groups/api/queries';
+import { groupKeys, useGroupMembersQuery } from '@/features/groups/api/queries';
 import { EventPositionsScreen } from '@/features/positions';
-import { usePositionsQuery } from '@/features/positions/api/queries';
+import { positionKeys, usePositionsQuery } from '@/features/positions/api/queries';
 import { PaymentScreen } from '@/features/payments';
 import { EventSelectionScreen } from '@/features/selections/ui/EventSelectionScreen';
 import { SelectionSummary } from '@/features/selections/ui/SelectionSummary';
 import { selectionItemsForUser } from '@/features/selections/model/selectionSummary';
 import { useSelectionReopen } from '@/features/selections/model/useSelectionReopen';
-import { useEventQuery, useJoinEvent } from '../api/queries';
+import { eventKeys, useEventQuery, useJoinEvent } from '../api/queries';
 import { canJoinEvent } from '../model/eventRoster';
 import { EventCapacityBar } from './EventCapacityBar';
 import { DeleteEventControl } from './DeleteEventControl';
@@ -25,6 +25,7 @@ import {
   EmptyState,
   Icon,
   IconButton,
+  RefreshIconButton,
   Screen,
   Stack,
 } from '@/shared/ui';
@@ -34,6 +35,8 @@ import {
   formatDateTime,
   formatMoney,
   memberDisplayLabel,
+  useScreenRefresh,
+  zeroDebtStatusLabel,
 } from '@/shared/lib';
 
 interface EventDetailScreenProps {
@@ -56,6 +59,13 @@ function CompletedEventSummary({
   const { data: members } = useGroupMembersQuery(groupId);
   const { data: positions } = usePositionsQuery(event.id);
   const { data: participantsStatus } = useParticipantsStatusQuery(event.id);
+  const { refresh, refreshing } = useScreenRefresh([
+    eventKeys.detail(event.id),
+    debtKeys.byEvent(event.id),
+    debtKeys.participants(event.id),
+    groupKeys.members(groupId),
+    positionKeys.byEvent(event.id),
+  ]);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const participantCount = event.expectedParticipantCount;
 
@@ -111,6 +121,8 @@ function CompletedEventSummary({
           <Icon icon={CaretLeft} weight="bold" />
         </IconButton>
       }
+      refreshing={refreshing}
+      headerAction={<RefreshIconButton refreshing={refreshing} onRefresh={() => void refresh()} />}
     >
       <Stack gap={6}>
         <EventCapacityBar event={event} currentUserId={currentUserId} />
@@ -156,7 +168,11 @@ function CompletedEventSummary({
                     ) : null}
                   </div>
                   <Badge tone={isPayer ? 'brand' : 'success'}>
-                    {isPayer ? 'Плательщик' : debtStatusLabel(debt?.status ?? person.debtStatus)}
+                    {isPayer
+                      ? 'Плательщик'
+                      : debt
+                        ? debtStatusLabel(debt.status)
+                        : zeroDebtStatusLabel(person.selectionCompleted)}
                   </Badge>
                 </button>
                 {isExpanded ? <SelectionSummary items={items} variant="plain" /> : null}
@@ -182,6 +198,11 @@ function PayerWaitScreen({
   const navigate = useNavigate();
   const { data: positions } = usePositionsQuery(event.id);
   const { data: debts } = useEventDebtsQuery(event.id);
+  const { refresh, refreshing } = useScreenRefresh([
+    eventKeys.detail(event.id),
+    positionKeys.byEvent(event.id),
+    debtKeys.byEvent(event.id),
+  ]);
   const { canReopen, handleReopen, isReopening } = useSelectionReopen(
     event.id,
     groupId,
@@ -208,6 +229,8 @@ function PayerWaitScreen({
           <Icon icon={CaretLeft} weight="bold" />
         </IconButton>
       }
+      refreshing={refreshing}
+      headerAction={<RefreshIconButton refreshing={refreshing} onRefresh={() => void refresh()} />}
     >
       <Stack gap={4}>
         <EventCapacityBar event={event} currentUserId={currentUserId} />
@@ -215,7 +238,7 @@ function PayerWaitScreen({
           <Stack gap={3}>
             <Badge tone="brand">{eventStatusLabel(event.status)}</Badge>
             <p className={css.description}>
-              Участники выбирают позиции. Когда все закончат, вы сможете проверить переводы.
+              Вы в сборе с нулём. Плательщик проверит переводы.
             </p>
           </Stack>
         </Card>

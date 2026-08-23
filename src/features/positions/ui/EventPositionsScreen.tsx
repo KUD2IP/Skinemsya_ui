@@ -5,7 +5,7 @@ import type { EventResponse, PositionResponse } from '@/shared/api';
 import { useUploadFile } from '@/features/files/api/queries';
 import { useProfileQuery } from '@/features/profile/api/queries';
 import { EditProfileSheet } from '@/features/profile/ui/EditProfileSheet';
-import { useSendToDistribution } from '@/features/events/api/queries';
+import { eventKeys, useSendToDistribution } from '@/features/events/api/queries';
 import { EventCapacityBar } from '@/features/events/ui/EventCapacityBar';
 import { DeleteEventControl } from '@/features/events/ui/DeleteEventControl';
 import { isApiError } from '@/shared/api';
@@ -13,12 +13,14 @@ import {
   eventStatusLabel,
   formatMoney,
   haptics,
+  useScreenRefresh,
 } from '@/shared/lib';
 import {
   Button,
   EmptyState,
   Icon,
   IconButton,
+  RefreshIconButton,
   Screen,
   Sheet,
   Skeleton,
@@ -27,6 +29,8 @@ import {
   useAnySheetOpen,
 } from '@/shared/ui';
 import {
+  positionKeys,
+  receiptKeys,
   useMarkShared,
   useUnmarkShared,
   useDeletePosition,
@@ -63,6 +67,11 @@ export function EventPositionsScreen({
   const navigate = useNavigate();
   const { data: positions, isLoading, isError, refetch } = usePositionsQuery(eventId);
   const { data: receipts } = useEventReceiptsQuery(eventId);
+  const { refresh, refreshing } = useScreenRefresh([
+    positionKeys.byEvent(eventId),
+    receiptKeys.byEvent(eventId),
+    eventKeys.detail(eventId),
+  ]);
   const { data: payerProfile } = useProfileQuery();
   const uploadFile = useUploadFile();
   const processReceipt = useProcessReceipt(eventId);
@@ -159,6 +168,8 @@ export function EventPositionsScreen({
           <Icon icon={CaretLeft} weight="bold" />
         </IconButton>
       }
+      refreshing={refreshing && !isLoading}
+      headerAction={<RefreshIconButton refreshing={refreshing} onRefresh={() => void refresh()} />}
     >
       {isLoading ? (
         <Stack gap={4}>
@@ -170,7 +181,7 @@ export function EventPositionsScreen({
         <EmptyState
           title="Не удалось загрузить позиции"
           actions={
-            <Button variant="secondary" onClick={() => void refetch()}>
+            <Button variant="secondary" loading={refreshing} onClick={() => void refresh()}>
               Повторить
             </Button>
           }

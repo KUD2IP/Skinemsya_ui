@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { CaretLeft, Trash } from '@phosphor-icons/react';
-import { useParticipantsStatusQuery } from '@/features/debts';
-import { useGroupMembersQuery, useGroupQuery } from '@/features/groups/api/queries';
+import { debtKeys, useParticipantsStatusQuery } from '@/features/debts';
+import { groupKeys, useGroupMembersQuery, useGroupQuery } from '@/features/groups/api/queries';
 import { InviteLinkButton } from '@/features/groups/ui/InviteLinkButton';
 import * as membersCss from '@/features/groups/ui/GroupMembers.css';
 import { isApiError } from '@/shared/api';
@@ -13,14 +13,16 @@ import {
   FieldGroup,
   Icon,
   IconButton,
+  RefreshIconButton,
   Screen,
   Sheet,
   Skeleton,
   Stack,
   toast,
 } from '@/shared/ui';
-import { avatarToneFromSeed, formatTelegramUsername, haptics, memberDisplayLabel } from '@/shared/lib';
+import { avatarToneFromSeed, formatTelegramUsername, haptics, memberDisplayLabel, useScreenRefresh } from '@/shared/lib';
 import {
+  eventKeys,
   useEventInviteLinkQuery,
   useEventQuery,
   useLeaveEvent,
@@ -47,10 +49,16 @@ export function EventParticipantsScreen({
   currentUserId,
 }: EventParticipantsScreenProps) {
   const navigate = useNavigate();
-  const { data: event, isLoading: eventLoading, isError: eventError, refetch: refetchEvent } =
+  const { data: event, isLoading: eventLoading, isError: eventError } =
     useEventQuery(eventId);
-  const { data: status, isLoading: statusLoading, isError: statusError, refetch: refetchStatus } =
+  const { data: status, isLoading: statusLoading, isError: statusError } =
     useParticipantsStatusQuery(eventId, event?.currentUserJoined === true);
+  const { refresh, refreshing } = useScreenRefresh([
+    eventKeys.detail(eventId),
+    debtKeys.participants(eventId),
+    groupKeys.members(groupId),
+    groupKeys.detail(groupId),
+  ]);
   const { data: members } = useGroupMembersQuery(groupId);
   const { data: group } = useGroupQuery(groupId);
   const leave = useLeaveEvent(eventId, groupId);
@@ -158,6 +166,8 @@ export function EventParticipantsScreen({
           <Icon icon={CaretLeft} weight="bold" />
         </IconButton>
       }
+      refreshing={refreshing && !isLoading}
+      headerAction={<RefreshIconButton refreshing={refreshing} onRefresh={() => void refresh()} />}
     >
       {isLoading ? (
         <Stack gap={2}>
@@ -168,13 +178,7 @@ export function EventParticipantsScreen({
         <EmptyState
           title="Не удалось загрузить участников"
           actions={
-            <Button
-              variant="secondary"
-              onClick={() => {
-                void refetchEvent();
-                void refetchStatus();
-              }}
-            >
+            <Button variant="secondary" loading={refreshing} onClick={() => void refresh()}>
               Повторить
             </Button>
           }

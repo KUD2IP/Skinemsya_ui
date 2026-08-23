@@ -5,20 +5,22 @@ import type { EventResponse, PaymentStatus } from '@/shared/api';
 import { useUploadFile } from '@/features/files/api/queries';
 import { FilePreview } from '@/features/files/ui/FilePreview';
 import { isApiError } from '@/shared/api';
-import { formatMoney, formatPhone, haptics } from '@/shared/lib';
+import { formatMoney, formatPhone, haptics, useScreenRefresh } from '@/shared/lib';
 import {
   Button,
   EmptyState,
   Icon,
   IconButton,
+  RefreshIconButton,
   Screen,
   Skeleton,
   Stack,
   toast,
 } from '@/shared/ui';
-import { useConfirmDebtor, usePaymentDetailsQuery } from '../api/queries';
-import { useEventDebtsQuery } from '@/features/debts/api/queries';
-import { usePositionsQuery } from '@/features/positions/api/queries';
+import { paymentKeys, useConfirmDebtor, usePaymentDetailsQuery } from '../api/queries';
+import { debtKeys, useEventDebtsQuery } from '@/features/debts/api/queries';
+import { eventKeys } from '@/features/events/api/queries';
+import { positionKeys, usePositionsQuery } from '@/features/positions/api/queries';
 import { SelectionSummary } from '@/features/selections/ui/SelectionSummary';
 import { selectionItemsForUser } from '@/features/selections/model/selectionSummary';
 import { EventCapacityBar } from '@/features/events/ui/EventCapacityBar';
@@ -59,6 +61,12 @@ export function PaymentScreen({
   const { data: details, isLoading, isError, refetch } = usePaymentDetailsQuery(debtId);
   const { data: positions } = usePositionsQuery(eventId);
   const { data: debts } = useEventDebtsQuery(eventId);
+  const { refresh, refreshing } = useScreenRefresh([
+    paymentKeys.details(debtId),
+    positionKeys.byEvent(eventId),
+    debtKeys.byEvent(eventId),
+    eventKeys.detail(eventId),
+  ]);
   const { canReopen, handleReopen, isReopening } = useSelectionReopen(
     eventId,
     groupId,
@@ -166,6 +174,8 @@ export function PaymentScreen({
           <Icon icon={CaretLeft} weight="bold" />
         </IconButton>
       }
+      refreshing={refreshing && !isLoading}
+      headerAction={<RefreshIconButton refreshing={refreshing} onRefresh={() => void refresh()} />}
     >
       {isLoading ? (
         <Stack gap={4}>
@@ -176,7 +186,7 @@ export function PaymentScreen({
         <EmptyState
           title="Не удалось загрузить реквизиты"
           actions={
-            <Button variant="secondary" onClick={() => void refetch()}>
+            <Button variant="secondary" loading={refreshing} onClick={() => void refresh()}>
               Повторить
             </Button>
           }

@@ -1,18 +1,20 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { CaretLeft } from '@phosphor-icons/react';
 import type { EventResponse, PositionResponse } from '@/shared/api';
-import { useEventReceiptsQuery, usePositionsQuery } from '@/features/positions/api/queries';
+import { positionKeys, receiptKeys, useEventReceiptsQuery, usePositionsQuery } from '@/features/positions/api/queries';
+import { eventKeys } from '@/features/events/api/queries';
 import { ReceiptPreview } from '@/features/positions/ui/ReceiptPreview';
 import { PaymentScreen } from '@/features/payments/ui/PaymentScreen';
-import { useParticipantsStatusQuery, useEventDebtsQuery } from '@/features/debts/api/queries';
+import { debtKeys, useParticipantsStatusQuery, useEventDebtsQuery } from '@/features/debts/api/queries';
 import { isApiError } from '@/shared/api';
-import { eventStatusLabel, formatMoney, haptics, positionUnitPriceKopecks } from '@/shared/lib';
+import { eventStatusLabel, formatMoney, haptics, positionUnitPriceKopecks, useScreenRefresh } from '@/shared/lib';
 import {
   Button,
   EmptyState,
   Icon,
   IconButton,
+  RefreshIconButton,
   Screen,
   Skeleton,
   Stack,
@@ -81,6 +83,13 @@ export function EventSelectionScreen({
   const { data: receipts } = useEventReceiptsQuery(eventId);
   const { data: participantsStatus } = useParticipantsStatusQuery(eventId);
   const { data: debts, refetch: refetchDebts } = useEventDebtsQuery(eventId);
+  const { refresh, refreshing } = useScreenRefresh([
+    positionKeys.byEvent(eventId),
+    receiptKeys.byEvent(eventId),
+    debtKeys.participants(eventId),
+    debtKeys.byEvent(eventId),
+    eventKeys.detail(eventId),
+  ]);
   const updateSelections = useUpdateSelections(eventId);
   const completeSelection = useCompleteSelection(eventId, groupId);
   const reopenSelection = useReopenSelection(eventId, groupId);
@@ -155,6 +164,23 @@ export function EventSelectionScreen({
     return hasNonSharedQty || hasShared;
   }, [positions, quantities]);
 
+  const nothingToSelect = useMemo(() => {
+    if (!positions?.length) return false;
+    if (positions.some((position) => position.shared)) return false;
+    return positions.every((position) => isSoldOut(position, currentUserId));
+  }, [currentUserId, positions]);
+
+  const autoCompleteStarted = useRef(false);
+  useEffect(() => {
+    if (autoCompleteStarted.current) return;
+    if (!nothingToSelect || selectionDone || edit) return;
+    if (event.status !== 'DISTRIBUTION') return;
+    autoCompleteStarted.current = true;
+    void completeSelection.mutateAsync().catch(() => {
+      autoCompleteStarted.current = false;
+    });
+  }, [completeSelection, edit, event.status, nothingToSelect, selectionDone]);
+
   const hasUnsavedChanges = useMemo(() => {
     if (!positions?.length) return false;
     return positions.some((position) => {
@@ -182,13 +208,10 @@ export function EventSelectionScreen({
       }));
 
   const persistSelection = async () => {
-    if (edit && event.status === 'CALCULATED') {
+    if (edit && (event.status === 'DISTRIBUTION' || event.status === 'CALCULATED')) {
       await reopenSelection.mutateAsync();
     }
-    const selections = buildSelectionsPayload();
-    if (selections.length) {
-      await updateSelections.mutateAsync({ selections });
-    }
+    await updateSelections.mutateAsync({ selections: buildSelectionsPayload() });
     await completeSelection.mutateAsync();
   };
 
@@ -201,7 +224,7 @@ export function EventSelectionScreen({
   };
 
   const handlePay = async () => {
-    if (!hasPayableSelection) return;
+    if (!hasPayableSelection && !nothingToSelect) return;
     setSubmitting(true);
     try {
       await persistSelection();
@@ -261,7 +284,7 @@ export function EventSelectionScreen({
     );
   }
 
-  if (selectionDone && !myDebt && !edit) {
+  if (selectionDone && !myDebt && !edit && currentUserId !== event.payerId) {
     return (
       <Screen
         title={event.name}
@@ -274,10 +297,14 @@ export function EventSelectionScreen({
             <Icon icon={CaretLeft} weight="bold" />
           </IconButton>
         }
+        refreshing={refreshing && !isLoading}
+        headerAction={<RefreshIconButton refreshing={refreshing} onRefresh={() => void refresh()} />}
       >
         <Stack gap={4}>
           <EventCapacityBar event={event} currentUserId={currentUserId} />
-          <p className={css.waitCard}>Ждём, пока все выберут позиции…</p>
+          <p className={css.waitCard}>
+            Ждём, пока все выберут позиции…
+          </p>
           <SelectionSummary
             title="Твои позиции"
             items={myItems}
@@ -301,6 +328,8 @@ export function EventSelectionScreen({
             <Icon icon={CaretLeft} weight="bold" />
           </IconButton>
         }
+        refreshing={refreshing && !isLoading}
+        headerAction={<RefreshIconButton refreshing={refreshing} onRefresh={() => void refresh()} />}
       >
       {isLoading ? (
         <Stack gap={4}>
@@ -311,7 +340,7 @@ export function EventSelectionScreen({
         <EmptyState
           title="Не удалось загрузить позиции"
           actions={
-            <Button variant="secondary" onClick={() => void refetch()}>
+            <Button variant="secondary" loading={refreshing} onClick={() => void refresh()}>
               Повторить
             </Button>
           }
@@ -409,11 +438,11 @@ export function EventSelectionScreen({
             <Button
               type="button"
               fullWidth
-              disabled={!hasPayableSelection}
-              loading={submitting}
+              disabled={!hasPayableSelection && !nothingToSelect}
+              loading={submitting || completeSelection.isPending}
               onClick={() => void handlePay()}
             >
-              Скинуть {formatMoney(totalKopecks)}
+              {nothingToSelect ? 'Готово' : `Скинуть ${formatMoney(totalKopecks)}`}
             </Button>
           </div>
         </>

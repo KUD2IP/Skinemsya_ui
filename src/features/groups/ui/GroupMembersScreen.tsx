@@ -3,6 +3,7 @@ import { CaretLeft } from '@phosphor-icons/react';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import {
   flattenPageItems,
+  groupKeys,
   useGroupInviteLinkQuery,
   useGroupMembersInfiniteQuery,
   useGroupQuery,
@@ -19,13 +20,14 @@ import {
   EmptyState,
   Icon,
   IconButton,
+  RefreshIconButton,
   Screen,
   Sheet,
   Skeleton,
   Stack,
   toast,
 } from '@/shared/ui';
-import { haptics, memberDisplayLabel } from '@/shared/lib';
+import { haptics, memberDisplayLabel, useScreenRefresh } from '@/shared/lib';
 
 export function GroupMembersScreen() {
   const navigate = useNavigate();
@@ -33,8 +35,12 @@ export function GroupMembersScreen() {
   const groupId = Number(groupIdParam);
   const { data: user } = useProfileQuery();
   const { data: group } = useGroupQuery(groupId);
-  const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
+  const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useGroupMembersInfiniteQuery(groupId);
+  const { refresh, refreshing } = useScreenRefresh([
+    groupKeys.members(groupId),
+    groupKeys.detail(groupId),
+  ]);
   const removeMember = useRemoveGroupMember(groupId);
   const inviteLink = useGroupInviteLinkQuery(groupId);
   const members = flattenPageItems(data?.pages);
@@ -74,6 +80,8 @@ export function GroupMembersScreen() {
           <Icon icon={CaretLeft} weight="bold" />
         </IconButton>
       }
+      refreshing={refreshing && !isLoading}
+      headerAction={<RefreshIconButton refreshing={refreshing} onRefresh={() => void refresh()} />}
     >
       {isLoading ? (
         <Stack gap={2}>
@@ -86,7 +94,7 @@ export function GroupMembersScreen() {
           title="Не удалось загрузить участников"
           description="Проверьте соединение и попробуйте снова."
           actions={
-            <Button variant="secondary" onClick={() => void refetch()}>
+            <Button variant="secondary" loading={refreshing} onClick={() => void refresh()}>
               Повторить
             </Button>
           }
