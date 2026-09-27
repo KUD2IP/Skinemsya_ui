@@ -56,10 +56,14 @@ export const vars = createGlobalTheme(':root', {
     brand: 'linear-gradient(135deg, #21A038 0%, #2FD37A 100%)',
     surface: 'linear-gradient(180deg, #16201C 0%, #101714 100%)',
     glowSpot: 'radial-gradient(circle at 50% 0%, rgba(47,211,122,0.18), transparent 70%)',
+    /** Полированный титан корпуса устройства в мокапах лендинга. */
+    deviceFrame:
+      'linear-gradient(145deg, #F4F7F5 0%, #A9B8B1 14%, #EFF3F1 28%, #7C8C85 44%, #E4EAE7 58%, #8FA098 74%, #F2F6F4 88%, #98A9A1 100%)',
+    deviceButton: 'linear-gradient(180deg, #C3D0CA 0%, #8B9A93 50%, #B6C4BD 100%)',
   },
   font: {
     sans: "'Onest Variable', -apple-system, 'Segoe UI', Roboto, sans-serif",
-    display: "'Onest Variable', sans-serif",
+    display: "'Geologica Variable', 'Onest Variable', sans-serif",
     mono: "'JetBrains Mono Variable', ui-monospace, monospace",
   },
   fontSize: {
@@ -72,6 +76,9 @@ export const vars = createGlobalTheme(':root', {
     bodySm: '13px',
     caption: '12px',
     button: '16px',
+    landingXl: 'clamp(34px, 4.6vw, 54px)',
+    landingLg: 'clamp(25px, 3.1vw, 36px)',
+    landingMd: 'clamp(19px, 2.1vw, 25px)',
   },
   lineHeight: {
     display: '40px',
@@ -83,6 +90,9 @@ export const vars = createGlobalTheme(':root', {
     bodySm: '18px',
     caption: '16px',
     button: '20px',
+    landingXl: '1.06',
+    landingLg: '1.14',
+    landingMd: '1.35',
   },
   space: {
     0: '0px',
@@ -144,6 +154,21 @@ export const vars = createGlobalTheme(':root', {
   },
   layout: {
     contentMaxWidth: '560px',
+    landingMaxWidth: '1120px',
+    /** Чуть шире контейнер на больших экранах — hero и story не «пустеют» по центру. */
+    landingMaxWidthWide: '1280px',
+    landingHeroCopyMax: '580px',
+    landingPhoneWidth: '304px',
+    landingPhoneWidthLg: '320px',
+    landingPhoneBezel: '4px',
+    landingPhoneRadius: '41px',
+    landingPhoneTopBand: '52px',
+    landingPhoneIslandHeight: '28px',
+    landingStoryCol: 'minmax(300px, 36%)',
+    landingSectionY: '56px',
+    /** Высота sticky-шапки лендинга: safe area + строка бара + вертикальные отступы + border. */
+    landingBarHeight:
+      'calc(max(env(safe-area-inset-top), var(--tg-safe-area-inset-top, 0px)) + 52px + 12px + 12px + 1px)',
     safeTop: 'max(env(safe-area-inset-top), var(--tg-safe-area-inset-top, 0px))',
     safeBottom: 'max(env(safe-area-inset-bottom), var(--tg-safe-area-inset-bottom, 0px))',
     appHeight: 'var(--tg-viewport-stable-height, 100dvh)',
@@ -156,4 +181,6 @@ export const breakpoints = {
   md: 'screen and (min-width: 480px)',
   lg: 'screen and (min-width: 768px)',
   xl: 'screen and (min-width: 1024px)',
+  /** Хватает места под композицию «бумажный чек + телефон» на лендинге. */
+  wide: 'screen and (min-width: 1180px)',
 } as const;

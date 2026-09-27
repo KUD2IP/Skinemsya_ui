@@ -33,6 +33,9 @@ runs:
 
     - name: Build
       shell: bash
+      env:
+        VITE_TELEGRAM_BOT_USERNAME: ${{ vars.VITE_TELEGRAM_BOT_USERNAME }}
+        VITE_TELEGRAM_MINI_APP_SHORT_NAME: ${{ vars.VITE_TELEGRAM_MINI_APP_SHORT_NAME }}
       run: npm run build
 
     - name: Upload dist artifact

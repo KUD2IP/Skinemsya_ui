@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@ark-ui/react": "^5.37.2",
+    "@fontsource-variable/geologica": "^5.3.0",
     "@fontsource-variable/jetbrains-mono": "^5.2.8",
     "@fontsource-variable/onest": "^5.2.11",
     "@hookform/resolvers": "^5.4.0",

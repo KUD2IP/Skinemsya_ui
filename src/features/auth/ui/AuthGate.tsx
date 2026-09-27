@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { PaperPlaneTilt, WarningCircle } from '@phosphor-icons/react';
+import { WarningCircle } from '@phosphor-icons/react';
 import { AppSplash } from '@/app/AppSplash';
+import { LandingPage } from '@/app/landing';
 import { useSessionStore } from '../model/session.store';
 import { getInitDataRaw } from '../lib/initData';
 import { appReveal, splashScreen, usePrefersReducedMotion } from '@/shared/lib';
@@ -79,18 +80,9 @@ export function AuthGate({ children }: AuthGateProps) {
       ) : null}
 
       {phase === 'no-telegram' ? (
-        <motion.div
-          className={css.bootApp}
-          variants={reduced ? undefined : appReveal}
-          initial={reduced ? false : 'initial'}
-          animate={reduced ? undefined : 'animate'}
-        >
-          <EmptyState
-            icon={<Icon icon={PaperPlaneTilt} size="lg" />}
-            title="Откройте в Telegram"
-            description="Это мини-приложение работает внутри Telegram. Запустите его через бота, чтобы войти."
-          />
-        </motion.div>
+        <div className={css.bootLanding}>
+          <LandingPage />
+        </div>
       ) : null}
 
       {phase === 'failed' ? (

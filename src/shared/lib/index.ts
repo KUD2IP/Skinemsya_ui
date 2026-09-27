@@ -19,6 +19,7 @@ export {
   stackSwitch,
   splashScreen,
   appReveal,
+  landingReveal,
   appEnter,
 } from './motion';
 export { useTransientWillChange } from './useTransientWillChange';

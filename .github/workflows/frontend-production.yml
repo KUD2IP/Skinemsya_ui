@@ -66,6 +66,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Require bot username
+        env:
+          VITE_TELEGRAM_BOT_USERNAME: ${{ vars.VITE_TELEGRAM_BOT_USERNAME }}
+        run: |
+          set -euo pipefail
+          if [ -z "${VITE_TELEGRAM_BOT_USERNAME}" ]; then
+            echo "Repository variable VITE_TELEGRAM_BOT_USERNAME is empty. Set it in GitHub Actions variables (username without @)." >&2
+            exit 1
+          fi
+
       - uses: ./.github/actions/frontend-verify
         with:
           upload_dist: 'true'

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+<defs>
+  <linearGradient id="logoGradient" x1="250" y1="170" x2="780" y2="850" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#39E7B1"/>
+    <stop offset="0.48" stop-color="#22D98D"/>
+    <stop offset="1" stop-color="#0DBA52"/>
+  </linearGradient>
+
+  <filter id="softGlow" x="-40%" y="-40%" width="180%" height="180%">
+    <feGaussianBlur stdDeviation="18" result="blur"/>
+  </filter>
+
+  <filter id="tightGlow" x="-30%" y="-30%" width="160%" height="160%">
+    <feGaussianBlur stdDeviation="7" result="blur"/>
+  </filter>
+</defs>
+<path id="logo-top" d="M 761,295 735,257 706,228 664,199 623,180 583,168 535,161 478,162 429,171 382,188 338,213 305,240 273,278 254,313 242,352 239,376 239,400 245,433 257,462 274,487 294,507 315,522 340,534 369,541 391,541 404,538 414,533 424,524 431,512 433,504 432,489 426,477 418,469 391,456 377,444 369,433 361,410 361,390 366,371 372,359 387,339 407,321 426,309 446,300 479,291 495,289 529,289 555,293 575,299 599,310 620,324 637,340 647,353 656,369 663,393 666,421 671,433 680,445 693,455 705,460 714,462 730,462 740,460 752,455 767,443 779,424 783,410 784,370 782,355 774,324 Z" fill="url(#logoGradient)"/>
+</svg>

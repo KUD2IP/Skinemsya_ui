@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+<defs>
+  <linearGradient id="logoGradient" x1="250" y1="170" x2="780" y2="850" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#39E7B1"/>
+    <stop offset="0.48" stop-color="#22D98D"/>
+    <stop offset="1" stop-color="#0DBA52"/>
+  </linearGradient>
+
+  <filter id="softGlow" x="-40%" y="-40%" width="180%" height="180%">
+    <feGaussianBlur stdDeviation="18" result="blur"/>
+  </filter>
+
+  <filter id="tightGlow" x="-30%" y="-30%" width="160%" height="160%">
+    <feGaussianBlur stdDeviation="7" result="blur"/>
+  </filter>
+</defs>
+<path id="logo-check" d="M 612,468 602,463 592,463 582,468 498,561 474,537 468,534 459,533 450,536 442,544 439,553 442,567 485,611 492,614 503,614 510,611 614,499 618,492 619,482 617,475 Z" fill="url(#logoGradient)"/>
+</svg>

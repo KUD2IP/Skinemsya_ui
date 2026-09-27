@@ -3,8 +3,8 @@ import { recipe } from '@vanilla-extract/recipes';
 import { vars } from '@/shared/theme';
 
 const breathe = keyframes({
-  '0%, 100%': { opacity: 0.55, transform: 'scale(1)' },
-  '50%': { opacity: 1, transform: 'scale(1.04)' },
+  '0%, 100%': { opacity: 0.4, transform: 'scaleX(0.7)' },
+  '50%': { opacity: 1, transform: 'scaleX(1)' },
 });
 
 export const root = recipe({
@@ -37,9 +37,29 @@ export const root = recipe({
   defaultVariants: { layout: 'overlay' },
 });
 
+/** Пропорция совпадает с viewBox знака, иначе SVG перерастает контейнер. */
 export const stage = style({
-  width: 'min(160px, 40vw)',
-  height: 'min(160px, 40vw)',
+  position: 'relative',
+  width: 'min(124px, 32vw)',
+  aspectRatio: '555 / 720',
+});
+
+/** Ореол, вспыхивающий в момент, когда знак собрался. */
+export const halo = style({
+  position: 'absolute',
+  inset: '-18%',
+  borderRadius: vars.radius.full,
+  background: `radial-gradient(circle, color-mix(in srgb, ${vars.color.accent} 34%, transparent), transparent 66%)`,
+  filter: 'blur(26px)',
+  pointerEvents: 'none',
+});
+
+export const svg = style({
+  position: 'relative',
+  display: 'block',
+  width: '100%',
+  height: '100%',
+  overflow: 'visible',
 });
 
 export const textBlock = style({
@@ -52,6 +72,7 @@ export const textBlock = style({
 });
 
 export const wordmark = style({
+  display: 'flex',
   fontFamily: vars.font.display,
   fontSize: vars.fontSize.h1,
   lineHeight: vars.lineHeight.h1,
@@ -74,9 +95,9 @@ export const tagline = style({
 
 export const pulse = style({
   width: '64px',
-  height: '4px',
+  height: '3px',
   borderRadius: vars.radius.full,
-  background: vars.color.green[700],
+  background: vars.color.green[500],
   animation: `${breathe} 1.4s ease-in-out infinite`,
   '@media': {
     '(prefers-reduced-motion: reduce)': { animation: 'none', opacity: 0.7 },

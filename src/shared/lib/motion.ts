@@ -53,6 +53,15 @@ export const appReveal: Variants = {
   },
 };
 
+/** Лендинг в браузере: без transform, чтобы fixed-шапка не уезжала под контент. */
+export const landingReveal: Variants = {
+  initial: { opacity: 0 },
+  animate: {
+    opacity: 1,
+    transition: { duration: 0.42, ease: easeExit },
+  },
+};
+
 /** @deprecated Tab routes use TabPagerLayout horizontal track; kept for reference. */
 export const tabSwitch: Variants = {
   initial: (direction: number) => ({

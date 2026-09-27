@@ -1,4 +1,5 @@
 import '@fontsource-variable/onest';
+import '@fontsource-variable/geologica';
 import '@fontsource-variable/jetbrains-mono';
 import '@/shared/theme/global.css';
 

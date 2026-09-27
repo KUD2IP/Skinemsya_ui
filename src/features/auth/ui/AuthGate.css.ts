@@ -17,3 +17,15 @@ export const bootApp = style({
   minHeight: vars.layout.appHeight,
   width: '100%',
 });
+
+/** Лендинг: один скролл внутри страницы, шапка всегда снаружи скролла. */
+export const bootLanding = style({
+  display: 'flex',
+  flexDirection: 'column',
+  width: '100%',
+  maxWidth: '100%',
+  minWidth: 0,
+  height: vars.layout.appHeight,
+  minHeight: vars.layout.appHeight,
+  overflow: 'hidden',
+});

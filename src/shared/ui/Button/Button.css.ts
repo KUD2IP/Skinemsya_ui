@@ -34,7 +34,9 @@ export const button = recipe({
   variants: {
     variant: {
       primary: {
-        backgroundImage: vars.gradient.brand,
+        borderWidth: 0,
+        backgroundColor: vars.color.green[500],
+        backgroundImage: 'none',
         color: vars.color.text.inverse,
         boxShadow: vars.shadow.glow,
         '@media': {
