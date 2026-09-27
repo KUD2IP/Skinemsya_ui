@@ -63,16 +63,18 @@ jobs:
     name: Typecheck and build
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    environment:
+      name: production
     steps:
       - uses: actions/checkout@v4
 
       - name: Require bot username
         env:
-          VITE_TELEGRAM_BOT_USERNAME: ${{ vars.VITE_TELEGRAM_BOT_USERNAME }}
+          VITE_TELEGRAM_BOT_USERNAME: ${{ secrets.VITE_TELEGRAM_BOT_USERNAME }}
         run: |
           set -euo pipefail
           if [ -z "${VITE_TELEGRAM_BOT_USERNAME}" ]; then
-            echo "Repository variable VITE_TELEGRAM_BOT_USERNAME is empty. Set it in GitHub Actions variables (username without @)." >&2
+            echo "Production environment secret VITE_TELEGRAM_BOT_USERNAME is empty." >&2
             exit 1
           fi
 
@@ -80,6 +82,8 @@ jobs:
         with:
           upload_dist: 'true'
           artifact_name: frontend-dist
+          bot_username: ${{ secrets.VITE_TELEGRAM_BOT_USERNAME }}
+          mini_app_short_name: ${{ secrets.VITE_TELEGRAM_MINI_APP_SHORT_NAME }}
 
   deploy:
     name: Deploy production

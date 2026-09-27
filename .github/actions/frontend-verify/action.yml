@@ -14,6 +14,14 @@ inputs:
     description: Artifact name when upload_dist is true
     required: false
     default: frontend-dist
+  bot_username:
+    description: Telegram bot username without @, inlined into the production build
+    required: false
+    default: ''
+  mini_app_short_name:
+    description: Optional Telegram Mini App short name
+    required: false
+    default: ''
 
 runs:
   using: composite
@@ -34,8 +42,8 @@ runs:
     - name: Build
       shell: bash
       env:
-        VITE_TELEGRAM_BOT_USERNAME: ${{ vars.VITE_TELEGRAM_BOT_USERNAME }}
-        VITE_TELEGRAM_MINI_APP_SHORT_NAME: ${{ vars.VITE_TELEGRAM_MINI_APP_SHORT_NAME }}
+        VITE_TELEGRAM_BOT_USERNAME: ${{ inputs.bot_username }}
+        VITE_TELEGRAM_MINI_APP_SHORT_NAME: ${{ inputs.mini_app_short_name }}
       run: npm run build
 
     - name: Upload dist artifact
