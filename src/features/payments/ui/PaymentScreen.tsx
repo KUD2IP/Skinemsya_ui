@@ -25,6 +25,7 @@ import { SelectionSummary } from '@/features/selections/ui/SelectionSummary';
 import { selectionItemsForUser } from '@/features/selections/model/selectionSummary';
 import { EventCapacityBar } from '@/features/events/ui/EventCapacityBar';
 import { DeleteEventControl } from '@/features/events/ui/DeleteEventControl';
+import { RevertToDraftControl } from '@/features/events/ui/RevertToDraftControl';
 import { useSelectionReopen } from '@/features/selections/model/useSelectionReopen';
 import { preferredBankLabel } from '@/features/profile/model/banks';
 import * as css from './PaymentScreen.css';
@@ -301,6 +302,7 @@ export function PaymentScreen({
             onEdit={canReopen ? () => void handleReopen() : undefined}
             editing={isReopening}
           />
+          <RevertToDraftControl groupId={groupId} event={event} currentUserId={currentUserId} />
           <DeleteEventControl groupId={groupId} event={event} currentUserId={currentUserId} />
         </Stack>
       )}

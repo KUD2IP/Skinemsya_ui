@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { CaretLeft, Trash } from '@phosphor-icons/react';
-import { debtKeys, useParticipantsStatusQuery } from '@/features/debts';
+import { debtKeys, useEventDebtsQuery, useParticipantsStatusQuery } from '@/features/debts';
 import { groupKeys, useGroupMembersQuery, useGroupQuery } from '@/features/groups/api/queries';
 import { InviteLinkButton } from '@/features/groups/ui/InviteLinkButton';
 import * as membersCss from '@/features/groups/ui/GroupMembers.css';
@@ -30,12 +30,15 @@ import {
   useUpdateExpectedParticipants,
 } from '../api/queries';
 import {
+  LEAVE_BLOCKED_BY_TRANSFER,
   canChangeExpectedCount,
+  leaveBlockedMessage,
   canLeaveEvent,
   canRemoveEventParticipant,
   eventCapacityLabel,
 } from '../model/eventRoster';
 import { CountField } from './CountField';
+import * as revertCss from './RevertToDraftControl.css';
 
 interface EventParticipantsScreenProps {
   groupId: number;
@@ -55,6 +58,7 @@ export function EventParticipantsScreen({
     useParticipantsStatusQuery(eventId, event?.currentUserJoined === true);
   const { refresh, refreshing } = useScreenRefresh([
     eventKeys.detail(eventId),
+    debtKeys.byEvent(eventId),
     debtKeys.participants(eventId),
     groupKeys.members(groupId),
     groupKeys.detail(groupId),
@@ -68,6 +72,7 @@ export function EventParticipantsScreen({
   const [editingCount, setEditingCount] = useState(false);
   const [countDraft, setCountDraft] = useState<number | ''>('');
   const [userToRemove, setUserToRemove] = useState<number | null>(null);
+  const [leaveDenied, setLeaveDenied] = useState(false);
 
   const memberMap = useMemo(
     () => new Map((members ?? []).map((member) => [member.userId, member])),
@@ -76,6 +81,19 @@ export function EventParticipantsScreen({
 
   const people = status?.participants ?? [];
   const canLeave = event ? canLeaveEvent(event, currentUserId) : false;
+  const { data: debts, isLoading: debtsLoading, isError: debtsError } = useEventDebtsQuery(
+    eventId,
+    canLeave,
+  );
+  const transferWaiting =
+    currentUserId != null &&
+    (debts ?? []).some(
+      (debt) =>
+        debt.debtorId === currentUserId &&
+        (debt.status === 'PENDING_CONFIRMATION' ||
+          debt.paymentStatus === 'DEBTOR_CONFIRMED' ||
+          debt.paymentStatus === 'DISPUTED'),
+    );
   const canEditCount = event ? canChangeExpectedCount(event, currentUserId) : false;
   const minCount = Math.max(2, event?.joinedCount ?? 2);
 
@@ -108,7 +126,9 @@ export function EventParticipantsScreen({
       await navigate({ to: '/groups/$groupId', params: { groupId: String(groupId) } });
     } catch (error) {
       haptics.error();
-      toast.error(isApiError(error) ? error.message : 'Не удалось выйти из сбора');
+      const explanation = leaveBlockedMessage(error, 'Не удалось выйти из сбора');
+      if (explanation === LEAVE_BLOCKED_BY_TRANSFER) setLeaveDenied(true);
+      toast.error(explanation);
     }
   };
 
@@ -229,7 +249,10 @@ export function EventParticipantsScreen({
             })}
           </div>
 
-          {canLeave ? (
+          {canLeave && (transferWaiting || leaveDenied) ? (
+            <p className={revertCss.lockedNote}>{LEAVE_BLOCKED_BY_TRANSFER}</p>
+          ) : null}
+          {canLeave && !transferWaiting && !leaveDenied && !(debtsLoading && !debtsError) ? (
             <Button
               type="button"
               variant="secondary"

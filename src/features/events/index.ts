@@ -13,6 +13,7 @@ export {
   useSendToDistribution,
   useJoinEvent,
   useLeaveEvent,
+  useRevertToDraft,
   useUpdateExpectedParticipants,
   useCloseEvent,
   eventKeys,

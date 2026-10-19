@@ -203,6 +203,23 @@ export function useAddGroupMember(groupId: number) {
   });
 }
 
+export function useLeaveGroup() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (groupId: number) => {
+      try {
+        await api.post(`groups/${groupId}/leave`);
+      } catch (error) {
+        throw await toApiError(error);
+      }
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: groupKeys.all });
+      void queryClient.invalidateQueries({ queryKey: eventKeys.all });
+    },
+  });
+}
+
 export function useRemoveGroupMember(groupId: number) {
   const queryClient = useQueryClient();
   return useMutation({

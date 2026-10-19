@@ -22,6 +22,7 @@ import {
 } from '@/shared/ui';
 import { EventCapacityBar } from '@/features/events/ui/EventCapacityBar';
 import { DeleteEventControl } from '@/features/events/ui/DeleteEventControl';
+import { RevertToDraftControl } from '@/features/events/ui/RevertToDraftControl';
 import { useCompleteSelection, useReopenSelection, useUpdateSelections } from '../api/queries';
 import {
   leftoverQuantity,
@@ -427,6 +428,7 @@ export function EventSelectionScreen({
               </Stack>
             ) : null}
 
+            <RevertToDraftControl groupId={groupId} event={event} currentUserId={currentUserId} />
             <DeleteEventControl groupId={groupId} event={event} currentUserId={currentUserId} />
           </div>
 

@@ -25,6 +25,7 @@ import {
 import { eventKeys, useCloseEvent } from '@/features/events/api/queries';
 import { EventCapacityBar } from '@/features/events/ui/EventCapacityBar';
 import { DeleteEventControl } from '@/features/events/ui/DeleteEventControl';
+import { RevertToDraftControl } from '@/features/events/ui/RevertToDraftControl';
 import { FilePreview } from '@/features/files/ui/FilePreview';
 import { positionKeys, usePositionsQuery } from '@/features/positions/api/queries';
 import { SelectionSummary } from '@/features/selections/ui/SelectionSummary';
@@ -422,6 +423,7 @@ export function PayerDashboardScreen({
                 );
               })}
           </Stack>
+          <RevertToDraftControl groupId={groupId} event={event} currentUserId={currentUserId} />
           <DeleteEventControl groupId={groupId} event={event} currentUserId={currentUserId} />
         </div>
       )}

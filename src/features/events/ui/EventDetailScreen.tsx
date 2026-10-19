@@ -15,6 +15,7 @@ import { eventKeys, useEventQuery, useJoinEvent } from '../api/queries';
 import { canJoinEvent } from '../model/eventRoster';
 import { EventCapacityBar } from './EventCapacityBar';
 import { DeleteEventControl } from './DeleteEventControl';
+import { RevertToDraftControl } from './RevertToDraftControl';
 import { EventDetailSkeleton } from './EventDetailSkeleton';
 import * as css from './EventDetailScreen.css';
 import type { EventResponse } from '@/shared/api';
@@ -248,6 +249,7 @@ function PayerWaitScreen({
           onEdit={canReopen ? () => void handleReopen() : undefined}
           editing={isReopening}
         />
+        <RevertToDraftControl groupId={groupId} event={event} currentUserId={currentUserId} />
         <DeleteEventControl groupId={groupId} event={event} currentUserId={currentUserId} />
       </Stack>
     </Screen>

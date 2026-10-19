@@ -10,6 +10,7 @@ import type {
 } from '@/shared/api';
 import { pageHasMore } from '@/shared/api/dto';
 import { debtKeys } from '@/features/debts/api/queries';
+import { positionKeys } from '@/features/positions/api/queries';
 
 const PAGE_SIZE = 20;
 
@@ -219,6 +220,27 @@ export function useLeaveEvent(eventId: number, groupId: number) {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: eventKeys.detail(eventId) });
       void queryClient.invalidateQueries({ queryKey: eventKeys.byGroup(groupId) });
+    },
+  });
+}
+
+export function useRevertToDraft(eventId: number, groupId: number) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      try {
+        return await api.post(`events/${eventId}/revert-to-draft`).json<EventResponse>();
+      } catch (error) {
+        throw await toApiError(error);
+      }
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(eventKeys.detail(eventId), data);
+      void queryClient.invalidateQueries({ queryKey: eventKeys.byGroup(groupId) });
+      void queryClient.invalidateQueries({ queryKey: positionKeys.byEvent(eventId) });
+      void queryClient.invalidateQueries({ queryKey: debtKeys.byEvent(eventId) });
+      void queryClient.invalidateQueries({ queryKey: debtKeys.participants(eventId) });
+      void queryClient.invalidateQueries({ queryKey: debtKeys.summary() });
     },
   });
 }

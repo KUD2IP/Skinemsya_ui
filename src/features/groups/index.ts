@@ -9,6 +9,7 @@ export {
   useCreateChatLinkedGroup,
   useUpdateGroup,
   useDeleteGroup,
+  useLeaveGroup,
   useAddGroupMember,
   useRemoveGroupMember,
   useGroupMembersQuery,

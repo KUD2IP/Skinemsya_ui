@@ -1,7 +1,31 @@
-import type { EventResponse } from '@/shared/api';
+import { isApiError, type EventResponse } from '@/shared/api';
 
 export function eventCapacityLabel(event: EventResponse): string {
   return `${event.joinedCount}/${event.expectedParticipantCount}`;
+}
+
+export function canRevertToDraft(event: EventResponse, userId?: number): boolean {
+  if (userId == null) return false;
+  if (userId !== event.payerId && userId !== event.createdBy) return false;
+  return event.status === 'DISTRIBUTION' || event.status === 'CALCULATED';
+}
+
+export const LEAVE_BLOCKED_BY_TRANSFER =
+  'Нельзя выйти: вы уже отметили перевод, а плательщик его ещё не подтвердил';
+
+export function leaveBlockedMessage(error: unknown, fallback: string): string {
+  if (!isApiError(error)) return fallback;
+  const message = error.message.toLowerCase();
+  if (
+    message.includes('отметили перевод') ||
+    message.includes('waiting for payer confirmation') ||
+    message.includes('open debt') ||
+    error.code === 'DOMAIN_CONFLICT' ||
+    message.includes('cannot leave this event')
+  ) {
+    return LEAVE_BLOCKED_BY_TRANSFER;
+  }
+  return error.message || fallback;
 }
 
 export function canLeaveEvent(event: EventResponse, userId?: number): boolean {

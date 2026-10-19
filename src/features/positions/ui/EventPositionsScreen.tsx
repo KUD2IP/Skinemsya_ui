@@ -342,7 +342,7 @@ export function EventPositionsScreen({
         open={confirmLaunch}
         onOpenChange={setConfirmLaunch}
         title="Запустить сбор?"
-        description="Участники смогут выбирать позиции. Изменить список потом нельзя."
+        description="Участники смогут выбирать позиции. Если в списке ошибка, сбор можно вернуть в подготовку, пока никто не отметил перевод."
       >
         <Stack gap={3}>
           <Button

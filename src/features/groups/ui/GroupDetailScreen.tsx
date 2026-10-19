@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { CaretLeft, PencilSimple, Trash, UserPlus } from '@phosphor-icons/react';
-import { groupKeys, useDeleteGroup, useGroupQuery } from '../api/queries';
+import { CaretLeft, PencilSimple, SignOut, Trash, UserPlus } from '@phosphor-icons/react';
+import { groupKeys, useDeleteGroup, useGroupQuery, useLeaveGroup } from '../api/queries';
 import { eventKeys } from '@/features/events/api/queries';
+import { LEAVE_BLOCKED_BY_TRANSFER } from '@/features/events/model/eventRoster';
 import { useProfileQuery } from '@/features/profile/api/queries';
 import { AddMemberSheet } from './AddMemberSheet';
 import { EditGroupSheet } from './EditGroupSheet';
@@ -30,6 +31,23 @@ interface GroupDetailScreenProps {
   onCreateEvent: () => void;
 }
 
+function leaveGroupError(error: unknown): string {
+  if (!isApiError(error)) return 'Не удалось выйти из группы';
+  const message = error.message.toLowerCase();
+  if (message.includes('владел') || message.includes('owner')) return 'Владелец не может выйти из группы';
+  if (
+    message.includes('отметили перевод') ||
+    message.includes('waiting for payer confirmation') ||
+    message.includes('open debt')
+  ) {
+    return LEAVE_BLOCKED_BY_TRANSFER;
+  }
+  if (message.includes('плательщик') || message.includes('payer')) {
+    return 'Нельзя выйти из группы: вы плательщик в незакрытом сборе';
+  }
+  return error.message || 'Не удалось выйти из группы';
+}
+
 function groupSubtitle(groupType: 'CHAT_LINKED' | 'STANDALONE', isOwner: boolean): string {
   const parts = [groupTypeLabel(groupType)];
   if (isOwner) parts.push('Вы владелец');
@@ -50,17 +68,35 @@ export function GroupDetailScreen({
     groupKeys.members(groupId),
   ]);
   const deleteGroup = useDeleteGroup();
+  const leaveGroup = useLeaveGroup();
 
   const [editing, setEditing] = useState(false);
   const [addingMember, setAddingMember] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [confirmLeave, setConfirmLeave] = useState(false);
+  const [leaveError, setLeaveError] = useState<string | null>(null);
 
-  const isOwner = user != null && group ? group.ownerId === user.id : false;
+  const isOwner = user != null && group != null && group.ownerId === user.id;
+  const canLeave = user != null && group != null && !isOwner;
   const canAddMember = isOwner && group?.type === 'STANDALONE';
 
   const openSheet = (action: () => void) => {
     haptics.tap();
     action();
+  };
+
+  const handleLeave = async () => {
+    try {
+      await leaveGroup.mutateAsync(groupId);
+      haptics.success();
+      toast.saved('Вы вышли из группы');
+      void navigate({ to: '/' });
+    } catch (error) {
+      haptics.error();
+      const explanation = leaveGroupError(error);
+      setLeaveError(explanation);
+      toast.error(explanation);
+    }
   };
 
   const handleDelete = async () => {
@@ -148,11 +184,56 @@ export function GroupDetailScreen({
                   Удалить группу
                 </Button>
               </div>
+            ) : canLeave ? (
+              <div className={css.dangerZone}>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  fullWidth
+                  leftIcon={<Icon icon={SignOut} size="sm" />}
+                  onClick={() =>
+                    openSheet(() => {
+                      setLeaveError(null);
+                      setConfirmLeave(true);
+                    })
+                  }
+                >
+                  Выйти из группы
+                </Button>
+              </div>
             ) : null}
           </Stack>
 
           <EditGroupSheet open={editing} onOpenChange={setEditing} group={group} />
           <AddMemberSheet open={addingMember} onOpenChange={setAddingMember} groupId={groupId} />
+
+          <Sheet
+            open={confirmLeave}
+            onOpenChange={(open) => {
+              setConfirmLeave(open);
+              if (!open) setLeaveError(null);
+            }}
+            title="Выйти из группы?"
+            description={
+              leaveError ??
+              'Вы выйдете из группы и из всех её сборов. Если вы уже отметили перевод, а плательщик его ещё не подтвердил, выйти нельзя.'
+            }
+          >
+            <Stack gap={3}>
+              <Button
+                type="button"
+                variant="secondary"
+                fullWidth
+                loading={leaveGroup.isPending}
+                onClick={() => void handleLeave()}
+              >
+                Да, выйти
+              </Button>
+              <Button type="button" fullWidth onClick={() => setConfirmLeave(false)}>
+                Остаться
+              </Button>
+            </Stack>
+          </Sheet>
 
           <Sheet
             open={confirmDelete}
