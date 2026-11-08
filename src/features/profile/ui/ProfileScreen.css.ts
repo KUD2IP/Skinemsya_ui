@@ -22,6 +22,13 @@ export const heroMeta = style({
   color: vars.color.text.secondary,
 });
 
+export const subscriptionTitle = style({
+  fontSize: vars.fontSize.h3,
+  lineHeight: vars.lineHeight.h3,
+  fontWeight: 700,
+  color: vars.color.text.primary,
+});
+
 export const sectionLabel = style({
   fontSize: vars.fontSize.caption,
   textTransform: 'uppercase',

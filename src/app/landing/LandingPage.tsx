@@ -3,6 +3,7 @@ import { LandingBar } from './sections/LandingBar';
 import { LandingFinePrint } from './sections/LandingFinePrint';
 import { LandingFooter } from './sections/LandingFooter';
 import { LandingHero } from './sections/LandingHero';
+import { LandingSubscription } from './sections/LandingSubscription';
 import { LandingStory } from './sections/LandingStory';
 import { LandingScrollContext } from './lib/scrollRoot';
 import * as css from './LandingPage.css';
@@ -20,6 +21,7 @@ export function LandingPage() {
             <LandingHero />
             <LandingStory />
             <LandingFinePrint />
+            <LandingSubscription />
             <LandingFooter />
           </main>
         </div>

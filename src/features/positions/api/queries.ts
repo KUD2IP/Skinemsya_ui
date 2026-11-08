@@ -249,3 +249,20 @@ export function useSplitTips(eventId: number) {
     },
   });
 }
+
+export function useDiscardReceiptPositions(eventId: number) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (receiptId: number) => {
+      try {
+        await api.post(`events/${eventId}/receipts/${receiptId}/discard`);
+      } catch (error) {
+        throw await toApiError(error);
+      }
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: positionKeys.byEvent(eventId) });
+      void queryClient.invalidateQueries({ queryKey: receiptKeys.byEvent(eventId) });
+    },
+  });
+}

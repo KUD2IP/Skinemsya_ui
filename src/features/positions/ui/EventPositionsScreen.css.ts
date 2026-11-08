@@ -119,6 +119,16 @@ export const uploadRow = style({
   gap: vars.space[3],
 });
 
+export const uploadAction = style({
+  flex: '1 1 140px',
+});
+
+export const photoHint = style({
+  fontSize: vars.fontSize.caption,
+  lineHeight: vars.lineHeight.caption,
+  color: vars.color.text.secondary,
+});
+
 export const hiddenInput = style({
   position: 'absolute',
   width: 1,

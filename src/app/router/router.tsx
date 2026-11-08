@@ -12,6 +12,7 @@ import { GroupDetailPage } from '@/app/pages/GroupDetailPage';
 import { GroupMembersPage } from '@/app/pages/GroupMembersPage';
 import { EventDetailPage } from '@/app/pages/EventDetailPage';
 import { EventParticipantsPage } from '@/app/pages/EventParticipantsPage';
+import { LegalPage } from '@/app/legal/LegalPage';
 
 const rootRoute = createRootRoute({
   component: function RootLayout() {
@@ -34,6 +35,12 @@ const tabLayoutRoute = createRoute({
   getParentRoute: () => appRoute,
   id: 'tabs',
   component: TabPagerLayout,
+});
+
+const legalRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/legal',
+  component: LegalPage,
 });
 
 const groupsRoute = createRoute({
@@ -74,6 +81,7 @@ const eventParticipantsRoute = createRoute({
 });
 
 const routeTree = rootRoute.addChildren([
+  legalRoute,
   appRoute.addChildren([
     tabLayoutRoute.addChildren([groupsRoute, profileRoute]),
     groupDetailRoute,

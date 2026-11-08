@@ -3,13 +3,15 @@ import {
   TELEGRAM_CHANNEL_URL,
   getTelegramChannelHandle,
   getTelegramOpenUrl,
+  sellerRequisitesLine,
 } from '@/shared/config';
 import { LandingMark } from '../components/LandingMark';
 import * as css from './LandingFooter.css';
 
 const PAGE_LINKS = [
   { href: '#story', label: 'Как это работает' },
-  { href: '#details', label: 'Подробности' },
+  { href: '#subscription', label: 'Подписка' },
+  { href: '/legal', label: 'Оферта' },
 ] as const;
 
 interface ContactLink {
@@ -94,6 +96,10 @@ export function LandingFooter() {
 
       <div className={css.legal}>
         <span>© {year} Скинемся</span>
+        <span>{sellerRequisitesLine()}</span>
+        <a className={css.legalLink} href="/legal">
+          Оферта и реквизиты
+        </a>
         <a className={css.legalLink} href="#top">
           Наверх
         </a>

@@ -166,6 +166,9 @@ export interface ReceiptResponse {
   fileId: number;
   status: ReceiptStatus;
   createdAt: string;
+  totalKopecks?: number | null;
+  itemsSumKopecks?: number | null;
+  sumMismatch?: boolean;
 }
 
 export interface CreatePositionRequest {
@@ -186,6 +189,29 @@ export interface MarkSharedRequest {
 
 export interface ProcessReceiptRequest {
   fileId: number;
+}
+
+export type SubscriptionProvider = 'YOOKASSA' | 'STARS';
+
+export interface SubscriptionResponse {
+  active: boolean;
+  currentPeriodEnd: string | null;
+  cancelAtPeriodEnd: boolean;
+  provider: SubscriptionProvider | null;
+  priceKopecks: number;
+  stars: number;
+  yookassaAvailable: boolean;
+  starsAvailable: boolean;
+}
+
+export interface SubscriptionCheckoutRequest {
+  method: SubscriptionProvider;
+}
+
+export interface SubscriptionCheckoutResponse {
+  method: string;
+  confirmationUrl: string | null;
+  invoiceLink: string | null;
 }
 
 export interface SelectionItem {
@@ -274,6 +300,7 @@ export type ApiErrorCode =
   | 'NOT_FOUND'
   | 'DOMAIN_CONFLICT'
   | 'DOMAIN_RULE_VIOLATION'
+  | 'SUBSCRIPTION_REQUIRED'
   | 'INTEGRATION_ERROR'
   | 'INTERNAL_ERROR';
 

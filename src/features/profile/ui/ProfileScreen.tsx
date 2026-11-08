@@ -1,11 +1,8 @@
 import { useState } from 'react';
 import { ArrowClockwise, Bank, CaretRight, Phone } from '@phosphor-icons/react';
-import { useProfileQuery } from '../api/queries';
-import { preferredBankLabel } from '../model/banks';
-import { ProfileSkeleton } from './ProfileSkeleton';
-import { ProfileFieldEditor } from './ProfileFieldEditor';
-import type { RequisitesFocusField } from './RequisitesFields';
-import * as css from './ProfileScreen.css';
+import { ReceiptPaywallSheet, useCancelSubscription, useSubscriptionQuery } from '@/features/subscription';
+import { formatMoney, formatPhone, useRefreshAnimation } from '@/shared/lib';
+import { isApiError } from '@/shared/api';
 import {
   Avatar,
   Button,
@@ -17,13 +14,28 @@ import {
   RefreshIconButton,
   Screen,
   Stack,
+  toast,
 } from '@/shared/ui';
-import { formatPhone, useRefreshAnimation } from '@/shared/lib';
+import { useProfileQuery } from '../api/queries';
+import { preferredBankLabel } from '../model/banks';
+import { ProfileSkeleton } from './ProfileSkeleton';
+import { ProfileFieldEditor } from './ProfileFieldEditor';
+import type { RequisitesFocusField } from './RequisitesFields';
+import * as css from './ProfileScreen.css';
+
+function formatPeriodEnd(iso: string) {
+  return new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long' }).format(new Date(iso));
+}
 
 export function ProfileScreen() {
   const { data: user, isLoading, isError, refetch, isFetching } = useProfileQuery();
-  const { refresh, refreshing } = useRefreshAnimation(() => refetch(), isFetching);
+  const subscription = useSubscriptionQuery();
+  const cancelSubscription = useCancelSubscription();
+  const { refresh, refreshing } = useRefreshAnimation(async () => {
+    await Promise.all([refetch(), subscription.refetch()]);
+  }, isFetching || subscription.isFetching);
   const [editingField, setEditingField] = useState<RequisitesFocusField | null>(null);
+  const [paywallOpen, setPaywallOpen] = useState(false);
 
   return (
     <Screen
@@ -97,6 +109,57 @@ export function ProfileScreen() {
                 </List>
               </Card>
             </Stack>
+
+            <Stack gap={3}>
+              <span className={css.sectionLabel}>Подписка</span>
+              <Card>
+                {subscription.data?.currentPeriodEnd ? (
+                  <Stack gap={3}>
+                    <span className={css.subscriptionTitle}>
+                      До {formatPeriodEnd(subscription.data.currentPeriodEnd)}
+                    </span>
+                    {subscription.data.cancelAtPeriodEnd ? (
+                      <span className={css.heroMeta}>
+                        Продление отменено. Доступ до конца оплаченного периода.
+                      </span>
+                    ) : (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        loading={cancelSubscription.isPending}
+                        onClick={() =>
+                          void cancelSubscription.mutateAsync().catch((error) => {
+                            toast.error(
+                              isApiError(error)
+                                ? error.message
+                                : 'Не удалось отменить продление',
+                            );
+                          })
+                        }
+                      >
+                        Отменить продление
+                      </Button>
+                    )}
+                  </Stack>
+                ) : (
+                  <Stack gap={3}>
+                    <span className={css.subscriptionTitle}>
+                      {formatMoney(subscription.data?.priceKopecks ?? 4900)} за 30 дней
+                    </span>
+                    <span className={css.heroMeta}>Только для чтения фото чека</span>
+                    <Button type="button" fullWidth onClick={() => setPaywallOpen(true)}>
+                      Оформить подписку
+                    </Button>
+                  </Stack>
+                )}
+              </Card>
+            </Stack>
+            <ReceiptPaywallSheet
+              open={paywallOpen}
+              onOpenChange={setPaywallOpen}
+              showManual={false}
+              onActivated={() => setPaywallOpen(false)}
+            />
           </Stack>
         )}
     </Screen>

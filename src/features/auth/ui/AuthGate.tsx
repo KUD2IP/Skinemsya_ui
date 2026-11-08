@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { WarningCircle } from '@phosphor-icons/react';
 import { AppSplash } from '@/app/AppSplash';
 import { LandingPage } from '@/app/landing';
+import { LegalPage } from '@/app/legal/LegalPage';
 import { useSessionStore } from '../model/session.store';
 import { getInitDataRaw } from '../lib/initData';
 import { appReveal, splashScreen, usePrefersReducedMotion } from '@/shared/lib';
@@ -81,7 +82,7 @@ export function AuthGate({ children }: AuthGateProps) {
 
       {phase === 'no-telegram' ? (
         <div className={css.bootLanding}>
-          <LandingPage />
+          {window.location.pathname === '/legal' ? <LegalPage /> : <LandingPage />}
         </div>
       ) : null}
 

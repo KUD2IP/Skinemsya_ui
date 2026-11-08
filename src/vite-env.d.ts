@@ -6,6 +6,11 @@ interface ImportMetaEnv {
   readonly VITE_TELEGRAM_MINI_APP_SHORT_NAME?: string;
   readonly VITE_TELEGRAM_CHANNEL_URL?: string;
   readonly VITE_SUPPORT_EMAIL?: string;
+  readonly VITE_SELLER_NAME?: string;
+  readonly VITE_SELLER_INN?: string;
+  readonly VITE_SELLER_PHONE?: string;
+  readonly VITE_SELLER_EMAIL?: string;
+  readonly VITE_SELLER_ADDRESS?: string;
 }
 
 interface ImportMeta {

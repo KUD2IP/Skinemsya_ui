@@ -1,4 +1,4 @@
-import { useRef, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { PencilSimple, Users } from '@phosphor-icons/react';
 import type { PositionResponse } from '@/shared/api';
 import { formatMoney, haptics, positionUnitPriceKopecks } from '@/shared/lib';
@@ -72,7 +72,7 @@ export function PositionCard({
 
       {position.lowConfidence ? (
         <div className={css.lowConfidenceRow}>
-          <p className={css.lowConfidence}>Проверьте цену и название вручную</p>
+          <p className={css.lowConfidence}>Проверьте</p>
           {onEdit ? (
             <Button type="button" variant="secondary" size="sm" onClick={() => onEdit(position)}>
               Исправить
@@ -126,10 +126,24 @@ export function PositionCard({
 interface ReceiptUploadButtonProps {
   onFileSelected: (file: File) => void;
   loading?: boolean;
+  className?: string;
+  /** Вернуть false, чтобы не открывать выбор файла. */
+  beforeOpen?: () => boolean;
+  bindOpen?: (open: () => void) => void;
 }
 
-export function ReceiptUploadButton({ onFileSelected, loading }: ReceiptUploadButtonProps) {
+export function ReceiptUploadButton({
+  onFileSelected,
+  loading,
+  className,
+  beforeOpen,
+  bindOpen,
+}: ReceiptUploadButtonProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    bindOpen?.(() => inputRef.current?.click());
+  }, [bindOpen]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -153,7 +167,11 @@ export function ReceiptUploadButton({ onFileSelected, loading }: ReceiptUploadBu
         type="button"
         variant="secondary"
         loading={loading}
-        onClick={() => inputRef.current?.click()}
+        className={className}
+        onClick={() => {
+          if (beforeOpen && !beforeOpen()) return;
+          inputRef.current?.click();
+        }}
       >
         Загрузить чек
       </Button>
@@ -163,13 +181,15 @@ export function ReceiptUploadButton({ onFileSelected, loading }: ReceiptUploadBu
 
 interface AddManualButtonProps {
   onClick: () => void;
+  className?: string;
 }
 
-export function AddManualButton({ onClick }: AddManualButtonProps) {
+export function AddManualButton({ onClick, className }: AddManualButtonProps) {
   return (
     <Button
       type="button"
       variant="secondary"
+      className={className}
       onClick={() => {
         haptics.tap();
         onClick();

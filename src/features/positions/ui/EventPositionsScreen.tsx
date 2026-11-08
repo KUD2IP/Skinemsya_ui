@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { CaretLeft } from '@phosphor-icons/react';
 import type { EventResponse, PositionResponse } from '@/shared/api';
@@ -9,6 +9,7 @@ import { eventKeys, useSendToDistribution } from '@/features/events/api/queries'
 import { EventCapacityBar } from '@/features/events/ui/EventCapacityBar';
 import { DeleteEventControl } from '@/features/events/ui/DeleteEventControl';
 import { isApiError } from '@/shared/api';
+import { ReceiptPaywallSheet, useSubscriptionQuery } from '@/features/subscription';
 import {
   eventStatusLabel,
   formatMoney,
@@ -36,6 +37,7 @@ import {
   useDeletePosition,
   useEventReceiptsQuery,
   usePositionsQuery,
+  useDiscardReceiptPositions,
   useProcessReceipt,
   useSplitTips,
 } from '../api/queries';
@@ -79,7 +81,9 @@ export function EventPositionsScreen({
   const unmarkShared = useUnmarkShared(eventId);
   const deletePosition = useDeletePosition(eventId);
   const splitTips = useSplitTips(eventId);
+  const discardReceipt = useDiscardReceiptPositions(eventId);
   const sendToDistribution = useSendToDistribution(eventId, groupId);
+  const subscription = useSubscriptionQuery();
 
   const [adding, setAdding] = useState(false);
   const [editingPosition, setEditingPosition] = useState<PositionResponse | null>(null);
@@ -87,6 +91,12 @@ export function EventPositionsScreen({
   const [requisitesOpen, setRequisitesOpen] = useState(false);
   const [parsePhase, setParsePhase] = useState<ParsePhase>('idle');
   const [parseError, setParseError] = useState<string | null>(null);
+  const [paywallOpen, setPaywallOpen] = useState(false);
+  const [confirmSecond, setConfirmSecond] = useState(false);
+  const openPicker = useRef<(() => void) | null>(null);
+  const bindOpen = useCallback((open: () => void) => {
+    openPicker.current = open;
+  }, []);
   const sheetOpen = useAnySheetOpen();
 
   const canLaunch =
@@ -109,6 +119,33 @@ export function EventPositionsScreen({
     return tipsPosition?.receiptId ?? null;
   }, [positions]);
 
+  const receiptIdsWithPositions = useMemo(() => {
+    const ids = new Set<number>();
+    for (const position of positions ?? []) {
+      if (position.source === 'RECEIPT' && position.receiptId != null) ids.add(position.receiptId);
+    }
+    return ids;
+  }, [positions]);
+
+  const discardReceiptId = receipts?.find((receipt) => receiptIdsWithPositions.has(receipt.id))?.id;
+  const mismatch = receipts?.find(
+    (receipt) =>
+      receipt.sumMismatch && receipt.totalKopecks != null && receipt.itemsSumKopecks != null,
+  );
+
+  const beforeOpenReceipt = () => {
+    if (!subscription.data) return subscription.isError;
+    if (!subscription.data.active) {
+      setPaywallOpen(true);
+      return false;
+    }
+    if (receiptIdsWithPositions.size > 0) {
+      setConfirmSecond(true);
+      return false;
+    }
+    return true;
+  };
+
   const handleReceiptFile = async (file: File) => {
     setParsePhase('uploading');
     setParseError(null);
@@ -118,16 +155,33 @@ export function EventPositionsScreen({
       const receipt = await processReceipt.mutateAsync({ fileId: uploaded.id });
       if (receipt.status === 'FAILED') {
         setParsePhase('failed');
-        setParseError('Не распознали чек');
+        setParseError('Не увидели позиции. Снимите чек целиком, без бликов');
       } else {
         setParsePhase('success');
         haptics.success();
         toast.success('Чек обработан');
       }
     } catch (error) {
+      if (isApiError(error) && error.code === 'SUBSCRIPTION_REQUIRED') {
+        setParsePhase('idle');
+        setPaywallOpen(true);
+        return;
+      }
       setParsePhase('failed');
       setParseError(isApiError(error) ? error.message : 'Не удалось обработать чек');
       haptics.error();
+    }
+  };
+
+  const handleDiscard = async () => {
+    if (discardReceiptId == null) return;
+    try {
+      await discardReceipt.mutateAsync(discardReceiptId);
+      haptics.success();
+      toast.success('Позиции чека убраны');
+    } catch (error) {
+      haptics.error();
+      toast.error(isApiError(error) ? error.message : 'Не удалось убрать позиции');
     }
   };
 
@@ -192,25 +246,36 @@ export function EventPositionsScreen({
             <EventCapacityBar event={event} currentUserId={currentUserId} />
             <div className={css.uploadRow}>
               <ReceiptUploadButton
+                className={css.uploadAction}
                 onFileSelected={(file) => void handleReceiptFile(file)}
-                loading={parsePhase === 'uploading' || parsePhase === 'processing'}
+                loading={
+                  parsePhase === 'uploading' ||
+                  parsePhase === 'processing' ||
+                  (subscription.isPending && !subscription.data)
+                }
+                beforeOpen={beforeOpenReceipt}
+                bindOpen={bindOpen}
               />
-              <AddManualButton onClick={() => setAdding(true)} />
+              <AddManualButton className={css.uploadAction} onClick={() => setAdding(true)} />
             </div>
+            <p className={css.photoHint}>Снимите чек целиком, при ровном свете</p>
 
             {receipts?.[0] ? (
               <ReceiptPreview fileId={receipts[0].fileId} variant="thumbnail" />
             ) : null}
 
             {parsePhase === 'processing' ? (
-              <p className={css.bannerInfo}>Читаем чек…</p>
+              <p className={css.bannerInfo}>Читаем чек, обычно несколько секунд</p>
             ) : null}
             {parsePhase === 'success' ? (
               <p className={css.bannerInfo}>Позиции добавлены из чека</p>
             ) : null}
             {parsePhase === 'failed' ? (
               <div className={css.bannerError}>
-                {parseError ?? 'Не распознали'}
+                {parseError ?? 'Не увидели позиции. Снимите чек целиком, без бликов'}
+                {subscription.data?.currentPeriodEnd ? (
+                  <p>Оплачены 30 дней распознавания, не один снимок.</p>
+                ) : null}
                 <Stack gap={2}>
                   <Button type="button" variant="secondary" size="sm" onClick={() => setAdding(true)}>
                     Добавить вручную
@@ -219,8 +284,23 @@ export function EventPositionsScreen({
               </div>
             ) : null}
 
-            {(positions ?? []).some((p) => p.lowConfidence) ? (
-              <p className={css.bannerWarning}>Проверьте позиции вручную — низкая уверенность распознавания</p>
+            {mismatch ? (
+              <p className={css.bannerWarning}>
+                Блюда на {formatMoney(mismatch.itemsSumKopecks ?? 0)}, на чеке итог{' '}
+                {formatMoney(mismatch.totalKopecks ?? 0)}. Проверьте чаевые, скидку или поправьте строки.
+              </p>
+            ) : null}
+
+            {discardReceiptId != null ? (
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                loading={discardReceipt.isPending}
+                onClick={() => void handleDiscard()}
+              >
+                Убрать позиции этого чека
+              </Button>
             ) : null}
 
             {tipsReceiptId != null ? (
@@ -358,6 +438,36 @@ export function EventPositionsScreen({
           </Button>
         </Stack>
       </Sheet>
+
+      <Sheet
+        open={confirmSecond}
+        onOpenChange={setConfirmSecond}
+        title="Ещё один чек"
+        description="Добавить ещё один чек? Уже добавленные блюда останутся."
+      >
+        <Stack gap={3}>
+          <Button
+            type="button"
+            fullWidth
+            onClick={() => {
+              setConfirmSecond(false);
+              openPicker.current?.();
+            }}
+          >
+            Добавить чек
+          </Button>
+          <Button type="button" variant="secondary" fullWidth onClick={() => setConfirmSecond(false)}>
+            Отмена
+          </Button>
+        </Stack>
+      </Sheet>
+
+      <ReceiptPaywallSheet
+        open={paywallOpen}
+        onOpenChange={setPaywallOpen}
+        onManual={() => setAdding(true)}
+        onActivated={() => openPicker.current?.()}
+      />
 
       {payerProfile ? (
         <EditProfileSheet

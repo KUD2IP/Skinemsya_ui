@@ -4,7 +4,8 @@ import * as css from './LandingBar.css';
 
 const LINKS = [
   { href: '#story', label: 'Как это работает' },
-  { href: '#details', label: 'Подробности' },
+  { href: '#subscription', label: 'Подписка' },
+  { href: '/legal', label: 'Оферта' },
 ] as const;
 
 export function LandingBar() {
