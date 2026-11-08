@@ -19,6 +19,25 @@ export const offerLink = style({
   fontWeight: 600,
 });
 
+export const sberLink = style({
+  alignSelf: 'center',
+  padding: 0,
+  border: 'none',
+  background: 'transparent',
+  color: vars.color.text.secondary,
+  font: 'inherit',
+  fontSize: vars.fontSize.bodySm,
+  lineHeight: vars.lineHeight.body,
+  fontWeight: 600,
+  cursor: 'pointer',
+  selectors: {
+    '&:disabled': {
+      cursor: 'default',
+      opacity: 0.6,
+    },
+  },
+});
+
 export const widget = style({
   minHeight: 480,
   overflow: 'hidden',

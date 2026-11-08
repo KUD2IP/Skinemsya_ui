@@ -144,7 +144,7 @@ export function ReceiptPaywallSheet({
           await waitForActivation(
             () => subscription.refetch(),
             () => alive.current,
-            12,
+            90,
             periodBaseline.current,
           ),
         );
@@ -195,6 +195,16 @@ export function ReceiptPaywallSheet({
           </a>
         </p>
         {widgetToken ? <div id="yookassa-widget" className={css.widget} /> : null}
+        {widgetToken && primaryMethod === 'YOOKASSA' ? (
+          <button
+            type="button"
+            className={css.sberLink}
+            disabled={waiting}
+            onClick={() => void pay('YOOKASSA', true)}
+          >
+            {waiting && checkout.variables?.sbp ? 'Открываем Сбер…' : 'Открыть Сбер'}
+          </button>
+        ) : null}
         {!widgetToken && primaryMethod === 'YOOKASSA' ? (
           <Button
             type="button"
@@ -204,19 +214,7 @@ export function ReceiptPaywallSheet({
             disabled={waiting}
             onClick={() => void pay('YOOKASSA')}
           >
-            Оплатить {price} картой
-          </Button>
-        ) : null}
-        {primaryMethod === 'YOOKASSA' ? (
-          <Button
-            type="button"
-            variant="secondary"
-            fullWidth
-            loading={waiting && checkout.variables?.sbp === true}
-            disabled={waiting}
-            onClick={() => void pay('YOOKASSA', true)}
-          >
-            Через СБП
+            Оплатить {price}
           </Button>
         ) : null}
         {!widgetToken && starsAvailable && primaryMethod !== 'STARS' ? (
