@@ -208,22 +208,16 @@ export function ReceiptPaywallSheet({
           </Button>
         ) : null}
         {primaryMethod === 'YOOKASSA' ? (
-          <Stack gap={2}>
-            <Button
-              type="button"
-              variant="secondary"
-              fullWidth
-              loading={waiting && checkout.variables?.sbp === true}
-              disabled={waiting}
-              onClick={() => void pay('YOOKASSA', true)}
-            >
-              Через СБП
-            </Button>
-            <p className={css.note}>
-              Сбербанк в списке СБП внутри Telegram не открывается. Эта кнопка показывает банки в
-              браузере.
-            </p>
-          </Stack>
+          <Button
+            type="button"
+            variant="secondary"
+            fullWidth
+            loading={waiting && checkout.variables?.sbp === true}
+            disabled={waiting}
+            onClick={() => void pay('YOOKASSA', true)}
+          >
+            Через СБП
+          </Button>
         ) : null}
         {!widgetToken && starsAvailable && primaryMethod !== 'STARS' ? (
           <Button

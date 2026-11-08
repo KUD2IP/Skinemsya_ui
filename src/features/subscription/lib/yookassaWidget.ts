@@ -61,9 +61,9 @@ export function mountYooKassaWidget(
   }
   const widget = new Ctor({
     confirmation_token: token,
-    return_url: window.location.href,
+    return_url: `${window.location.origin}${window.location.pathname}`,
     customization: {
-      payment_methods: ['bank_card', 'yoo_money', 'tinkoff_bank'],
+      payment_methods: ['bank_card'],
       colors: {
         control_primary: '#21A038',
         control_primary_content: '#FFFFFF',
