@@ -196,14 +196,18 @@ export function ReceiptPaywallSheet({
         </p>
         {widgetToken ? <div id="yookassa-widget" className={css.widget} /> : null}
         {widgetToken && primaryMethod === 'YOOKASSA' ? (
-          <button
-            type="button"
-            className={css.sberLink}
-            disabled={waiting}
-            onClick={() => void pay('YOOKASSA', true)}
-          >
-            {waiting && checkout.variables?.sbp ? 'Открываем Сбер…' : 'Открыть Сбер'}
-          </button>
+          <p className={css.note}>
+            Если ваш банк не открывается из приложения, перейдите на{' '}
+            <button
+              type="button"
+              className={css.fallbackLink}
+              disabled={waiting}
+              onClick={() => void pay('YOOKASSA', true)}
+            >
+              страницу оплаты
+            </button>
+            , заплатите там и вернитесь обратно.
+          </p>
         ) : null}
         {!widgetToken && primaryMethod === 'YOOKASSA' ? (
           <Button

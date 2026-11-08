@@ -19,15 +19,15 @@ export const offerLink = style({
   fontWeight: 600,
 });
 
-export const sberLink = style({
-  alignSelf: 'center',
+export const fallbackLink = style({
+  display: 'inline',
   padding: 0,
   border: 'none',
   background: 'transparent',
-  color: vars.color.text.secondary,
+  color: vars.color.text.primary,
   font: 'inherit',
-  fontSize: vars.fontSize.bodySm,
-  lineHeight: vars.lineHeight.body,
+  fontSize: 'inherit',
+  lineHeight: 'inherit',
   fontWeight: 600,
   cursor: 'pointer',
   selectors: {
