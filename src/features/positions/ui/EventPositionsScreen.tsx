@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { CaretLeft } from '@phosphor-icons/react';
+import { CaretLeft, Trash } from '@phosphor-icons/react';
 import type { EventResponse, PositionResponse } from '@/shared/api';
 import { useUploadFile } from '@/features/files/api/queries';
 import { useProfileQuery } from '@/features/profile/api/queries';
@@ -173,15 +173,14 @@ export function EventPositionsScreen({
     }
   };
 
-  const handleDiscard = async () => {
-    if (discardReceiptId == null) return;
+  const handleDiscard = async (receiptId: number) => {
     try {
-      await discardReceipt.mutateAsync(discardReceiptId);
+      await discardReceipt.mutateAsync(receiptId);
       haptics.success();
-      toast.success('Позиции чека убраны');
+      toast.success('Чек удалён');
     } catch (error) {
       haptics.error();
-      toast.error(isApiError(error) ? error.message : 'Не удалось убрать позиции');
+      toast.error(isApiError(error) ? error.message : 'Не удалось удалить чек');
     }
   };
 
@@ -260,7 +259,24 @@ export function EventPositionsScreen({
             </div>
             <p className={css.photoHint}>Снимите чек целиком, при ровном свете</p>
 
-            {receipts?.[0] ? (
+            {event.status === 'DRAFT' && receipts && receipts.length > 0 ? (
+              <Stack gap={2}>
+                {receipts.map((receipt) => (
+                  <div key={receipt.id} className={css.receiptRow}>
+                    <div className={css.receiptPreview}>
+                      <ReceiptPreview fileId={receipt.fileId} variant="thumbnail" />
+                    </div>
+                    <IconButton
+                      aria-label="Удалить чек"
+                      disabled={discardReceipt.isPending}
+                      onClick={() => void handleDiscard(receipt.id)}
+                    >
+                      <Icon icon={Trash} />
+                    </IconButton>
+                  </div>
+                ))}
+              </Stack>
+            ) : receipts?.[0] ? (
               <ReceiptPreview fileId={receipts[0].fileId} variant="thumbnail" />
             ) : null}
 
@@ -296,10 +312,10 @@ export function EventPositionsScreen({
                 type="button"
                 variant="secondary"
                 size="sm"
-                loading={discardReceipt.isPending}
-                onClick={() => void handleDiscard()}
+                loading={discardReceipt.isPending && discardReceipt.variables === discardReceiptId}
+                onClick={() => void handleDiscard(discardReceiptId)}
               >
-                Убрать позиции этого чека
+                Удалить чек и позиции
               </Button>
             ) : null}
 

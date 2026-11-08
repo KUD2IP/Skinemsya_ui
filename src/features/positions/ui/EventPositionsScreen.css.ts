@@ -113,6 +113,17 @@ export const bannerError = style([
   },
 ]);
 
+export const receiptRow = style({
+  display: 'flex',
+  alignItems: 'flex-start',
+  gap: vars.space[2],
+});
+
+export const receiptPreview = style({
+  flex: 1,
+  minWidth: 0,
+});
+
 export const uploadRow = style({
   display: 'flex',
   flexWrap: 'wrap',

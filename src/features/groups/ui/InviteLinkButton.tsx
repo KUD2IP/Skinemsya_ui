@@ -12,8 +12,7 @@ interface InviteLinkButtonProps {
 }
 
 function telegramShareUrl(url: string, text: string): string {
-  const params = new URLSearchParams({ url, text });
-  return `https://t.me/share/url?${params.toString()}`;
+  return `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
 }
 
 async function copyInvite(url: string, text?: string) {

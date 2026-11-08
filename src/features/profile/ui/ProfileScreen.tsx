@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { ArrowClockwise, Bank, CaretRight, Phone } from '@phosphor-icons/react';
+import { useNavigate } from '@tanstack/react-router';
+import { ArrowClockwise, Bank, CaretRight, Phone, Users } from '@phosphor-icons/react';
+import { useAdminMeQuery } from '@/features/admin';
 import { ReceiptPaywallSheet, useCancelSubscription, useSubscriptionQuery } from '@/features/subscription';
 import { formatMoney, formatPhone, useRefreshAnimation } from '@/shared/lib';
 import { isApiError } from '@/shared/api';
@@ -36,6 +38,8 @@ export function ProfileScreen() {
   }, isFetching || subscription.isFetching);
   const [editingField, setEditingField] = useState<RequisitesFocusField | null>(null);
   const [paywallOpen, setPaywallOpen] = useState(false);
+  const navigate = useNavigate();
+  const admin = useAdminMeQuery();
 
   return (
     <Screen
@@ -113,16 +117,17 @@ export function ProfileScreen() {
             <Stack gap={3}>
               <span className={css.sectionLabel}>Подписка</span>
               <Card>
-                {subscription.data?.currentPeriodEnd ? (
+                {admin.data?.admin && !subscription.data?.currentPeriodEnd ? (
+                  <Stack gap={3}>
+                    <span className={css.subscriptionTitle}>Подписка включена</span>
+                    <span className={css.heroMeta}>Чтение фото чека доступно на этом аккаунте</span>
+                  </Stack>
+                ) : subscription.data?.currentPeriodEnd ? (
                   <Stack gap={3}>
                     <span className={css.subscriptionTitle}>
                       До {formatPeriodEnd(subscription.data.currentPeriodEnd)}
                     </span>
-                    {subscription.data.cancelAtPeriodEnd ? (
-                      <span className={css.heroMeta}>
-                        Продление отменено. Доступ до конца оплаченного периода.
-                      </span>
-                    ) : (
+                    {subscription.data.provider === 'STARS' && !subscription.data.cancelAtPeriodEnd ? (
                       <Button
                         type="button"
                         variant="secondary"
@@ -139,6 +144,12 @@ export function ProfileScreen() {
                       >
                         Отменить продление
                       </Button>
+                    ) : (
+                      <span className={css.heroMeta}>
+                        {subscription.data.cancelAtPeriodEnd
+                          ? 'Продление отменено. Доступ до конца оплаченного периода.'
+                          : 'Следующие 30 дней оплачиваются отдельно.'}
+                      </span>
                     )}
                   </Stack>
                 ) : (
@@ -154,6 +165,22 @@ export function ProfileScreen() {
                 )}
               </Card>
             </Stack>
+            {admin.data?.admin ? (
+              <Stack gap={3}>
+                <span className={css.sectionLabel}>Админ</span>
+                <Card padding="none">
+                  <List>
+                    <ListItem
+                      leading={<Icon icon={Users} />}
+                      title="Люди"
+                      subtitle="Кто пользуется и выдача подписки"
+                      trailing={<Icon icon={CaretRight} />}
+                      onClick={() => void navigate({ to: '/admin' })}
+                    />
+                  </List>
+                </Card>
+              </Stack>
+            ) : null}
             <ReceiptPaywallSheet
               open={paywallOpen}
               onOpenChange={setPaywallOpen}

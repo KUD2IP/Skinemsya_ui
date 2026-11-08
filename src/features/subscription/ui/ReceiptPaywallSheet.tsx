@@ -4,6 +4,7 @@ import { formatMoney } from '@/shared/lib';
 import { Button, Sheet, Stack } from '@/shared/ui';
 import { useSubscriptionCheckout, useSubscriptionQuery } from '../api/queries';
 import { openExternal, openInvoice } from '../lib/telegramPay';
+import { loadYooKassaWidget, mountYooKassaWidget } from '../lib/yookassaWidget';
 import * as css from './ReceiptPaywallSheet.css';
 
 const PAID_NOTE = 'Если оплата прошла, распознавание включится само через несколько секунд';
@@ -20,10 +21,13 @@ interface ReceiptPaywallSheetProps {
 async function waitForActivation(
   refetch: () => Promise<{ data?: SubscriptionResponse }>,
   stillHere: () => boolean,
+  attempts = 12,
+  baseline: string | null = null,
 ) {
-  for (let attempt = 0; attempt < 12; attempt += 1) {
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
     const result = await refetch();
-    if (result.data?.active && result.data.currentPeriodEnd) return true;
+    const periodEnd = result.data?.currentPeriodEnd;
+    if (result.data?.active && periodEnd && periodEnd !== baseline) return true;
     await new Promise((resolve) => setTimeout(resolve, 2000));
     if (!stillHere()) return false;
   }
@@ -41,7 +45,12 @@ export function ReceiptPaywallSheet({
   const checkout = useSubscriptionCheckout();
   const [note, setNote] = useState<string | null>(null);
   const [waiting, setWaiting] = useState(false);
+  const [widgetToken, setWidgetToken] = useState<string | null>(null);
   const alive = useRef(true);
+  const periodBaseline = useRef<string | null>(null);
+  const closePaid = useRef<() => void>(() => undefined);
+  const refetchSubscription = useRef(subscription.refetch);
+  refetchSubscription.current = subscription.refetch;
 
   useEffect(() => {
     alive.current = true;
@@ -52,7 +61,52 @@ export function ReceiptPaywallSheet({
 
   useEffect(() => {
     if (open) setNote(null);
+    if (!open) setWidgetToken(null);
   }, [open]);
+
+  closePaid.current = () => {
+    setWaiting(false);
+    onOpenChange(false);
+    onActivated?.();
+  };
+
+  useEffect(() => {
+    if (!open || !widgetToken) return;
+    let destroy = () => {};
+    let cancelled = false;
+    void loadYooKassaWidget()
+      .then(() => {
+        if (cancelled) return;
+        destroy = mountYooKassaWidget(
+          widgetToken,
+          'yookassa-widget',
+          () => undefined,
+          () => {
+            if (!alive.current) return;
+            setWaiting(false);
+            setNote('Оплата не прошла');
+          },
+        );
+      })
+      .catch(() => {
+        if (!alive.current) return;
+        setWaiting(false);
+        setNote('Не удалось открыть оплату');
+      });
+    void (async () => {
+      const paid = await waitForActivation(
+        () => refetchSubscription.current(),
+        () => alive.current && !cancelled,
+        90,
+        periodBaseline.current,
+      );
+      if (!cancelled && paid) closePaid.current();
+    })();
+    return () => {
+      cancelled = true;
+      destroy();
+    };
+  }, [open, widgetToken]);
 
   const price = formatMoney(subscription.data?.priceKopecks ?? 4900);
   const cardAvailable = subscription.data?.yookassaAvailable === true;
@@ -73,14 +127,27 @@ export function ReceiptPaywallSheet({
     if (alive.current) setNote(PAID_NOTE);
   };
 
-  const pay = async (method: SubscriptionProvider) => {
+  const pay = async (method: SubscriptionProvider, sbp = false) => {
     setWaiting(true);
     setNote(null);
+    periodBaseline.current = subscription.data?.currentPeriodEnd ?? null;
     try {
-      const result = await checkout.mutateAsync({ method });
+      const result = await checkout.mutateAsync({ method, sbp });
+      if (result.confirmationToken) {
+        setWidgetToken(result.confirmationToken);
+        setWaiting(false);
+        return;
+      }
       if (result.confirmationUrl) {
         openExternal(result.confirmationUrl);
-        finish(await waitForActivation(() => subscription.refetch(), () => alive.current));
+        finish(
+          await waitForActivation(
+            () => subscription.refetch(),
+            () => alive.current,
+            12,
+            periodBaseline.current,
+          ),
+        );
         return;
       }
       if (result.invoiceLink) {
@@ -90,7 +157,14 @@ export function ReceiptPaywallSheet({
           return;
         }
         if (status === 'failed') setNote(PAID_NOTE);
-        finish(await waitForActivation(() => subscription.refetch(), () => alive.current));
+        finish(
+          await waitForActivation(
+            () => subscription.refetch(),
+            () => alive.current,
+            12,
+            periodBaseline.current,
+          ),
+        );
         return;
       }
       setWaiting(false);
@@ -114,24 +188,44 @@ export function ReceiptPaywallSheet({
       <Stack gap={3}>
         <p className={css.price}>{price}</p>
         <p className={css.note}>
-          30 дней, затем спишется снова. Отмена в профиле.{' '}
+          30 дней. Карта и СБП оплачивают один период, следующий — отдельной оплатой. Звёзды
+          продлеваются в Telegram, отмена в профиле.{' '}
           <a className={css.offerLink} href="/legal">
             Оферта и реквизиты
           </a>
         </p>
-        {primaryMethod === 'YOOKASSA' ? (
+        {widgetToken ? <div id="yookassa-widget" className={css.widget} /> : null}
+        {!widgetToken && primaryMethod === 'YOOKASSA' ? (
           <Button
             type="button"
             size="lg"
             fullWidth
-            loading={waiting && checkout.variables?.method === 'YOOKASSA'}
+            loading={waiting && checkout.variables?.method === 'YOOKASSA' && !checkout.variables.sbp}
             disabled={waiting}
             onClick={() => void pay('YOOKASSA')}
           >
-            Оплатить {price} картой или через СБП
+            Оплатить {price} картой
           </Button>
         ) : null}
-        {starsAvailable && primaryMethod !== 'STARS' ? (
+        {primaryMethod === 'YOOKASSA' ? (
+          <Stack gap={2}>
+            <Button
+              type="button"
+              variant="secondary"
+              fullWidth
+              loading={waiting && checkout.variables?.sbp === true}
+              disabled={waiting}
+              onClick={() => void pay('YOOKASSA', true)}
+            >
+              Через СБП
+            </Button>
+            <p className={css.note}>
+              Сбербанк в списке СБП внутри Telegram не открывается. Эта кнопка показывает банки в
+              браузере.
+            </p>
+          </Stack>
+        ) : null}
+        {!widgetToken && starsAvailable && primaryMethod !== 'STARS' ? (
           <Button
             type="button"
             variant="secondary"
@@ -143,7 +237,7 @@ export function ReceiptPaywallSheet({
             Оплатить звёздами
           </Button>
         ) : null}
-        {primaryMethod === 'STARS' ? (
+        {!widgetToken && primaryMethod === 'STARS' ? (
           <Button
             type="button"
             size="lg"
@@ -155,7 +249,7 @@ export function ReceiptPaywallSheet({
             Оплатить звёздами
           </Button>
         ) : null}
-        {showManual ? (
+        {!widgetToken && showManual ? (
           <Button
             type="button"
             variant="ghost"

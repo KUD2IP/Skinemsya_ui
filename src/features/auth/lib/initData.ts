@@ -9,13 +9,12 @@ export function getInitDataRaw(): string | null {
   }
 }
 
-const EVENT_PREFIX = 'event_';
-
-/** Парсит eventId из start_param (формат event_{id}). */
-export function parseEventIdFromStartParam(startParam: string | null | undefined): number | null {
-  if (!startParam?.startsWith(EVENT_PREFIX)) return null;
-  const id = Number.parseInt(startParam.slice(EVENT_PREFIX.length), 10);
-  return Number.isFinite(id) && id > 0 ? id : null;
+/**
+ * Номер сбора в ссылке больше не передаётся: вход только по коду, который знает сервер.
+ * Навигацию после приглашения даёт ответ авторизации.
+ */
+export function parseEventIdFromStartParam(_startParam: string | null | undefined): number | null {
+  return null;
 }
 
 /** Парсит eventId из start_param в initData (формат event_{id}). */

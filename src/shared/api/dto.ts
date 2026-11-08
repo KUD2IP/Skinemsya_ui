@@ -206,11 +206,37 @@ export interface SubscriptionResponse {
 
 export interface SubscriptionCheckoutRequest {
   method: SubscriptionProvider;
+  sbp?: boolean;
+}
+
+export interface AdminMeResponse {
+  admin: boolean;
+}
+
+export interface AdminUserResponse {
+  id: number;
+  displayName: string;
+  telegramUsername: string | null;
+  createdAt: string;
+  currentPeriodEnd: string | null;
+  active: boolean;
+  provider: SubscriptionProvider | null;
+  eventsCreated: number;
+  receiptCount: number;
+}
+
+export interface AdminUsersPageResponse {
+  items: AdminUserResponse[];
+  page: number;
+  size: number;
+  total: number;
 }
 
 export interface SubscriptionCheckoutResponse {
   method: string;
   confirmationUrl: string | null;
+  confirmationToken: string | null;
+  paymentId: string | null;
   invoiceLink: string | null;
 }
 

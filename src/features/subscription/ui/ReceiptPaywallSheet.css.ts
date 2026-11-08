@@ -18,3 +18,10 @@ export const offerLink = style({
   color: vars.color.text.primary,
   fontWeight: 600,
 });
+
+export const widget = style({
+  minHeight: 480,
+  overflow: 'hidden',
+  borderRadius: vars.radius.lg,
+  background: '#FFFFFF',
+});

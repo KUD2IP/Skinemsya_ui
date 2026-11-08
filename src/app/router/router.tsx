@@ -13,6 +13,7 @@ import { GroupMembersPage } from '@/app/pages/GroupMembersPage';
 import { EventDetailPage } from '@/app/pages/EventDetailPage';
 import { EventParticipantsPage } from '@/app/pages/EventParticipantsPage';
 import { LegalPage } from '@/app/legal/LegalPage';
+import { AdminPage } from '@/app/pages/AdminPage';
 
 const rootRoute = createRootRoute({
   component: function RootLayout() {
@@ -74,6 +75,12 @@ const eventDetailRoute = createRoute({
   }),
 });
 
+const adminRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/admin',
+  component: AdminPage,
+});
+
 const eventParticipantsRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/groups/$groupId/events/$eventId/participants',
@@ -88,6 +95,7 @@ const routeTree = rootRoute.addChildren([
     groupMembersRoute,
     eventDetailRoute,
     eventParticipantsRoute,
+    adminRoute,
   ]),
 ]);
 
