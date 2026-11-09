@@ -66,10 +66,10 @@ export function mountYooKassaWidget(
       colors: {
         control_primary: '#21A038',
         control_primary_content: '#FFFFFF',
-        control_secondary: '#F4F7F5',
+        control_secondary: '#21A038',
         background: '#FFFFFF',
         text: '#06120C',
-        border: '#E4EAE7',
+        border: '#D5DDD8',
       },
     },
     error_callback: () => onError(),

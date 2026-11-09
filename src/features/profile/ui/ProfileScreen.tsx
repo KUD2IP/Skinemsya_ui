@@ -122,7 +122,7 @@ export function ProfileScreen() {
                     <span className={css.subscriptionTitle}>Подписка включена</span>
                     <span className={css.heroMeta}>Чтение фото чека доступно на этом аккаунте</span>
                   </Stack>
-                ) : subscription.data?.currentPeriodEnd ? (
+                ) : subscription.data?.active && subscription.data.currentPeriodEnd ? (
                   <Stack gap={3}>
                     <span className={css.subscriptionTitle}>
                       До {formatPeriodEnd(subscription.data.currentPeriodEnd)}
