@@ -81,6 +81,10 @@ export const screenBody = style({
   paddingBottom: stickyActionBarInset,
 });
 
+export const screenBodyHidden = style({
+  display: 'none',
+});
+
 export const banner = style({
   padding: vars.space[4],
   borderRadius: vars.radius.lg,

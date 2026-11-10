@@ -8,8 +8,9 @@ export const fileKeys = {
   all: ['files'] as const,
 };
 
-export function useUploadFile() {
+export function useUploadFile(eventId?: number) {
   return useMutation({
+    mutationKey: eventId != null ? ['receipt-parse', eventId, 'upload'] : ['files', 'upload'],
     mutationFn: async ({
       file,
       purpose = 'receipt',

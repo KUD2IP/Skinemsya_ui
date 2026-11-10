@@ -184,6 +184,7 @@ export function useEventReceiptsQuery(eventId: number) {
 export function useProcessReceipt(eventId: number) {
   const queryClient = useQueryClient();
   return useMutation({
+    mutationKey: ['receipt-parse', eventId, 'process'],
     mutationFn: async (body: ProcessReceiptRequest) => {
       try {
         // Без клиентского abort: на VPS OCR часто дольше дефолтных 15–60 с.

@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
+import { useMutationState } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { CaretLeft, Trash } from '@phosphor-icons/react';
 import type { EventResponse, PositionResponse } from '@/shared/api';
@@ -43,6 +44,7 @@ import {
 } from '../api/queries';
 import { AddPositionSheet } from './AddPositionSheet';
 import { EditPositionSheet } from './EditPositionSheet';
+import { ReceiptParseStage } from './ReceiptParseStage';
 import { ReceiptPreview } from './ReceiptPreview';
 import {
   AddManualButton,
@@ -75,7 +77,7 @@ export function EventPositionsScreen({
     eventKeys.detail(eventId),
   ]);
   const { data: payerProfile } = useProfileQuery();
-  const uploadFile = useUploadFile();
+  const uploadFile = useUploadFile(eventId);
   const processReceipt = useProcessReceipt(eventId);
   const markShared = useMarkShared(eventId);
   const unmarkShared = useUnmarkShared(eventId);
@@ -132,6 +134,12 @@ export function EventPositionsScreen({
     (receipt) =>
       receipt.sumMismatch && receipt.totalKopecks != null && receipt.itemsSumKopecks != null,
   );
+  const receiptParseInFlight = useMutationState({
+    filters: { mutationKey: ['receipt-parse', eventId], status: 'pending' },
+    select: (mutation) => mutation.state.submittedAt,
+  });
+  const parsing =
+    parsePhase === 'uploading' || parsePhase === 'processing' || receiptParseInFlight.length > 0;
 
   const beforeOpenReceipt = () => {
     if (!subscription.data) return subscription.isError;
@@ -241,7 +249,8 @@ export function EventPositionsScreen({
         />
       ) : (
         <div className={css.page}>
-          <div className={css.screenBody}>
+          {parsing ? <ReceiptParseStage /> : null}
+          <div className={parsing ? css.screenBodyHidden : css.screenBody}>
             <EventCapacityBar event={event} currentUserId={currentUserId} />
             <div className={css.uploadRow}>
               <ReceiptUploadButton
@@ -257,7 +266,7 @@ export function EventPositionsScreen({
               />
               <AddManualButton className={css.uploadAction} onClick={() => setAdding(true)} />
             </div>
-            <p className={css.photoHint}>Снимите чек целиком, при ровном свете</p>
+            <p className={css.photoHint}>Снимите чек целиком, при ровном освещении</p>
 
             {event.status === 'DRAFT' && receipts && receipts.length > 0 ? (
               <Stack gap={2}>
@@ -280,9 +289,6 @@ export function EventPositionsScreen({
               <ReceiptPreview fileId={receipts[0].fileId} variant="thumbnail" />
             ) : null}
 
-            {parsePhase === 'processing' ? (
-              <p className={css.bannerInfo}>Читаем чек, обычно несколько секунд</p>
-            ) : null}
             {parsePhase === 'success' ? (
               <p className={css.bannerInfo}>Позиции добавлены из чека</p>
             ) : null}
@@ -402,7 +408,7 @@ export function EventPositionsScreen({
             <DeleteEventControl groupId={groupId} event={event} currentUserId={currentUserId} />
           </div>
 
-          {canLaunch && !sheetOpen && (positions?.length ?? 0) > 0 ? (
+          {canLaunch && !sheetOpen && !parsing && (positions?.length ?? 0) > 0 ? (
             <div className={css.stickyFooter}>
               <div className={css.footerPreview}>
                 <span>
