@@ -14,6 +14,7 @@ import {
   RefreshIconButton,
   Screen,
   Skeleton,
+  SkeletonCard,
   Stack,
   toast,
 } from '@/shared/ui';
@@ -179,9 +180,9 @@ export function PaymentScreen({
       headerAction={<RefreshIconButton refreshing={refreshing} onRefresh={() => void refresh()} />}
     >
       {isLoading ? (
-        <Stack gap={4}>
-          <Skeleton height={80} radius="lg" />
-          <Skeleton height={120} radius="lg" />
+        <Stack gap={6}>
+          <Skeleton height={10} radius="full" />
+          <SkeletonCard lines={2} action />
         </Stack>
       ) : isError || !details ? (
         <EmptyState

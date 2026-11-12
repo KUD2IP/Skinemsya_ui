@@ -12,7 +12,8 @@ import { GroupDetailPage } from '@/app/pages/GroupDetailPage';
 import { GroupMembersPage } from '@/app/pages/GroupMembersPage';
 import { EventDetailPage } from '@/app/pages/EventDetailPage';
 import { EventParticipantsPage } from '@/app/pages/EventParticipantsPage';
-import { LegalPage } from '@/app/legal/LegalPage';
+import { OfferPage } from '@/app/legal/OfferPage';
+import { PrivacyPage } from '@/app/legal/PrivacyPage';
 import { AdminPage } from '@/app/pages/AdminPage';
 
 const rootRoute = createRootRoute({
@@ -41,7 +42,19 @@ const tabLayoutRoute = createRoute({
 const legalRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/legal',
-  component: LegalPage,
+  component: OfferPage,
+});
+
+const offerRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/legal/offer',
+  component: OfferPage,
+});
+
+const privacyRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/legal/privacy',
+  component: PrivacyPage,
 });
 
 const groupsRoute = createRoute({
@@ -89,6 +102,8 @@ const eventParticipantsRoute = createRoute({
 
 const routeTree = rootRoute.addChildren([
   legalRoute,
+  offerRoute,
+  privacyRoute,
   appRoute.addChildren([
     tabLayoutRoute.addChildren([groupsRoute, profileRoute]),
     groupDetailRoute,

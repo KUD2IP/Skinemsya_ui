@@ -34,7 +34,7 @@ export const option = recipe({
     textAlign: 'left',
     cursor: 'pointer',
     overflow: 'hidden',
-    transition: `border-color ${vars.motion.durationFast} ${vars.motion.easeStandard}, background ${vars.motion.durationFast} ${vars.motion.easeStandard}, transform ${vars.motion.durationFast} ${vars.motion.easeSpring}`,
+    transition: `border-color ${vars.motion.durationFast} ${vars.motion.easeStandard}, background ${vars.motion.durationFast} ${vars.motion.easeStandard}`,
     selectors: {
       '&::before': {
         content: '""',
@@ -52,7 +52,7 @@ export const option = recipe({
         boxShadow: `0 0 0 3px ${vars.color.focusRing}`,
       },
       '&:active': {
-        transform: 'scale(0.98)',
+        background: vars.color.bg.elevated,
       },
     },
   },

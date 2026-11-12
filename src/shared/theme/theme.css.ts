@@ -56,6 +56,9 @@ export const vars = createGlobalTheme(':root', {
     brand: 'linear-gradient(135deg, #21A038 0%, #2FD37A 100%)',
     surface: 'linear-gradient(180deg, #16201C 0%, #101714 100%)',
     glowSpot: 'radial-gradient(circle at 50% 0%, rgba(47,211,122,0.18), transparent 70%)',
+    /** Длинное свечение шапки. Конечный цвет — тот же зелёный с нулевой альфой, чтобы край не темнел в чёрный и не обрезался полосой. */
+    glowWash:
+      'radial-gradient(ellipse 90% 100% at 50% 0%, rgba(47,211,122,0.16) 0%, rgba(47,211,122,0) 100%)',
     /** Полированный титан корпуса устройства в мокапах лендинга. */
     deviceFrame:
       'linear-gradient(145deg, #F4F7F5 0%, #A9B8B1 14%, #EFF3F1 28%, #7C8C85 44%, #E4EAE7 58%, #8FA098 74%, #F2F6F4 88%, #98A9A1 100%)',
@@ -76,6 +79,8 @@ export const vars = createGlobalTheme(':root', {
     bodySm: '13px',
     caption: '12px',
     button: '16px',
+    /** 16px — порог iOS: меньший размер зумит поле и сдвигает каретку. */
+    field: '16px',
     landingXl: 'clamp(34px, 4.6vw, 54px)',
     landingLg: 'clamp(25px, 3.1vw, 36px)',
     landingMd: 'clamp(19px, 2.1vw, 25px)',
@@ -90,6 +95,8 @@ export const vars = createGlobalTheme(':root', {
     bodySm: '18px',
     caption: '16px',
     button: '20px',
+    /** `normal`, чтобы каретка совпадала с глифом, а не с унаследованными 22px. */
+    field: 'normal',
     landingXl: '1.06',
     landingLg: '1.14',
     landingMd: '1.35',
@@ -141,7 +148,8 @@ export const vars = createGlobalTheme(':root', {
     durationSlow: '360ms',
     easeStandard: 'cubic-bezier(0.22, 1, 0.36, 1)',
     easeIn: 'cubic-bezier(0.4, 0, 1, 1)',
-    easeSpring: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+    /** Без overshoot: в WebView Telegram отскок не успевает отрисоваться и выглядит рывком. */
+    easeSpring: 'cubic-bezier(0.22, 1, 0.36, 1)',
   },
   z: {
     base: '0',
@@ -168,9 +176,11 @@ export const vars = createGlobalTheme(':root', {
     landingSectionY: '56px',
     /** Высота sticky-шапки лендинга: safe area + строка бара + вертикальные отступы + border. */
     landingBarHeight:
-      'calc(max(env(safe-area-inset-top), var(--tg-safe-area-inset-top, 0px)) + 52px + 12px + 12px + 1px)',
-    safeTop: 'max(env(safe-area-inset-top), var(--tg-safe-area-inset-top, 0px))',
-    safeBottom: 'max(env(safe-area-inset-bottom), var(--tg-safe-area-inset-bottom, 0px))',
+      'calc(max(env(safe-area-inset-top), var(--tg-safe-area-inset-top, 0px), var(--tg-viewport-safe-area-inset-top, 0px)) + max(var(--tg-content-safe-area-inset-top, 0px), var(--tg-viewport-content-safe-area-inset-top, 0px)) + 52px + 12px + 12px + 1px)',
+    safeTop:
+      'calc(max(env(safe-area-inset-top), var(--tg-safe-area-inset-top, 0px), var(--tg-viewport-safe-area-inset-top, 0px)) + max(var(--tg-content-safe-area-inset-top, 0px), var(--tg-viewport-content-safe-area-inset-top, 0px)))',
+    safeBottom:
+      'calc(max(env(safe-area-inset-bottom), var(--tg-safe-area-inset-bottom, 0px), var(--tg-viewport-safe-area-inset-bottom, 0px)) + max(var(--tg-content-safe-area-inset-bottom, 0px), var(--tg-viewport-content-safe-area-inset-bottom, 0px)))',
     appHeight: 'var(--tg-viewport-stable-height, 100dvh)',
   },
 });

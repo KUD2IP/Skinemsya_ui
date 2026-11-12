@@ -80,14 +80,32 @@ miniApp.setBackgroundColor('#0A0F0D');
 
 .app-root {
   min-height: var(--app-height);
-  padding-top: max(env(safe-area-inset-top), var(--tg-safe-area-inset-top, 0px));
-  padding-bottom: max(env(safe-area-inset-bottom), var(--tg-safe-area-inset-bottom, 0px));
+  padding-top: calc(
+    max(
+      env(safe-area-inset-top),
+      var(--tg-safe-area-inset-top, 0px),
+      var(--tg-viewport-safe-area-inset-top, 0px)
+    ) +
+    max(var(--tg-content-safe-area-inset-top, 0px), var(--tg-viewport-content-safe-area-inset-top, 0px))
+  );
+  padding-bottom: calc(
+    max(
+      env(safe-area-inset-bottom),
+      var(--tg-safe-area-inset-bottom, 0px),
+      var(--tg-viewport-safe-area-inset-bottom, 0px)
+    ) +
+    max(var(--tg-content-safe-area-inset-bottom, 0px), var(--tg-viewport-content-safe-area-inset-bottom, 0px))
+  );
 }
 ```
 
-- Закреплённый внизу CTA — с учётом нижнего safe-area.
+- Закреплённый внизу CTA — с учётом нижнего safe-area и content safe area.
+- В полноэкранном режиме Telegram рисует свои кнопки поверх WebView. К отступу устройства добавляется `--tg-content-safe-area-inset-*` (и зеркало SDK `--tg-viewport-content-safe-area-inset-*`), иначе заголовки уходят под кнопки. Уведомление стоит сразу под строкой заголовка, в нижнем поле шапки, и не ложится на первый блок.
+- Свайп по статичной странице не сдвигает кадр и не сворачивает Mini App. Если у области есть своя прокрутка, у края она пружинит и не обрывается стеной. `disableVerticalSwipes()` включён с запуска и не снимается после шторки.
+- Нижняя навигация на «Группах» и «Профиле» стоит у низа закреплённого кадра. Клавиатура ложится поверх неё. Панель не скрывается при вводе: иначе на её месте всплывает пустая полоса фона.
 - Контент скроллится внутри стабильной высоты, чтобы клавиатура/панели Telegram не «прыгали».
 - На разворачивании/сворачивании окна (`viewport.expand`) лэйаут не должен ломаться.
+- Клавиатура не меняет высоту экрана на каждом кадре. В `index.html` стоит `interactive-widget=overlays-content`: клавиатура ложится поверх, стабильная высота не сжимается. `--keyboard-inset` — это реальное перекрытие `position: fixed; bottom: 0`, а не разница высот viewport. Если низ экрана и так над клавиатурой, отступ остаётся 0 и шторка не уезжает за верх. Поле один раз доскролливается внутри своего контейнера. Шторка после открытия сбрасывает `transform`, иначе каретка в iOS WebView рисуется ниже текста. Заголовок экрана стоит над прокручиваемой областью и не уезжает вместе со списком.
 
 ---
 

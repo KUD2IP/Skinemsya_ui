@@ -96,10 +96,6 @@ export const membersList = style({
   overflow: 'hidden',
 });
 
-export const rowSkeleton = style({
-  height: 48,
-});
-
 export const chatHint = style({
   fontSize: vars.fontSize.caption,
   color: vars.color.text.muted,

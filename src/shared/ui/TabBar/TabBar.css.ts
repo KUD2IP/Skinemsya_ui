@@ -4,7 +4,7 @@ import { breakpoints, vars } from '@/shared/theme';
 
 export const bar = recipe({
   base: {
-    position: 'fixed',
+    position: 'absolute',
     left: 0,
     right: 0,
     bottom: 0,
@@ -15,15 +15,11 @@ export const bar = recipe({
     paddingTop: vars.space[3],
     paddingLeft: vars.space[4],
     paddingRight: vars.space[4],
-    background: `linear-gradient(180deg, transparent 0%, ${vars.color.bg.base} 40%)`,
+    background: 'transparent',
     pointerEvents: 'none',
     transition: `opacity ${vars.motion.durationBase} ${vars.motion.easeStandard}, transform ${vars.motion.durationBase} ${vars.motion.easeStandard}`,
     '@media': {
       [breakpoints.lg]: {
-        left: '50%',
-        right: 'auto',
-        transform: 'translateX(-50%)',
-        width: vars.layout.contentMaxWidth,
         paddingLeft: vars.space[5],
         paddingRight: vars.space[5],
       },
@@ -43,28 +39,6 @@ export const bar = recipe({
     },
   },
   defaultVariants: { hidden: false },
-  compoundVariants: [
-    {
-      variants: { hidden: false },
-      style: {
-        '@media': {
-          [breakpoints.lg]: {
-            transform: 'translateX(-50%) translateY(0)',
-          },
-        },
-      },
-    },
-    {
-      variants: { hidden: true },
-      style: {
-        '@media': {
-          [breakpoints.lg]: {
-            transform: 'translateX(-50%) translateY(110%)',
-          },
-        },
-      },
-    },
-  ],
 });
 
 export const inner = style({
@@ -141,16 +115,11 @@ export const tabContent = recipe({
 export const tabIcon = recipe({
   base: {
     display: 'flex',
-    transition: `transform ${vars.motion.durationFast} ${vars.motion.easeStandard}, opacity ${vars.motion.durationBase} ${vars.motion.easeStandard}`,
   },
   variants: {
     active: {
-      true: {
-        transform: 'scale(1.08) translateY(-1px)',
-      },
-      false: {
-        transform: 'scale(1) translateY(0)',
-      },
+      true: {},
+      false: { opacity: 0.72 },
     },
   },
   defaultVariants: { active: false },

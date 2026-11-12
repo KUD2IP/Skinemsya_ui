@@ -88,15 +88,11 @@ export const createRow = style({
 
 export const searchWrap = style({
   marginBottom: vars.space[1],
+  paddingTop: vars.space[2],
 });
 
 export const countLabel = style({
   fontSize: vars.fontSize.caption,
   color: vars.color.text.muted,
   padding: `0 ${vars.space[1]} ${vars.space[2]}`,
-});
-
-export const panelSkeleton = style({
-  height: 192,
-  borderRadius: vars.radius.xl,
 });

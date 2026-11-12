@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider } from '@tanstack/react-router';
 import { MotionConfig } from 'motion/react';
 import { router } from '@/app/router/router';
-import { overlayTween } from '@/shared/lib';
+import { bindKeyboardInset, overlayTween } from '@/shared/lib';
 import { QueryVisibilitySync } from './QueryVisibilitySync';
 
 function createQueryClient() {
@@ -20,6 +20,8 @@ function createQueryClient() {
 
 export function AppProviders() {
   const [queryClient] = useState(createQueryClient);
+
+  useEffect(() => bindKeyboardInset(), []);
 
   return (
     <QueryClientProvider client={queryClient}>

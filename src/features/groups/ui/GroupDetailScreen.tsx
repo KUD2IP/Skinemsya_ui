@@ -9,7 +9,7 @@ import { useProfileQuery } from '@/features/profile/api/queries';
 import { AddMemberSheet } from './AddMemberSheet';
 import { EditGroupSheet } from './EditGroupSheet';
 import { GroupMembersPreview } from './GroupMembersPreview';
-import { GroupsSkeleton } from './GroupsSkeleton';
+import { GroupDetailSkeleton } from './GroupDetailSkeleton';
 import * as css from './GroupsScreen.css';
 import { isApiError } from '@/shared/api';
 import {
@@ -126,7 +126,7 @@ export function GroupDetailScreen({
       headerAction={<RefreshIconButton refreshing={refreshing} onRefresh={() => void refresh()} />}
     >
       {isLoading ? (
-        <GroupsSkeleton />
+        <GroupDetailSkeleton />
       ) : isError || !group ? (
         <EmptyState
           title="Группа не найдена"

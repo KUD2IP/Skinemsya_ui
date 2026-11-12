@@ -9,14 +9,16 @@ export const field = style({
   color: vars.color.text.primary,
   border: `1px solid ${vars.color.border.default}`,
   borderRadius: vars.radius.md,
-  fontSize: vars.fontSize.body,
-  transition: `border-color ${vars.motion.durationBase} ${vars.motion.easeStandard}, box-shadow ${vars.motion.durationBase} ${vars.motion.easeStandard}`,
+  fontSize: vars.fontSize.field,
+  lineHeight: vars.lineHeight.field,
+  fontOpticalSizing: 'none',
+  transition: `border-color ${vars.motion.durationFast} ${vars.motion.easeStandard}`,
   selectors: {
     '&::placeholder': { color: vars.color.text.muted },
     '&:focus': {
       outline: 'none',
       borderColor: vars.color.border.strong,
-      boxShadow: `0 0 0 3px ${vars.color.focusRing}`,
+      boxShadow: `inset 0 0 0 2px ${vars.color.focusRing}`,
     },
     '&:disabled': { opacity: 0.5, cursor: 'not-allowed' },
   },
@@ -38,7 +40,7 @@ export const invalid = style({
   selectors: {
     '&:focus': {
       borderColor: vars.color.danger,
-      boxShadow: `0 0 0 3px ${vars.color.dangerBg}`,
+      boxShadow: `inset 0 0 0 2px ${vars.color.dangerBg}`,
     },
   },
 });

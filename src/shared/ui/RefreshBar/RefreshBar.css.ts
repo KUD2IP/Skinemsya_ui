@@ -1,5 +1,10 @@
-import { style } from '@vanilla-extract/css';
+import { style, keyframes } from '@vanilla-extract/css';
 import { vars } from '@/shared/theme';
+
+const slide = keyframes({
+  from: { transform: 'translateX(-120%)' },
+  to: { transform: 'translateX(280%)' },
+});
 
 /** Фиксированная полоска в верхней safe-area — отдельно от контента экрана. */
 export const root = style({
@@ -31,5 +36,11 @@ export const beam = style({
   width: '36%',
   background: vars.gradient.brand,
   borderRadius: vars.radius.full,
-  boxShadow: vars.shadow.glowSoft,
+  animation: `${slide} 1.1s ${vars.motion.easeStandard} infinite`,
+  '@media': {
+    '(prefers-reduced-motion: reduce)': {
+      animation: 'none',
+      transform: 'translateX(40%)',
+    },
+  },
 });

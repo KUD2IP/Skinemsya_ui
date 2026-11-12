@@ -1,12 +1,15 @@
-import { Skeleton } from '@/shared/ui';
-import * as css from './EventDetailScreen.css';
+import { Skeleton, SkeletonCard, Stack } from '@/shared/ui';
 
 export function EventDetailSkeleton() {
   return (
-    <div className={css.stack}>
-      <Skeleton className={css.block} />
-      <Skeleton className={css.row} />
-      <Skeleton className={css.row} />
-    </div>
+    <Stack gap={6}>
+      <Skeleton height={10} radius="full" />
+      <Stack gap={3}>
+        <Skeleton width={148} height={12} />
+        <SkeletonCard />
+        <SkeletonCard />
+        <SkeletonCard />
+      </Stack>
+    </Stack>
   );
 }

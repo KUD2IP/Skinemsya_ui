@@ -1,58 +1,92 @@
-import { style } from '@vanilla-extract/css';
+import { keyframes, style } from '@vanilla-extract/css';
 import { recipe } from '@vanilla-extract/recipes';
 import { breakpoints, vars } from '@/shared/theme';
 
-export const backdrop = recipe({
-  base: {
-    position: 'fixed',
-    inset: 0,
-    zIndex: Number(vars.z.overlay),
-    background: vars.color.bg.overlay,
-    pointerEvents: 'auto',
-  },
-  variants: {
-    layer: {
-      base: {},
-      nested: { zIndex: Number(vars.z.modal) + 40 },
-    },
-  },
-  defaultVariants: { layer: 'base' },
+/** В покое панель без transform. Кадры сдвига живут только пока идёт анимация. */
+export const sheetIn = keyframes({
+  from: { transform: 'translate3d(0, 100%, 0)' },
+  to: { transform: 'none' },
 });
 
-export const positioner = recipe({
+export const sheetOut = keyframes({
+  from: { transform: 'none' },
+  to: { transform: 'translate3d(0, 100%, 0)' },
+});
+
+const fadeIn = keyframes({
+  from: { opacity: 0 },
+  to: { opacity: 1 },
+});
+
+const motionSafe = {
+  '@media': {
+    '(prefers-reduced-motion: reduce)': {
+      animation: 'none',
+      transform: 'none',
+      opacity: 1,
+    },
+  },
+} as const;
+
+const sheetMax = `calc(100dvh - ${vars.layout.safeTop} - ${vars.space[4]} - var(--keyboard-inset, 0px))`;
+const bodyMax = `calc(100dvh - ${vars.layout.safeTop} - 132px - var(--keyboard-inset, 0px))`;
+
+/** Слой на весь экран. Сдвиг только в анимации: если она не стартовала, панель уже на месте. */
+export const root = recipe({
   base: {
     position: 'fixed',
     inset: 0,
+    zIndex: vars.z.modal,
     display: 'flex',
     alignItems: 'flex-end',
     justifyContent: 'center',
     pointerEvents: 'none',
-    zIndex: Number(vars.z.modal),
   },
   variants: {
     layer: {
       base: {},
-      nested: { zIndex: Number(vars.z.modal) + 50 },
+      nested: { zIndex: `calc(${vars.z.modal} + 50)` },
     },
   },
   defaultVariants: { layer: 'base' },
 });
 
-export const content = style({
+export const backdrop = style({
+  position: 'absolute',
+  inset: 0,
+  background: vars.color.bg.overlay,
+  opacity: 1,
+  pointerEvents: 'auto',
+  border: 'none',
+  padding: 0,
+});
+
+export const backdropEnter = style({
+  animationName: fadeIn,
+  animationDuration: vars.motion.durationFast,
+  animationTimingFunction: vars.motion.easeStandard,
+  animationFillMode: 'none',
+  ...motionSafe,
+});
+
+export const panel = style({
+  position: 'relative',
+  zIndex: 1,
   width: '100%',
   maxWidth: vars.layout.contentMaxWidth,
-  maxHeight: 'min(92%, calc(100% - 16px))',
-  minHeight: 0,
+  maxHeight: sheetMax,
   display: 'flex',
   flexDirection: 'column',
   overflow: 'hidden',
   background: vars.color.bg.elevated,
+  color: vars.color.text.primary,
   borderTopLeftRadius: vars.radius['2xl'],
   borderTopRightRadius: vars.radius['2xl'],
   boxShadow: vars.shadow.lg,
   pointerEvents: 'auto',
   touchAction: 'pan-y',
-  overscrollBehavior: 'none',
+  opacity: 1,
+  transform: 'none',
   '@media': {
     [`screen and (max-width: 359px)`]: {
       borderTopLeftRadius: vars.radius.xl,
@@ -65,16 +99,20 @@ export const content = style({
   },
 });
 
-export const contentAnimating = style({
-  transform: 'translateZ(0)',
-  backfaceVisibility: 'hidden',
+export const panelEnter = style({
+  animationName: sheetIn,
+  animationDuration: vars.motion.durationBase,
+  animationTimingFunction: vars.motion.easeStandard,
+  animationFillMode: 'none',
+  ...motionSafe,
 });
 
-export const panelInner = style({
-  display: 'flex',
-  flexDirection: 'column',
-  minHeight: 0,
-  flex: 1,
+export const panelExit = style({
+  animationName: sheetOut,
+  animationDuration: vars.motion.durationFast,
+  animationTimingFunction: vars.motion.easeIn,
+  animationFillMode: 'forwards',
+  ...motionSafe,
 });
 
 export const header = style({
@@ -82,7 +120,7 @@ export const header = style({
   flexDirection: 'column',
   alignItems: 'flex-start',
   gap: vars.space[2],
-  flexShrink: 0,
+  flex: '0 0 auto',
   textAlign: 'left',
   padding: `${vars.space[4]} ${vars.space[4]} ${vars.space[5]} ${vars.space[6]}`,
   '@media': {
@@ -105,16 +143,18 @@ export const titleSpacer = style({
 });
 
 export const body = style({
-  flex: '1 1 auto',
-  minHeight: 0,
+  flex: '0 0 auto',
   overflowY: 'auto',
   overscrollBehavior: 'contain',
+  touchAction: 'pan-y',
   WebkitOverflowScrolling: 'touch',
+  maxHeight: bodyMax,
+  scrollPaddingTop: vars.space[3],
   scrollPaddingBottom: '24px',
-  padding: `0 ${vars.space[6]} calc(${vars.space[7]} + ${vars.layout.safeBottom})`,
+  padding: `${vars.space[2]} ${vars.space[6]} calc(${vars.space[7]} + ${vars.layout.safeBottom} + var(--keyboard-inset, 0px))`,
   '@media': {
     [`screen and (max-width: 359px)`]: {
-      padding: `0 ${vars.space[5]} calc(${vars.space[6]} + ${vars.layout.safeBottom})`,
+      padding: `${vars.space[2]} ${vars.space[5]} calc(${vars.space[6]} + ${vars.layout.safeBottom} + var(--keyboard-inset, 0px))`,
     },
   },
 });

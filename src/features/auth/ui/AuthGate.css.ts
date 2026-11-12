@@ -14,8 +14,16 @@ export const bootApp = style({
   flex: 1,
   display: 'flex',
   flexDirection: 'column',
-  minHeight: vars.layout.appHeight,
+  minHeight: 0,
+  height: '100%',
   width: '100%',
+  overflow: 'hidden',
+});
+
+/** После появления приложения снимаем transform, чтобы каретка в полях не съезжала. */
+export const bootAppSettled = style({
+  transform: 'none !important',
+  translate: 'none !important',
 });
 
 /** Лендинг: один скролл внутри страницы, шапка всегда снаружи скролла. */

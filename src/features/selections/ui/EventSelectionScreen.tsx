@@ -16,7 +16,7 @@ import {
   IconButton,
   RefreshIconButton,
   Screen,
-  Skeleton,
+  SkeletonList,
   Stack,
   toast,
 } from '@/shared/ui';
@@ -333,10 +333,7 @@ export function EventSelectionScreen({
         headerAction={<RefreshIconButton refreshing={refreshing} onRefresh={() => void refresh()} />}
       >
       {isLoading ? (
-        <Stack gap={4}>
-          <Skeleton height={72} radius="lg" />
-          <Skeleton height={72} radius="lg" />
-        </Stack>
+        <SkeletonList rows={3} />
       ) : isError ? (
         <EmptyState
           title="Не удалось загрузить позиции"

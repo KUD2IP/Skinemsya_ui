@@ -1,47 +1,29 @@
-import { globalStyle, style } from '@vanilla-extract/css';
+import { style, globalStyle } from '@vanilla-extract/css';
 import { vars } from '@/shared/theme';
-
-export const top = style({
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  gap: vars.space[4],
-  minHeight: vars.size.controlLg,
-  paddingInline: vars.space[5],
-});
-
-export const back = style({
-  color: vars.color.text.secondary,
-  textDecoration: 'none',
-  fontSize: vars.fontSize.body,
-  fontWeight: 600,
-  selectors: {
-    '&:hover': { color: vars.color.text.primary },
-  },
-});
 
 export const article = style({
   display: 'flex',
   flexDirection: 'column',
   gap: vars.space[6],
-  padding: vars.space[5],
-  paddingBottom: vars.space[10],
   maxWidth: '68ch',
 });
 
-export const title = style({
-  fontFamily: vars.font.display,
-  fontSize: vars.fontSize.landingLg,
-  lineHeight: vars.lineHeight.landingLg,
-  fontWeight: 700,
-  letterSpacing: '-0.03em',
-  color: vars.color.text.primary,
+export const lead = style({
+  fontSize: vars.fontSize.body,
+  lineHeight: vars.lineHeight.body,
+  color: vars.color.text.secondary,
 });
 
-export const lead = style({
-  fontSize: vars.fontSize.bodyLg,
-  lineHeight: vars.lineHeight.bodyLg,
-  color: vars.color.text.secondary,
+export const updated = style({
+  fontSize: vars.fontSize.caption,
+  lineHeight: vars.lineHeight.caption,
+  color: vars.color.text.muted,
+});
+
+export const section = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: vars.space[3],
 });
 
 export const sectionTitle = style({
@@ -57,11 +39,15 @@ export const text = style({
   color: vars.color.text.secondary,
 });
 
-export const price = style({
-  fontSize: vars.fontSize.h1,
-  lineHeight: vars.lineHeight.h1,
-  fontWeight: 700,
-  color: vars.color.text.primary,
+export const list = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: vars.space[3],
+  margin: 0,
+  paddingLeft: vars.space[5],
+  fontSize: vars.fontSize.body,
+  lineHeight: vars.lineHeight.body,
+  color: vars.color.text.secondary,
 });
 
 export const requisites = style({
@@ -89,19 +75,8 @@ export const requisiteValue = style({
   color: vars.color.text.primary,
 });
 
-globalStyle(`${requisiteValue} a`, {
-  color: 'inherit',
+globalStyle(`${text} a, ${list} a, ${requisiteValue} a`, {
+  color: vars.color.text.link,
   textDecoration: 'underline',
   textUnderlineOffset: '0.15em',
-});
-
-export const list = style({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: vars.space[4],
-  margin: 0,
-  paddingLeft: vars.space[5],
-  fontSize: vars.fontSize.body,
-  lineHeight: vars.lineHeight.body,
-  color: vars.color.text.secondary,
 });

@@ -1,5 +1,5 @@
 import { useNavigate } from '@tanstack/react-router';
-import { CalendarBlank, PlusCircle } from '@phosphor-icons/react';
+import { CalendarBlank, Plus } from '@phosphor-icons/react';
 import { flattenPageItems, useGroupEventsInfiniteQuery } from '../api/queries';
 import * as css from './GroupEventsSection.css';
 import type { EventStatus } from '@/shared/api';
@@ -10,7 +10,7 @@ import {
   Icon,
   List,
   ListItem,
-  Skeleton,
+  SkeletonList,
   Stack,
 } from '@/shared/ui';
 import { eventCapacityLabel } from '../model/eventRoster';
@@ -47,8 +47,7 @@ export function GroupEventsSection({ groupId, onCreateEvent }: GroupEventsSectio
       <span className={css.sectionLabel}>Сборы</span>
       {isLoading ? (
         <div className={css.listSkeleton}>
-          <Skeleton className={css.listRow} />
-          <Skeleton className={css.listRow} />
+          <SkeletonList rows={2} />
         </div>
       ) : !events.length ? (
         <EmptyState
@@ -56,7 +55,7 @@ export function GroupEventsSection({ groupId, onCreateEvent }: GroupEventsSectio
           title="Сборов пока нет"
           description="Создайте первый сбор — кто платил и за что."
           actions={
-            <Button leftIcon={<Icon icon={PlusCircle} size="sm" />} onClick={onCreateEvent}>
+            <Button leftIcon={<Icon icon={Plus} size="sm" weight="bold" />} onClick={onCreateEvent}>
               Создать сбор
             </Button>
           }

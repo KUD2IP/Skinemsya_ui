@@ -5,7 +5,7 @@ import * as css from './LandingBar.css';
 const LINKS = [
   { href: '#story', label: 'Как это работает' },
   { href: '#subscription', label: 'Подписка' },
-  { href: '/legal', label: 'Оферта' },
+  { href: '/legal/offer', label: 'Оферта' },
 ] as const;
 
 export function LandingBar() {

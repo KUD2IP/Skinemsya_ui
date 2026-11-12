@@ -18,13 +18,13 @@ export interface IconProps {
 }
 
 /**
- * Единый адаптер иконок Phosphor (по умолчанию duotone) — фирменный почерк.
- * Меняя набор/вес здесь, обновляем иконки во всём приложении.
+ * Единый адаптер иконок Phosphor. Вес bold: у duotone вторая заливка
+ * на тёмном фоне выглядит серым кругом за глифом.
  */
 export function Icon({
   icon: Glyph,
   size = 'md',
-  weight = 'duotone',
+  weight = 'bold',
   color = 'currentColor',
   className,
 }: IconProps) {

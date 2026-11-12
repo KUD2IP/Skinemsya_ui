@@ -1,50 +1,58 @@
 import { style } from '@vanilla-extract/css';
+import { recipe } from '@vanilla-extract/recipes';
 import { breakpoints, vars } from '@/shared/theme';
 
 export const screen = style({
   position: 'relative',
-  flex: '1 0 auto',
+  flex: '1 1 auto',
   width: '100%',
-  minHeight: vars.layout.appHeight,
+  minHeight: 0,
+  height: '100%',
   display: 'flex',
   flexDirection: 'column',
   minWidth: 0,
+  overflow: 'hidden',
 });
 
 export const glow = style({
   position: 'absolute',
-  inset: 0,
-  height: 'min(220px, 32vh)',
-  backgroundImage: vars.gradient.glowSpot,
+  top: 0,
+  left: 0,
+  right: 0,
+  height: 'min(560px, 70vh)',
+  backgroundImage: vars.gradient.glowWash,
   pointerEvents: 'none',
 });
 
-export const container = style({
+export const frame = style({
   position: 'relative',
+  flex: 1,
+  minHeight: 0,
   width: '100%',
   maxWidth: vars.layout.contentMaxWidth,
   margin: '0 auto',
   display: 'flex',
   flexDirection: 'column',
-  gap: vars.space[6],
-  padding: `calc(${vars.layout.safeTop} + ${vars.space[5]}) ${vars.space[5]} ${vars.space[6]}`,
-  '@media': {
-    [`screen and (max-width: 359px)`]: {
-      gap: vars.space[5],
-      padding: `calc(${vars.layout.safeTop} + ${vars.space[4]}) ${vars.space[4]} ${vars.space[5]}`,
-    },
-    [breakpoints.md]: {
-      padding: `calc(${vars.layout.safeTop} + ${vars.space[6]}) ${vars.space[6]} ${vars.space[7]}`,
-    },
-  },
 });
 
 export const header = style({
+  position: 'relative',
+  zIndex: 1,
   display: 'flex',
   alignItems: 'flex-start',
   gap: vars.space[3],
+  flexShrink: 0,
   minHeight: vars.size.controlMd,
   minWidth: 0,
+  padding: `calc(${vars.layout.safeTop} + ${vars.space[5]}) ${vars.space[5]} ${vars.space[6]}`,
+  '@media': {
+    [`screen and (max-width: 359px)`]: {
+      padding: `calc(${vars.layout.safeTop} + ${vars.space[4]}) ${vars.space[4]} ${vars.space[5]}`,
+    },
+    [breakpoints.md]: {
+      padding: `calc(${vars.layout.safeTop} + ${vars.space[6]}) ${vars.space[6]} ${vars.space[6]}`,
+    },
+  },
 });
 
 export const headerLeading = style({
@@ -97,4 +105,39 @@ export const headerSubtitle = style({
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
+});
+
+export const body = recipe({
+  base: {
+    position: 'relative',
+    zIndex: 1,
+    flex: 1,
+    minHeight: 0,
+    overflowX: 'hidden',
+    overflowY: 'auto',
+    WebkitOverflowScrolling: 'touch',
+    overscrollBehavior: 'contain',
+    touchAction: 'pan-y',
+    scrollPaddingTop: vars.space[3],
+    display: 'flex',
+    flexDirection: 'column',
+    gap: vars.space[6],
+    padding: `${vars.space[6]} ${vars.space[5]} calc(${vars.space[6]} + var(--keyboard-inset, 0px))`,
+    '@media': {
+      [`screen and (max-width: 359px)`]: {
+        gap: vars.space[5],
+        padding: `${vars.space[6]} ${vars.space[4]} calc(${vars.space[5]} + var(--keyboard-inset, 0px))`,
+      },
+      [breakpoints.md]: {
+        padding: `${vars.space[6]} ${vars.space[6]} calc(${vars.space[7]} + var(--keyboard-inset, 0px))`,
+      },
+    },
+  },
+  variants: {
+    insetTop: {
+      true: {
+        paddingTop: `calc(${vars.layout.safeTop} + ${vars.space[5]})`,
+      },
+    },
+  },
 });

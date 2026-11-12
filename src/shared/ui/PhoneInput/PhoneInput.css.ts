@@ -22,7 +22,7 @@ export const countryButton = style({
   fontSize: vars.fontSize.bodySm,
   fontFamily: vars.font.mono,
   cursor: 'pointer',
-  transition: `border-color ${vars.motion.durationBase} ${vars.motion.easeStandard}, box-shadow ${vars.motion.durationBase} ${vars.motion.easeStandard}`,
+  transition: `border-color ${vars.motion.durationFast} ${vars.motion.easeStandard}`,
   selectors: {
     '&:focus-visible': {
       outline: 'none',

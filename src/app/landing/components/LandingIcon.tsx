@@ -6,6 +6,6 @@ export type LandingIconProps = Omit<IconProps, 'weight'> & {
 };
 
 /** Иконки мокапов лендинга без duotone-подложки Phosphor. */
-export function LandingIcon({ weight = 'regular', ...props }: LandingIconProps) {
+export function LandingIcon({ weight = 'bold', ...props }: LandingIconProps) {
   return <Icon weight={weight} {...props} />;
 }

@@ -24,8 +24,11 @@ export function LandingSubscription() {
           цифровой доступ на {SUBSCRIPTION_PERIOD_DAYS} дней.
         </p>
         <p className={css.seller}>{sellerRequisitesLine()}</p>
-        <a className={css.link} href="/legal">
+        <a className={css.link} href="/legal/offer">
           Оферта и реквизиты
+        </a>
+        <a className={css.link} href="/legal/privacy">
+          Политика конфиденциальности
         </a>
       </div>
     </LandingSection>

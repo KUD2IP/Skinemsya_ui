@@ -35,6 +35,8 @@ export interface UserResponse {
   phone: string | null;
   preferredBank: string | null;
   notificationSettings: string | null;
+  /** Ссылка на фото профиля Telegram. Появляется после входа, если Telegram её прислал. */
+  photoUrl?: string | null;
 }
 
 export interface UpdateProfileRequest {
@@ -67,6 +69,7 @@ export interface GroupMemberViewResponse {
   telegramUsername: string | null;
   telegramUserId: number;
   joinedAt: string;
+  photoUrl?: string | null;
 }
 
 export interface CreateStandaloneGroupRequest {

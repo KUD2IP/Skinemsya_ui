@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Controller, type Control, type FieldErrors } from 'react-hook-form';
 import { PREFERRED_BANKS } from '../model/banks';
 import type { ProfileFormValues } from '../model/schema';
-import { scrollElementIntoContainer } from '@/shared/lib';
+import { scrollFieldIntoView } from '@/shared/lib';
 import {
   FieldGroup,
   Input,
@@ -39,13 +39,7 @@ export function RequisitesFields({
       const target = focusField === 'bank' ? bankRef.current : phoneRef.current;
       if (!target) return;
 
-      const sheetBody = target.closest('[data-sheet-body]');
-      if (sheetBody instanceof HTMLElement) {
-        scrollElementIntoContainer(target, sheetBody);
-        return;
-      }
-
-      target.scrollIntoView({ block: 'nearest', behavior: 'auto' });
+      scrollFieldIntoView(target);
     }, 280);
     return () => window.clearTimeout(timer);
   }, [focusField]);

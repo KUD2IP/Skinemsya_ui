@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useSessionStore } from '@/features/auth';
 
 type TelegramWebApp = {
   onEvent?: (event: string, handler: () => void) => void;
@@ -16,7 +17,12 @@ export function QueryVisibilitySync() {
 
   useEffect(() => {
     const invalidateActive = () => {
-      void queryClient.invalidateQueries({ refetchType: 'active' });
+      void useSessionStore
+        .getState()
+        .prepare()
+        .finally(() => {
+          void queryClient.invalidateQueries({ refetchType: 'active' });
+        });
     };
 
     const onVisible = () => {

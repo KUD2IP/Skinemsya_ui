@@ -24,15 +24,7 @@ export function RefreshBar({ active }: RefreshBarProps) {
           transition={reduced ? { duration: 0 } : overlayFade}
         >
           <div className={css.track}>
-            <motion.div
-              className={css.beam}
-              animate={reduced ? undefined : { x: ['-110%', '320%'] }}
-              transition={
-                reduced
-                  ? undefined
-                  : { repeat: Infinity, duration: 1.05, ease: 'easeInOut' }
-              }
-            />
+            <div className={css.beam} />
           </div>
         </motion.div>
       ) : null}

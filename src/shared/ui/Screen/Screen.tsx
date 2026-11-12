@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import { RefreshBar } from '@/shared/ui/RefreshBar';
 import * as css from './Screen.css';
 
@@ -12,7 +13,18 @@ export interface ScreenProps {
   children: ReactNode;
 }
 
-/** Адаптивный контейнер экрана: safe-area, центрирование и ограничение ширины. */
+/** Высота пилюли: вертикальные поля space.2 и строка bodySm, плюс рамка. */
+const TOAST_HEIGHT = 28;
+
+function placeToast(header: HTMLElement) {
+  const body = header.nextElementSibling;
+  const headerPad = parseFloat(getComputedStyle(header).paddingBottom) || 0;
+  const bodyPad = body instanceof HTMLElement ? parseFloat(getComputedStyle(body).paddingTop) || 0 : 0;
+  const lane = headerPad + bodyPad;
+  const top = header.getBoundingClientRect().bottom - headerPad + Math.max(0, (lane - TOAST_HEIGHT) / 2);
+  document.documentElement.style.setProperty('--app-toast-top', `${Math.round(top)}px`);
+}
+
 export function Screen({
   title,
   subtitle,
@@ -23,14 +35,31 @@ export function Screen({
 }: ScreenProps) {
   const showHeader =
     title != null || subtitle != null || headerLeading != null || headerAction != null;
+  const headerRef = useRef<HTMLElement>(null);
+
+  useLayoutEffect(() => {
+    const header = headerRef.current;
+    if (!header) {
+      document.documentElement.style.removeProperty('--app-toast-top');
+      return;
+    }
+    const place = () => placeToast(header);
+    place();
+    const observer = new ResizeObserver(place);
+    observer.observe(header);
+    return () => {
+      observer.disconnect();
+      document.documentElement.style.removeProperty('--app-toast-top');
+    };
+  }, [showHeader, title, subtitle]);
 
   return (
     <div className={css.screen}>
       <RefreshBar active={refreshing} />
       <div className={css.glow} aria-hidden />
-      <div className={css.container}>
+      <div className={css.frame}>
         {showHeader ? (
-          <header className={css.header}>
+          <header ref={headerRef} className={css.header}>
             {headerLeading != null ? (
               <div className={css.headerLeading}>{headerLeading}</div>
             ) : null}
@@ -45,7 +74,7 @@ export function Screen({
             ) : null}
           </header>
         ) : null}
-        {children}
+        <div className={css.body({ insetTop: !showHeader })}>{children}</div>
       </div>
     </div>
   );

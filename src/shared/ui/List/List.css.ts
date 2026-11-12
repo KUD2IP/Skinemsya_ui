@@ -18,7 +18,7 @@ export const item = style({
   minHeight: vars.size.controlLg,
   color: vars.color.text.primary,
   background: 'transparent',
-  transition: `background ${vars.motion.durationFast} ${vars.motion.easeStandard}, transform ${vars.motion.durationFast} ${vars.motion.easeSpring}`,
+  transition: `background ${vars.motion.durationFast} ${vars.motion.easeStandard}`,
   selectors: {
     '&:not(:last-child)': {
       boxShadow: `inset 0 -1px 0 ${vars.color.border.subtle}`,
@@ -29,7 +29,7 @@ export const item = style({
 export const itemInteractive = style({
   cursor: 'pointer',
   selectors: {
-    '&:active': { transform: 'scale(0.99)', background: vars.color.bg.elevated },
+    '&:active': { background: vars.color.bg.elevated },
     '&:focus-visible': { outline: 'none', background: vars.color.bg.elevated },
   },
   '@media': {

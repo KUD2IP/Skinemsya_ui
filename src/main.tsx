@@ -7,7 +7,9 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './app/App';
 import { initTelegram } from './app/providers/telegram';
+import { lockAppFrame } from '@/shared/lib';
 
+lockAppFrame();
 void initTelegram();
 
 const container = document.getElementById('root');

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { ArrowClockwise, Bank, CaretRight, Phone, Users } from '@phosphor-icons/react';
 import { useAdminMeQuery } from '@/features/admin';
+import { telegramPhotoUrl } from '@/features/auth';
 import { ReceiptPaywallSheet, useCancelSubscription, useSubscriptionQuery } from '@/features/subscription';
 import { formatMoney, formatPhone, useRefreshAnimation } from '@/shared/lib';
 import { isApiError } from '@/shared/api';
@@ -22,6 +23,7 @@ import { useProfileQuery } from '../api/queries';
 import { preferredBankLabel } from '../model/banks';
 import { ProfileSkeleton } from './ProfileSkeleton';
 import { ProfileFieldEditor } from './ProfileFieldEditor';
+import { ProfileLinks } from './ProfileLinks';
 import type { RequisitesFocusField } from './RequisitesFields';
 import * as css from './ProfileScreen.css';
 
@@ -66,7 +68,11 @@ export function ProfileScreen() {
           <Stack gap={6}>
             <Card variant="hero" padding="lg">
               <div className={css.heroRow}>
-                <Avatar size="lg" name={user.displayName} />
+                <Avatar
+                  size="lg"
+                  name={user.displayName}
+                  src={user.photoUrl || telegramPhotoUrl()}
+                />
                 <Stack gap={1} flex={1}>
                   <span className={css.heroName}>{user.displayName}</span>
                   <span className={css.heroMeta}>Telegram ID: {user.telegramUserId}</span>
@@ -189,6 +195,7 @@ export function ProfileScreen() {
             />
           </Stack>
         )}
+      <ProfileLinks />
     </Screen>
   );
 }

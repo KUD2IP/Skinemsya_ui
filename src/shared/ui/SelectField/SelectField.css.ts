@@ -16,7 +16,7 @@ export const trigger = recipe({
     color: vars.color.text.primary,
     textAlign: 'left',
     cursor: 'pointer',
-    transition: `border-color ${vars.motion.durationFast} ${vars.motion.easeStandard}, box-shadow ${vars.motion.durationFast} ${vars.motion.easeStandard}`,
+    transition: `border-color ${vars.motion.durationFast} ${vars.motion.easeStandard}`,
     selectors: {
       '&:focus-visible': {
         outline: 'none',
@@ -64,6 +64,7 @@ export const chevron = style({
 
 export const searchWrap = style({
   marginBottom: vars.space[4],
+  paddingTop: vars.space[2],
 });
 
 export const optionsList = style({

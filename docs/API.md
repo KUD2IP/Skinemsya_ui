@@ -69,7 +69,8 @@
   "displayName": "Alice",
   "paymentDetails": null,
   "phone": null,
-  "notificationSettings": null
+  "notificationSettings": null,
+  "photoUrl": null
 }
 ```
 
@@ -128,7 +129,7 @@ Query: `?page=0&size=20` (оба опциональны; по умолчанию
 
 Query: `?page=0&size=20`.
 
-Ответ `200`: `PageResult<GroupMemberViewResponse>` — id, userId, role, displayName, telegramUsername, telegramUserId, joinedAt.
+Ответ `200`: `PageResult<GroupMemberViewResponse>` — id, userId, role, displayName, telegramUsername, telegramUserId, joinedAt, photoUrl.
 
 #### `POST /api/v1/groups/{groupId}/members`
 Добавление участника по Telegram @username (только owner, только STANDALONE).
@@ -226,6 +227,8 @@ export interface UserResponse {
   paymentDetails: string | null;
   phone: string | null;
   notificationSettings: string | null;
+  /** HTTPS-ссылка на фото профиля из Telegram initData. null, если Telegram её не прислал. */
+  photoUrl: string | null;
 }
 
 export interface UpdateProfileRequest {
@@ -257,6 +260,7 @@ export interface GroupMemberViewResponse {
   telegramUsername: string | null;
   telegramUserId: number;
   joinedAt: string;
+  photoUrl: string | null;
 }
 
 export interface CreateStandaloneGroupRequest { name: string; }

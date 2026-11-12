@@ -14,8 +14,3 @@ export const listSkeleton = style({
   flexDirection: 'column',
   gap: vars.space[3],
 });
-
-export const listRow = style({
-  height: vars.size.controlMd,
-  borderRadius: vars.radius.md,
-});

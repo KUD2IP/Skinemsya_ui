@@ -16,3 +16,47 @@ export const skeleton = style({
     '(prefers-reduced-motion: reduce)': { animation: 'none', opacity: 0.6 },
   },
 });
+
+export const list = style({
+  background: vars.color.bg.surface,
+  borderRadius: vars.radius.xl,
+  border: `1px solid ${vars.color.border.subtle}`,
+  overflow: 'hidden',
+});
+
+export const row = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: vars.space[4],
+  minHeight: vars.size.controlLg,
+  padding: `${vars.space[3]} ${vars.space[5]}`,
+  selectors: {
+    '&:not(:last-child)': {
+      boxShadow: `inset 0 -1px 0 ${vars.color.border.subtle}`,
+    },
+  },
+});
+
+export const lines = style({
+  flex: 1,
+  minWidth: 0,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: vars.space[2],
+});
+
+export const chips = style({
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: vars.space[3],
+});
+
+export const card = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: vars.space[3],
+  padding: vars.space[4],
+  borderRadius: vars.radius.lg,
+  background: vars.color.bg.surface,
+  border: `1px solid ${vars.color.border.subtle}`,
+});

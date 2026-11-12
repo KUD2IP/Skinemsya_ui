@@ -190,8 +190,12 @@ export function ReceiptPaywallSheet({
         <p className={css.note}>
           30 дней. Карта и СБП оплачивают один период, следующий — отдельной оплатой. Звёзды
           продлеваются в Telegram, отмена в профиле.{' '}
-          <a className={css.offerLink} href="/legal">
-            Оферта и реквизиты
+          <a className={css.offerLink} href="/legal/offer">
+            Оферта
+          </a>
+          {' · '}
+          <a className={css.offerLink} href="/legal/privacy">
+            Конфиденциальность
           </a>
         </p>
         {widgetToken ? <div id="yookassa-widget" className={css.widget} /> : null}

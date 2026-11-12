@@ -16,7 +16,7 @@ export const button = recipe({
     userSelect: 'none',
     borderRadius: vars.radius.lg,
     border: '1px solid transparent',
-    transition: `transform ${vars.motion.durationFast} ${vars.motion.easeSpring}, background ${vars.motion.durationBase} ${vars.motion.easeStandard}, box-shadow ${vars.motion.durationBase} ${vars.motion.easeStandard}, opacity ${vars.motion.durationBase} ${vars.motion.easeStandard}`,
+    transition: `transform ${vars.motion.durationFast} ${vars.motion.easeStandard}, background-color ${vars.motion.durationFast} ${vars.motion.easeStandard}`,
     selectors: {
       '&:active:not(:disabled)': { transform: 'scale(0.97)' },
       '&:focus-visible': {
@@ -27,7 +27,7 @@ export const button = recipe({
     },
     '@media': {
       '(prefers-reduced-motion: reduce)': {
-        transitionProperty: 'background, box-shadow, opacity',
+        transitionProperty: 'background-color',
       },
     },
   },
@@ -41,7 +41,7 @@ export const button = recipe({
         boxShadow: vars.shadow.glow,
         '@media': {
           '(hover: hover)': {
-            selectors: { '&:hover:not(:disabled)': { filter: 'brightness(1.05)' } },
+            selectors: { '&:hover:not(:disabled)': { backgroundColor: vars.color.brandHover } },
           },
         },
       },

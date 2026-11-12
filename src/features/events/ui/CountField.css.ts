@@ -44,7 +44,9 @@ export const input = style({
   background: 'transparent',
   color: vars.color.text.primary,
   textAlign: 'center',
-  fontSize: vars.fontSize.body,
+  fontSize: vars.fontSize.field,
+  lineHeight: vars.lineHeight.field,
+  fontOpticalSizing: 'none',
   fontWeight: 600,
   fontVariantNumeric: 'tabular-nums',
   selectors: {

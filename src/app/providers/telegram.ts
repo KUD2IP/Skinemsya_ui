@@ -58,4 +58,12 @@ export async function initTelegram(): Promise<void> {
   });
 
   tryRun('ready', () => miniAppReady());
+
+  // Свайп вниз у верхнего края сворачивает Mini App. На обычных экранах это случайное закрытие.
+  tryRun('verticalSwipes', () => {
+    const webApp = (
+      window as Window & { Telegram?: { WebApp?: { disableVerticalSwipes?: () => void } } }
+    ).Telegram?.WebApp;
+    webApp?.disableVerticalSwipes?.();
+  });
 }

@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useCreateStandaloneGroup } from '../api/queries';
@@ -20,18 +19,11 @@ export function CreateGroupSheet({ open, onOpenChange, onCreated }: CreateGroupS
     register,
     handleSubmit,
     reset,
-    setFocus,
     formState: { errors, isSubmitting },
   } = useForm<CreateGroupFormValues>({
     resolver: zodResolver(createGroupSchema),
     defaultValues: { name: '' },
   });
-
-  useEffect(() => {
-    if (!open) return;
-    const timer = window.setTimeout(() => setFocus('name'), 280);
-    return () => window.clearTimeout(timer);
-  }, [open, setFocus]);
 
   const onSubmit = handleSubmit(async (values) => {
     try {

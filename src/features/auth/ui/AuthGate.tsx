@@ -4,10 +4,11 @@ import { AnimatePresence, motion } from 'motion/react';
 import { WarningCircle } from '@phosphor-icons/react';
 import { AppSplash } from '@/app/AppSplash';
 import { LandingPage } from '@/app/landing';
-import { LegalPage } from '@/app/legal/LegalPage';
+import { OfferPage } from '@/app/legal/OfferPage';
+import { PrivacyPage } from '@/app/legal/PrivacyPage';
 import { useSessionStore } from '../model/session.store';
 import { getInitDataRaw } from '../lib/initData';
-import { appReveal, splashScreen, usePrefersReducedMotion } from '@/shared/lib';
+import { appReveal, splashScreen, usePrefersReducedMotion, cx } from '@/shared/lib';
 import { Button, EmptyState, Icon } from '@/shared/ui';
 import * as css from './AuthGate.css';
 
@@ -26,6 +27,7 @@ export function AuthGate({ children }: AuthGateProps) {
   const [phase, setPhase] = useState<Phase>('starting');
   const startedAt = useRef(Date.now());
   const reduced = usePrefersReducedMotion();
+  const [appSettled, setAppSettled] = useState(false);
 
   const authenticate = async () => {
     const initData = getInitDataRaw();
@@ -50,6 +52,12 @@ export function AuthGate({ children }: AuthGateProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (phase === 'authenticated' && status === 'error') {
+      setPhase('failed');
+    }
+  }, [phase, status]);
+
   const showSplash = phase === 'starting';
 
   return (
@@ -71,10 +79,11 @@ export function AuthGate({ children }: AuthGateProps) {
 
       {phase === 'authenticated' ? (
         <motion.div
-          className={css.bootApp}
+          className={cx(css.bootApp, appSettled && css.bootAppSettled)}
           variants={reduced ? undefined : appReveal}
           initial={reduced ? false : 'initial'}
           animate={reduced ? undefined : 'animate'}
+          onAnimationComplete={() => setAppSettled(true)}
         >
           {children}
         </motion.div>
@@ -82,16 +91,23 @@ export function AuthGate({ children }: AuthGateProps) {
 
       {phase === 'no-telegram' ? (
         <div className={css.bootLanding}>
-          {window.location.pathname === '/legal' ? <LegalPage /> : <LandingPage />}
+          {window.location.pathname === '/legal/privacy' ? (
+            <PrivacyPage />
+          ) : window.location.pathname === '/legal' || window.location.pathname === '/legal/offer' ? (
+            <OfferPage />
+          ) : (
+            <LandingPage />
+          )}
         </div>
       ) : null}
 
       {phase === 'failed' ? (
         <motion.div
-          className={css.bootApp}
+          className={cx(css.bootApp, appSettled && css.bootAppSettled)}
           variants={reduced ? undefined : appReveal}
           initial={reduced ? false : 'initial'}
           animate={reduced ? undefined : 'animate'}
+          onAnimationComplete={() => setAppSettled(true)}
         >
           <EmptyState
             icon={<Icon icon={WarningCircle} size="lg" />}

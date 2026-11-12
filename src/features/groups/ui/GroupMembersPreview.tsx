@@ -4,7 +4,7 @@ import { flattenPageItems, useGroupMembersInfiniteQuery } from '../api/queries';
 import * as css from './GroupMembers.css';
 import * as screenCss from './GroupsScreen.css';
 import type { GroupType } from '@/shared/api';
-import { EmptyState, Icon, Skeleton, Stack } from '@/shared/ui';
+import { EmptyState, Icon, SkeletonList, Stack } from '@/shared/ui';
 import { haptics } from '@/shared/lib';
 
 interface GroupMembersPreviewProps {
@@ -46,7 +46,7 @@ export function GroupMembersPreview({ groupId, groupType }: GroupMembersPreviewP
       ) : null}
 
       {isLoading ? (
-        <Skeleton height={44} radius="lg" />
+        <SkeletonList rows={1} leading={18} trailing={false} />
       ) : isError ? (
         <EmptyState title="Не удалось загрузить участников" description="Попробуйте обновить страницу." />
       ) : !members.length ? (

@@ -15,8 +15,8 @@
 - **Тёмного фона с зелёным подтоном** (не чистый серый, не чистый чёрный) — глубокий, «ламповый».
 - **Фирменного зелёного в стиле Сбера** на акцентных элементах, с управляемым свечением (glow), а не плоской заливкой.
 - **Крупных скруглений и мягких теней** — дружелюбная «капсульная» эстетика, привычная в Telegram.
-- **Уникальной типографики** (Onest) и **duotone-иконок** (Phosphor) вместо дефолтных Inter + Lucide.
-- **Плавных пружинных анимаций** на каждом взаимодействии.
+- **Уникальной типографики** (Onest) и **иконок Phosphor bold** вместо дефолтных Inter + Lucide.
+- **Короткого отклика на нажатие** (лёгкое уменьшение кнопки) без отскока и без анимации теней.
 
 Анти-паттерны (чего избегаем): Tailwind-классы в разметке, палитры `slate/zinc/gray-500`, синий `#3B82F6` как акцент, иконки Lucide/Heroicons по умолчанию, резкие линейные `transition: all 0.2s`.
 
@@ -94,7 +94,8 @@
 | --- | --- | --- |
 | `gradient.brand` | `linear-gradient(135deg, #21A038 0%, #2FD37A 100%)` | Кнопки-герои, бейджи баланса |
 | `gradient.surface` | `linear-gradient(180deg, #16201C 0%, #101714 100%)` | Карточки-герои |
-| `gradient.glowSpot` | `radial-gradient(circle at 50% 0%, rgba(47,211,122,0.18), transparent 70%)` | Свечение в шапке экрана |
+| `gradient.glowSpot` | `radial-gradient(circle at 50% 0%, rgba(47,211,122,0.18), transparent 70%)` | Компактное свечение (сплэш, чек) |
+| `gradient.glowWash` | `radial-gradient(ellipse 90% 100% at 50% 0%, rgba(47,211,122,0.16) 0%, rgba(47,211,122,0) 100%)` | Длинное свечение шапки экрана: гаснет в тот же зелёный с нулевой альфой, без тёмной полосы |
 
 ### 2.7 Light theme
 
@@ -131,12 +132,14 @@ fontFamily.mono:    'JetBrains Mono', ui-monospace, monospace
 | `text.bodySm` | 13 / 18 | 400 | Подписи, вторичное |
 | `text.caption` | 12 / 16 | 500 | Лейблы, бейджи |
 | `text.button` | 16 / 20 | 600 | Текст кнопок |
+| `text.field` | 16 / normal | 400 | Поля ввода. Ниже 16px iOS увеличивает поле и сдвигает каретку |
 | `text.mono` | 15 / 20 | 500 | Денежные суммы |
 
 Правила:
 - Заголовки — вес 600–700, `letter-spacing: -0.01em` для крупных.
 - Денежные суммы — `font-feature-settings: "tnum"` (табличные цифры), моно-семейство.
 - Базовый размер body 15–17px — комфортно для мобильных и совпадает с эстетикой Telegram.
+- Поля ввода — только `text.field` (16px, `line-height: normal`). Меньший размер в WebView Telegram зумит страницу и уводит каретку вниз.
 
 ---
 
@@ -312,7 +315,7 @@ export const button = recipe({
 | --- | --- |
 | Высота | `control.md` (44) |
 | Фон | `bg.inset` |
-| Бордер | `border.default`, при фокусе → `border.strong` + `focusRing` |
+| Бордер | `border.default`, при фокусе → `border.strong` и внутреннее кольцо `inset 0 0 0 2px focusRing` (внешнее кольцо обрезает прокрутка) |
 | Радиус | `radius.md` |
 | Текст / плейсхолдер | `text.primary` / `text.muted` |
 | Ошибка | бордер `danger`, текст ошибки `bodySm` цветом `danger` под полем |
@@ -320,7 +323,7 @@ export const button = recipe({
 
 Состояния: `default / focus / filled / error / disabled / readonly`. Поля с денежным вводом используют моно-шрифт и табличные цифры.
 
-`Switch` — пилюля `radius.full`: выключен `border.default` фон `bg.elevated`, включён — `gradient.brand` с `shadow.glowSoft`, кружок-ползунок с пружинной анимацией.
+`Switch` — пилюля `radius.full`: выключен `border.default` фон `bg.elevated`, включён — `gradient.brand` с `shadow.glowSoft`, ползунок едет за `duration.fast` без отскока.
 
 ---
 
@@ -340,7 +343,7 @@ export const button = recipe({
 
 ### 8.2 Списки
 
-`List` + `ListItem`: слоты `leading` (аватар/иконка), `title`, `subtitle`, `trailing` (сумма/шеврон). Разделители `border.subtle`. Нажимаемые строки получают press-анимацию и haptics.
+`List` + `ListItem`: слоты `leading` (аватар/иконка), `title`, `subtitle`, `trailing` (сумма/шеврон). Разделители `border.subtle`. Нажатие меняет фон строки, без scale.
 
 ### 8.3 Модалки / нижние шторки (Sheet)
 
@@ -348,27 +351,27 @@ export const button = recipe({
 
 | Свойство | Значение |
 | --- | --- |
-| Подложка | `bg.overlay` + blur 8px, fade-in |
+| Подложка | `bg.overlay`, fade-in |
 | Контейнер | `bg.elevated`, `radius.2xl` (верхние углы), `shadow.lg` |
-| Анимация | slide-up + пружина (см. §11) |
+| Анимация | Сдвиг 220 мс только на время въезда. В покое `transform` снят, панель остаётся на экране |
 | Жесты | свайп вниз для закрытия, «ручка» (grabber) сверху |
 
 `Modal` (центрированная) — для критичных подтверждений; `Sheet` (снизу) — для форм и выбора.
 
 ### 8.4 Прочее
 
-- `Toast` — всплывает сверху/снизу, `bg.elevated`, цветной левый акцент по типу (success/warning/danger), авто-скрытие.
+- `Toast` — сразу под строкой заголовка, в нижнем поле шапки: `safeTop` держит его ниже кнопок Telegram, первый блок начинается под пилюлей. Фон `bg.elevated`, `shadow.lg`, авто-скрытие.
 - `Badge` / `Chip` — `radius.full`, `caption`, цветные тональные варианты (`green.900`/`green.300` и т.п.).
 - `Avatar` — `radius.full`, фолбэк-инициалы на тональном фоне, поддержка фото из Telegram.
 - `EmptyState` — иллюстрация/иконка + заголовок + подпись + CTA.
 - `Divider` — `border.subtle`.
-- `Tabs` / `SegmentedControl` — на Ark UI, индикатор с пружинным `layout`-переходом (Motion).
+- `Tabs` / `SegmentedControl` — индикатор сдвигается `transform` за `duration.base`, страницы кроссфейдятся opacity.
 
 ---
 
 ## 9. Иконография
 
-- **Библиотека:** `@phosphor-icons/react`, основной вес — **duotone** (двутоновые, фирменный почерк). Допускается `regular` для нейтральных мест.
+- **Библиотека:** `@phosphor-icons/react`, основной вес — **bold**. Duotone не используем: вторая заливка на тёмном фоне выглядит серым кругом за иконкой.
 - Цвет основной части — `text.secondary`/`text.primary`, вторичного тона — `green.500`/`accent` для акцентных иконок.
 - Размеры — из `size.icon.*`.
 - Иконки навигации/действий обёрнуты в собственный `Icon`-адаптер, чтобы единообразно прокидывать размер/вес/цвет из токенов и при необходимости заменить набор в одном месте.
@@ -397,6 +400,7 @@ export const button = recipe({
 - **Контейнер контента** центрируется и ограничивается `max-width: 560px` на `lg+`, чтобы на десктопе не «растягивалось» — выглядит как аккуратное мобильное окно по центру.
 - Базовая вёрстка — **flex/grid с относительными единицами**; фиксированные px только для бордеров/иконок.
 - Главный CTA закреплён внизу (`position: sticky/fixed`) с учётом safe-area.
+- Заголовок экрана (название, назад, обновление) стоит над прокруткой и не уезжает вместе со списком.
 - Текст не обрезается жёстко: длинные имена/суммы — `min-width: 0` + `text-overflow: ellipsis`.
 - Тестовые контрольные ширины: **320, 360, 390, 414, 768, 1024**.
 
@@ -405,8 +409,14 @@ export const button = recipe({
 Учитываем системные отступы и переменные Telegram viewport:
 
 ```css
-padding-top: max(env(safe-area-inset-top), var(--tg-safe-area-top, 0px));
-padding-bottom: max(env(safe-area-inset-bottom), var(--tg-safe-area-bottom, 0px));
+padding-top: calc(
+  max(env(safe-area-inset-top), var(--tg-safe-area-inset-top, 0px), var(--tg-viewport-safe-area-inset-top, 0px))
+  + max(var(--tg-content-safe-area-inset-top, 0px), var(--tg-viewport-content-safe-area-inset-top, 0px))
+);
+padding-bottom: calc(
+  max(env(safe-area-inset-bottom), var(--tg-safe-area-inset-bottom, 0px), var(--tg-viewport-safe-area-inset-bottom, 0px))
+  + max(var(--tg-content-safe-area-inset-bottom, 0px), var(--tg-viewport-content-safe-area-inset-bottom, 0px))
+);
 ```
 
 Высота вьюпорта — через переменные Telegram (`viewportStableHeight`), не `100vh`. Подробности — в [TELEGRAM_MINIAPP.md](TELEGRAM_MINIAPP.md).
@@ -415,7 +425,7 @@ padding-bottom: max(env(safe-area-inset-bottom), var(--tg-safe-area-bottom, 0px)
 
 ## 11. Анимации
 
-Анимации — плавные, пружинные, осмысленные (подкрепляют действие, а не отвлекают). Реализация — **Motion** (`motion/react`); простые transition — через токены в CSS.
+В мини-приложении анимация интерфейса должна успевать за пальцем. WebView Telegram роняет кадры на blur, тенях и пружинах у кнопок, списков и шторок, поэтому там движение короткое. Заставка с логотипом и разбор чека остаются отдельными сценами: знак собирается, ореол вспыхивает, луч сканирует чек.
 
 ### 11.1 Тайминги и easing (токены)
 
@@ -424,43 +434,28 @@ padding-bottom: max(env(safe-area-inset-bottom), var(--tg-safe-area-bottom, 0px)
 | `motion.duration.fast` | 150ms |
 | `motion.duration.base` | 220ms |
 | `motion.duration.slow` | 360ms |
-| `motion.ease.standard` | `cubic-bezier(0.22, 1, 0.36, 1)` (easeOutExpo-подобный) |
+| `motion.ease.standard` | `cubic-bezier(0.22, 1, 0.36, 1)` |
 | `motion.ease.in` | `cubic-bezier(0.4, 0, 1, 1)` |
-| `motion.ease.spring` | `cubic-bezier(0.34, 1.56, 0.64, 1)` (лёгкий overshoot) |
+| `motion.ease.spring` | тот же ease-out, без overshoot |
 
-### 11.2 Пружинные пресеты (Motion)
+### 11.2 Пресеты (Motion)
 
-```ts
-// src/shared/lib/motion.ts
-export const spring = {
-  soft:   { type: 'spring', stiffness: 260, damping: 30, mass: 0.9 },
-  snappy: { type: 'spring', stiffness: 420, damping: 32 },
-  bouncy: { type: 'spring', stiffness: 500, damping: 24 },
-} as const;
-
-export const fadeInUp = {
-  initial: { opacity: 0, y: 12 },
-  animate: { opacity: 1, y: 0 },
-  exit:    { opacity: 0, y: 8 },
-  transition: spring.soft,
-};
-```
+Крупные переходы — tween 220ms, не spring. Пресеты лежат в `src/shared/lib/motion.ts`: `overlayTween` для шторки, `overlayFade` для подложки и тостов, `splashScreen` / `appReveal` только через opacity.
 
 ### 11.3 Где какие анимации
 
 | Сценарий | Анимация |
 | --- | --- |
-| Нажатие кнопки/строки | `scale(0.97)`, `spring.snappy` + haptic |
-| Появление экрана/секции | `fadeInUp`, `spring.soft` |
-| Список элементов | stagger по 30–50ms, `fadeInUp` |
-| Bottom sheet | slide-up `spring.soft`, подложка fade |
-| Переключатели/табы | `layout`-анимация индикатора, `spring.snappy` |
-| Числа/баланс | плавный count-up при изменении |
-| Переход между роутами | cross-fade + лёгкий сдвиг, `motion.duration.base` |
+| Нажатие кнопки | `scale(0.97)` за `duration.fast`, без тени и blur |
+| Строка списка | смена фона, без scale |
+| Появление экрана | fade opacity, `duration.base` |
+| Bottom sheet | Сдвиг снизу 220 мс, затем `transform` снимается. Подложка сразу принимает нажатие |
+| Вкладки | индикатор едет `transform`, страницы кроссфейдятся opacity |
+| Переход между роутами | fade opacity за `duration.fast`, без сдвига страницы |
 
 ### 11.4 Доступность
 
-Уважаем `prefers-reduced-motion`: при включённом — отключаем смещения/overshoot, оставляем мгновенные/fade переходы. Реализуется хелпером, который подменяет пресеты на «reduced».
+`prefers-reduced-motion` отключает сдвиги. Fade можно оставить. `MotionConfig` в провайдерах стоит в `reducedMotion="user"`.
 
 ---
 

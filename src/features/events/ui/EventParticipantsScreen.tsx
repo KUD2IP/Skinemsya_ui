@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { CaretLeft, Trash } from '@phosphor-icons/react';
+import { telegramPhotoUrl } from '@/features/auth';
 import { debtKeys, useEventDebtsQuery, useParticipantsStatusQuery } from '@/features/debts';
 import { groupKeys, useGroupMembersQuery, useGroupQuery } from '@/features/groups/api/queries';
 import { InviteLinkButton } from '@/features/groups/ui/InviteLinkButton';
@@ -16,7 +17,7 @@ import {
   RefreshIconButton,
   Screen,
   Sheet,
-  Skeleton,
+  SkeletonList,
   Stack,
   toast,
 } from '@/shared/ui';
@@ -159,6 +160,13 @@ export function EventParticipantsScreen({
     return member?.telegramUsername ? formatTelegramUsername(member.telegramUsername) : null;
   };
 
+  const personPhoto = (userId: number) => {
+    const member = memberMap.get(userId);
+    if (member?.photoUrl) return member.photoUrl;
+    if (userId === currentUserId) return telegramPhotoUrl();
+    return null;
+  };
+
   const personRole = (userId: number) => {
     if (!event) return null;
     if (userId === event.payerId) return 'Плательщик';
@@ -190,10 +198,7 @@ export function EventParticipantsScreen({
       headerAction={<RefreshIconButton refreshing={refreshing} onRefresh={() => void refresh()} />}
     >
       {isLoading ? (
-        <Stack gap={2}>
-          <Skeleton className={membersCss.rowSkeleton} radius="md" />
-          <Skeleton className={membersCss.rowSkeleton} radius="md" />
-        </Stack>
+        <SkeletonList rows={3} leading={44} trailing={false} />
       ) : isError || !event ? (
         <EmptyState
           title="Не удалось загрузить участников"
@@ -226,6 +231,7 @@ export function EventParticipantsScreen({
                     name={personLabel(person.userId)}
                     size="md"
                     tone={avatarToneFromSeed(String(person.userId))}
+                    src={personPhoto(person.userId)}
                   />
                   <span className={membersCss.memberBody}>
                     <span className={membersCss.memberName}>{personLabel(person.userId)}</span>

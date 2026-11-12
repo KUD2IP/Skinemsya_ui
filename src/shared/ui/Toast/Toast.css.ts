@@ -3,10 +3,11 @@ import { vars } from '@/shared/theme';
 
 export const viewport = style({
   position: 'fixed',
-  top: `calc(${vars.layout.safeTop} + ${vars.space[3]} + 3px)`,
+  // Нижнее поле шапки. Экран записывает точную координату в --app-toast-top.
+  top: `var(--app-toast-top, calc(${vars.layout.safeTop} + ${vars.space[5]} + ${vars.lineHeight.h1} + ${vars.space[3]}))`,
   left: '50%',
   transform: 'translateX(-50%)',
-  zIndex: Number(vars.z.toast),
+  zIndex: vars.z.toast,
   width: '100%',
   maxWidth: vars.layout.contentMaxWidth,
   padding: `0 ${vars.space[5]}`,
@@ -24,11 +25,10 @@ export const toastBase = style({
   background: vars.color.bg.elevated,
   border: `1px solid ${vars.color.border.default}`,
   borderRadius: vars.radius.full,
-  boxShadow: vars.shadow.md,
+  boxShadow: vars.shadow.lg,
   fontSize: vars.fontSize.bodySm,
   lineHeight: vars.lineHeight.bodySm,
   color: vars.color.text.primary,
-  backdropFilter: 'blur(12px)',
 });
 
 export const toastInner = style({

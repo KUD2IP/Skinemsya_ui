@@ -1,7 +1,11 @@
 import { create } from 'zustand';
-import { registerAuthBridge } from '@/shared/api';
+import { isApiError, registerAuthBridge } from '@/shared/api';
 import type { ChatBootstrapResponse, TokenResponse } from '@/shared/api';
 import { loginWithTelegram, refreshTokens } from '../api/auth.api';
+import { getInitDataRaw } from '../lib/initData';
+
+/** Обновляем access за минуту до истечения, не дожидаясь 401. */
+const REFRESH_SKEW_MS = 60_000;
 
 export type SessionStatus = 'idle' | 'authenticating' | 'authenticated' | 'error';
 
@@ -15,6 +19,8 @@ interface SessionState {
   pendingCreateEventGroupId: number | null;
   pendingEventNavigation: { groupId: number; eventId: number } | null;
   login: (initData: string) => Promise<boolean>;
+  /** Обновляет access, если он уже протух или протухнет в ближайшую минуту. */
+  prepare: () => Promise<void>;
   refresh: () => Promise<boolean>;
   logout: () => void;
   consumeChatBootstrap: () => ChatBootstrapResponse | null;
@@ -40,10 +46,70 @@ function applyTokens(
     partial.pendingChatBootstrap = tokens.chatBootstrap ?? null;
   }
   set(partial);
+  if (partial.expiresAt != null) scheduleRefresh(partial.expiresAt);
 }
 
 /** Гарантирует, что одновременно идёт не более одного запроса на refresh. */
 let refreshInFlight: Promise<boolean> | null = null;
+let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+
+function clearRefreshTimer() {
+  if (refreshTimer != null) {
+    clearTimeout(refreshTimer);
+    refreshTimer = null;
+  }
+}
+
+function scheduleRefresh(expiresAt: number) {
+  clearRefreshTimer();
+  const delay = expiresAt - Date.now() - REFRESH_SKEW_MS;
+  if (delay <= 0) return;
+  refreshTimer = setTimeout(() => {
+    refreshTimer = null;
+    void useSessionStore.getState().refresh();
+  }, delay);
+}
+
+function tokenIsFresh(accessToken: string | null, expiresAt: number | null): boolean {
+  return accessToken != null && expiresAt != null && Date.now() < expiresAt - REFRESH_SKEW_MS;
+}
+
+function dropSession(error: string) {
+  clearRefreshTimer();
+  useSessionStore.setState({
+    accessToken: null,
+    refreshToken: null,
+    expiresAt: null,
+    status: 'error',
+    error,
+  });
+}
+
+async function runRefresh(refreshToken: string): Promise<boolean> {
+  try {
+    const tokens = await refreshTokens(refreshToken);
+    applyTokens(useSessionStore.setState, tokens);
+    return true;
+  } catch (error) {
+    // Сеть моргнула — refresh-токен ещё жив, следующий запрос попробует снова.
+    if (!isApiError(error) || error.status !== 401) return false;
+  }
+
+  const initData = getInitDataRaw();
+  if (!initData) {
+    dropSession('Сессия истекла. Откройте приложение заново.');
+    return false;
+  }
+
+  try {
+    const tokens = await loginWithTelegram(initData);
+    applyTokens(useSessionStore.setState, tokens);
+    return true;
+  } catch (error) {
+    dropSession(error instanceof Error ? error.message : 'Сессия истекла. Откройте приложение заново.');
+    return false;
+  }
+}
 
 export const useSessionStore = create<SessionState>((set, get) => ({
   accessToken: null,
@@ -70,28 +136,25 @@ export const useSessionStore = create<SessionState>((set, get) => ({
     }
   },
 
-  refresh: async () => {
+  prepare: async () => {
+    const { accessToken, refreshToken, expiresAt } = get();
+    if (!refreshToken || tokenIsFresh(accessToken, expiresAt)) return;
+    await get().refresh();
+  },
+
+  refresh: () => {
     if (refreshInFlight) return refreshInFlight;
     const { refreshToken } = get();
-    if (!refreshToken) return false;
+    if (!refreshToken) return Promise.resolve(false);
 
-    refreshInFlight = (async () => {
-      try {
-        const tokens = await refreshTokens(refreshToken);
-        applyTokens(set, tokens);
-        return true;
-      } catch {
-        set({ accessToken: null, refreshToken: null, expiresAt: null, status: 'idle' });
-        return false;
-      } finally {
-        refreshInFlight = null;
-      }
-    })();
-
+    refreshInFlight = runRefresh(refreshToken).finally(() => {
+      refreshInFlight = null;
+    });
     return refreshInFlight;
   },
 
   logout: () => {
+    clearRefreshTimer();
     set({
       accessToken: null,
       refreshToken: null,
@@ -137,5 +200,6 @@ export const useSessionStore = create<SessionState>((set, get) => ({
 // Связываем HTTP-клиент с сессией без обратной зависимости shared -> features.
 registerAuthBridge({
   getAccessToken: () => useSessionStore.getState().accessToken,
+  prepare: () => useSessionStore.getState().prepare(),
   refresh: () => useSessionStore.getState().refresh(),
 });

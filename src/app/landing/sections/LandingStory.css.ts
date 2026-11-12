@@ -228,7 +228,7 @@ export const stickyCol = style({
       display: 'block',
       position: 'sticky',
       top: vars.space[4],
-      zIndex: Number(vars.z.sticky),
+      zIndex: vars.z.sticky,
       alignSelf: 'start',
       width: '100%',
       minWidth: 0,

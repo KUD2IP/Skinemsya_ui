@@ -21,6 +21,8 @@ export const root = style({
   background: `radial-gradient(ellipse 90% 45% at 50% -8%, color-mix(in srgb, ${vars.color.accent} 5%, transparent), transparent 55%), ${vars.color.bg.base}`,
   overflowY: 'auto',
   overflowX: 'hidden',
+  overscrollBehavior: 'contain',
+  touchAction: 'pan-y',
   scrollbarGutter: 'stable both-edges',
   WebkitOverflowScrolling: 'touch',
   scrollBehavior: 'smooth',

@@ -5,16 +5,16 @@ const easeExit = [0.4, 0, 0.2, 1] as const;
 /** Плавное замедление для overlay/tab в WebView — без overshoot. */
 export const easeOutOverlay = [0.32, 0.72, 0, 1] as const;
 
-/** Slide-up шторки и крупных overlay. */
+/** Slide-up шторки и крупных overlay. Короткий tween, без пружины. */
 export const overlayTween = {
   type: 'tween',
-  duration: 0.36,
+  duration: 0.22,
   ease: easeOutOverlay,
 } as const;
 
 /** Fade backdrop под шторкой. */
 export const overlayFade = {
-  duration: 0.28,
+  duration: 0.16,
   ease: easeOutOverlay,
 } as const;
 
@@ -31,25 +31,22 @@ export const microTween = {
   ease: easeOutOverlay,
 } as const;
 
-/** Затухание splash при старте / обновлении страницы. */
+/** Затухание splash. Только opacity: blur и scale на весь экран роняют кадры. */
 export const splashScreen: Variants = {
   initial: { opacity: 1 },
   animate: { opacity: 1 },
   exit: {
     opacity: 0,
-    scale: 1.03,
-    filter: 'blur(10px)',
-    transition: { duration: 0.55, ease: easeExit },
+    transition: { duration: 0.22, ease: easeExit },
   },
 };
 
-/** Появление приложения после splash. */
+/** Появление приложения после splash. Без transform, чтобы не сдвигать каретку. */
 export const appReveal: Variants = {
-  initial: { opacity: 0, y: 14 },
+  initial: { opacity: 0 },
   animate: {
     opacity: 1,
-    y: 0,
-    transition: { type: 'spring', stiffness: 280, damping: 32, mass: 0.9, delay: 0.08 },
+    transition: { duration: 0.22, ease: easeOutOverlay },
   },
 };
 
@@ -83,42 +80,37 @@ export const tabSwitch: Variants = {
   }),
 };
 
-/** Push / pop стеков экранов (список → детали → назад). Без translate — стабильный hit-testing в WebView. */
+/** Push / pop стеков экранов. Только opacity: scale на весь экран дёргается в WebView. */
 export const stackSwitch: Variants = {
   initial: {
     opacity: 0,
-    scale: 0.98,
     pointerEvents: 'none',
   },
   animate: {
     opacity: 1,
-    scale: 1,
     pointerEvents: 'auto',
-    transition: { type: 'spring', stiffness: 340, damping: 34, mass: 0.82 },
+    transition: { duration: 0.22, ease: easeOutOverlay },
   },
   exit: {
     opacity: 0,
-    scale: 0.985,
     pointerEvents: 'none',
-    transition: { duration: 0.22, ease: easeExit },
+    transition: { duration: 0.16, ease: easeExit },
   },
 };
 
 /** @deprecated Используйте appReveal */
 export const appEnter: Variants = appReveal;
 
-/** Мягкое появление контента экрана — без резкого скачка. */
+/** Появление контента. Без сдвига: y на крупном блоке в WebView выглядит обрывисто. */
 export const fadeInUp: Variants = {
-  initial: { opacity: 0, y: 6 },
+  initial: { opacity: 0 },
   animate: {
     opacity: 1,
-    y: 0,
-    transition: { duration: 0.32, ease: easeOutOverlay },
+    transition: { duration: 0.22, ease: easeOutOverlay },
   },
   exit: {
     opacity: 0,
-    y: 4,
-    transition: { duration: 0.24, ease: easeExit },
+    transition: { duration: 0.16, ease: easeExit },
   },
 };
 
@@ -134,11 +126,10 @@ export const staggerContainer = (stagger = 0.04): Variants => ({
 });
 
 export const staggerItem: Variants = {
-  initial: { opacity: 0, y: 4 },
+  initial: { opacity: 0 },
   animate: {
     opacity: 1,
-    y: 0,
-    transition: { duration: 0.28, ease: easeOutOverlay },
+    transition: { duration: 0.18, ease: easeOutOverlay },
   },
 };
 

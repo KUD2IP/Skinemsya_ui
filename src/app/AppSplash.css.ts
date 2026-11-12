@@ -25,7 +25,7 @@ export const root = recipe({
       overlay: {
         position: 'fixed',
         inset: 0,
-        zIndex: Number(vars.z.toast) + 1,
+        zIndex: `calc(${vars.z.toast} + 1)`,
       },
       fill: {
         width: '100%',

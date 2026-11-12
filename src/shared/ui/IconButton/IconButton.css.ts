@@ -9,11 +9,16 @@ export const iconButton = recipe({
     flexShrink: 0,
     borderRadius: vars.radius.full,
     color: vars.color.text.primary,
-    transition: `transform ${vars.motion.durationFast} ${vars.motion.easeSpring}, background ${vars.motion.durationBase} ${vars.motion.easeStandard}`,
+    transition: `transform ${vars.motion.durationFast} ${vars.motion.easeStandard}, background-color ${vars.motion.durationFast} ${vars.motion.easeStandard}`,
     selectors: {
-      '&:active:not(:disabled)': { transform: 'scale(0.92)' },
+      '&:active:not(:disabled)': { transform: 'scale(0.96)' },
       '&:focus-visible': { outline: 'none', boxShadow: `0 0 0 3px ${vars.color.focusRing}` },
       '&:disabled': { opacity: 0.45, cursor: 'not-allowed' },
+    },
+    '@media': {
+      '(prefers-reduced-motion: reduce)': {
+        transitionProperty: 'background-color',
+      },
     },
   },
   variants: {

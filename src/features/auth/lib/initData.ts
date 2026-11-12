@@ -1,5 +1,26 @@
 import { retrieveLaunchParams, retrieveRawInitData } from '@telegram-apps/sdk-react';
 
+/** HTTPS-адрес аватарки из подписанного initData. Telegram отдаёт его не всегда. */
+export function telegramPhotoUrl(): string | null {
+  const raw = getInitDataRaw();
+  if (!raw) return null;
+  try {
+    const userJson = new URLSearchParams(raw).get('user');
+    if (!userJson) return null;
+    const user = JSON.parse(userJson) as { photo_url?: unknown };
+    return httpsPhotoUrl(user.photo_url);
+  } catch {
+    return null;
+  }
+}
+
+function httpsPhotoUrl(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  const url = value.trim();
+  if (!url.startsWith('https://') || url.length > 1024) return null;
+  return url;
+}
+
 /** Возвращает сырую строку initData из Telegram или null вне Telegram. */
 export function getInitDataRaw(): string | null {
   try {

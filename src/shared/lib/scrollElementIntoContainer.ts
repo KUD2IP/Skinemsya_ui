@@ -5,13 +5,16 @@ export function scrollElementIntoContainer(
   element: HTMLElement,
   container: HTMLElement,
   padding = DEFAULT_PADDING,
+  visibleBottom?: number,
 ): void {
   const elementRect = element.getBoundingClientRect();
   const containerRect = container.getBoundingClientRect();
+  const topLimit = containerRect.top + padding;
+  const bottomLimit = Math.min(containerRect.bottom, visibleBottom ?? containerRect.bottom) - padding;
 
-  if (elementRect.top < containerRect.top + padding) {
-    container.scrollTop -= containerRect.top + padding - elementRect.top;
-  } else if (elementRect.bottom > containerRect.bottom - padding) {
-    container.scrollTop += elementRect.bottom - (containerRect.bottom - padding);
+  if (elementRect.top < topLimit) {
+    container.scrollTop -= topLimit - elementRect.top;
+  } else if (elementRect.bottom > bottomLimit) {
+    container.scrollTop += elementRect.bottom - bottomLimit;
   }
 }

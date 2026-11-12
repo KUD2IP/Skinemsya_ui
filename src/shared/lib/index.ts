@@ -73,7 +73,8 @@ export type { PhoneCountry } from './phoneCountries';
 export { useMediaQuery, usePrefersReducedMotion } from './useMediaQuery';
 export { useRefreshAnimation } from './useRefreshAnimation';
 export { useScreenRefresh } from './useScreenRefresh';
-export { useVisualViewportFrame, type VisualViewportFrame } from './useVisualViewportFrame';
+export { bindKeyboardInset, readKeyboardInset, scrollFieldIntoView } from './keyboardInset';
+export { lockAppFrame } from './lockAppFrame';
 export { useBodyScrollLock } from './useBodyScrollLock';
 export { scrollElementIntoContainer } from './scrollElementIntoContainer';
 export {

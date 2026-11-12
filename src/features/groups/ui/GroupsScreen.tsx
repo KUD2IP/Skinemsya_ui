@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { PlusCircle, UsersThree } from '@phosphor-icons/react';
+import { Plus, UsersThree } from '@phosphor-icons/react';
 import { flattenPageItems, useGroupsInfiniteQuery } from '../api/queries';
 import { CreateGroupSheet } from './CreateGroupSheet';
 import { GroupListCard, GroupListPanel } from './GroupListCard';
@@ -70,7 +70,7 @@ export function GroupsScreen() {
           title="Пока нет групп"
           description="Создайте группу для совместных расчётов с друзьями."
           actions={
-            <Button leftIcon={<Icon icon={PlusCircle} size="sm" />} onClick={openCreate}>
+            <Button leftIcon={<Icon icon={Plus} size="sm" weight="bold" />} onClick={openCreate}>
               Создать группу
             </Button>
           }
@@ -78,7 +78,7 @@ export function GroupsScreen() {
       ) : (
         <Stack gap={4}>
           <div className={listCss.createRow}>
-            <Button fullWidth leftIcon={<Icon icon={PlusCircle} size="sm" />} onClick={openCreate}>
+            <Button fullWidth leftIcon={<Icon icon={Plus} size="sm" weight="bold" />} onClick={openCreate}>
               Новая группа
             </Button>
           </div>

@@ -1,8 +1,8 @@
 import { ArrowClockwise } from '@phosphor-icons/react';
-import { motion } from 'motion/react';
+import { cx } from '@/shared/lib';
 import { Icon } from '@/shared/ui/Icon';
 import { IconButton } from '@/shared/ui/IconButton';
-import { usePrefersReducedMotion } from '@/shared/lib';
+import * as css from './RefreshIconButton.css';
 
 export interface RefreshIconButtonProps {
   refreshing: boolean;
@@ -11,26 +11,17 @@ export interface RefreshIconButtonProps {
 
 /** Кнопка обновления с вращающейся иконкой во время refetch. */
 export function RefreshIconButton({ refreshing, onRefresh }: RefreshIconButtonProps) {
-  const reduced = usePrefersReducedMotion();
-
   return (
     <IconButton
+      variant="bare"
       aria-label={refreshing ? 'Обновление…' : 'Обновить'}
       aria-busy={refreshing}
       disabled={refreshing}
       onClick={() => onRefresh()}
     >
-      <motion.span
-        style={{ display: 'flex' }}
-        animate={refreshing && !reduced ? { rotate: 360 } : { rotate: 0 }}
-        transition={
-          refreshing && !reduced
-            ? { repeat: Infinity, duration: 0.7, ease: 'linear' }
-            : { duration: 0.25, ease: 'easeOut' }
-        }
-      >
-        <Icon icon={ArrowClockwise} />
-      </motion.span>
+      <span className={cx(css.icon, refreshing && css.spinning)}>
+        <Icon icon={ArrowClockwise} weight="bold" />
+      </span>
     </IconButton>
   );
 }

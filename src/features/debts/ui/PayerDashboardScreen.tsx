@@ -18,7 +18,8 @@ import {
   IconButton,
   RefreshIconButton,
   Screen,
-  Skeleton,
+  SkeletonCard,
+  SkeletonList,
   Stack,
   toast,
 } from '@/shared/ui';
@@ -257,9 +258,8 @@ export function PayerDashboardScreen({
     >
       {isLoading ? (
         <Stack gap={4}>
-          <Skeleton height={48} radius="md" />
-          <Skeleton height={72} radius="lg" />
-          <Skeleton height={72} radius="lg" />
+          <SkeletonCard lines={1} />
+          <SkeletonList rows={3} />
         </Stack>
       ) : isError || !status ? (
         <EmptyState

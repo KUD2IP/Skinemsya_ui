@@ -36,7 +36,12 @@ export const thumb = style({
   borderRadius: vars.radius.full,
   background: vars.color.text.primary,
   boxShadow: vars.shadow.sm,
-  transition: `transform ${vars.motion.durationBase} ${vars.motion.easeSpring}`,
+  transition: `transform ${vars.motion.durationFast} ${vars.motion.easeStandard}`,
+  '@media': {
+    '(prefers-reduced-motion: reduce)': {
+      transition: 'none',
+    },
+  },
   selectors: {
     '&[data-state="checked"]': { transform: 'translateX(18px)', background: '#fff' },
   },

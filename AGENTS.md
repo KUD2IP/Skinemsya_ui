@@ -37,7 +37,7 @@ Before writing code, load the relevant docs:
 1. **No backend-less features.** If an endpoint is not listed in [docs/API.md](docs/API.md) and not present in `../skinemsya_java` controllers, do **not** build it, do **not** invent it, do **not** add mock APIs to fake it. Stop and report that the backend is missing.
 2. **No Tailwind. No utility-class styling.** Styling is done with **vanilla-extract** (`*.css.ts`) consuming theme tokens.
 3. **No default AI-looking palettes.** Never introduce `slate/zinc/gray-500`, generic blue accents, or raw hex in components. Use tokens (`vars.color.*`). The brand color is Sber-style green on a dark green-tinted background.
-4. **No default icon packs.** Use `@phosphor-icons/react` (duotone) via the `Icon` adapter. No Lucide/Heroicons/Material.
+4. **No default icon packs.** Use `@phosphor-icons/react` via the `Icon` adapter, weight **bold**. Duotone draws a second plate that reads as a gray disc on this dark background. No Lucide/Heroicons/Material.
 5. **No `@telegram-apps/telegram-ui`.** The UI is bespoke. Use the SDK only for platform integration.
 6. **No hardcoded design values.** Colors, spacing, radii, shadows, font sizes, animation timings come from tokens. If a token is missing, add it to `src/shared/theme`, not inline.
 7. **Reusable UI lives in `src/shared/ui`.** Do not duplicate component markup across screens.
@@ -52,7 +52,7 @@ Before writing code, load the relevant docs:
 - Styling: **vanilla-extract** (`@vanilla-extract/css`, `@vanilla-extract/recipes`)
 - Headless primitives: **Ark UI** (`@ark-ui/react`)
 - Animation: **Motion** (`motion/react`) with presets from `src/shared/lib/motion.ts`
-- Icons: **Phosphor** (`@phosphor-icons/react`, duotone)
+- Icons: **Phosphor** (`@phosphor-icons/react`, bold)
 - Splash: **Rive** (`@rive-app/react-canvas`), fallback Lottie
 - Server state: **TanStack Query**; Client state: **Zustand**; Routing: **TanStack Router**
 - HTTP: **ky**; Forms: **react-hook-form + zod**

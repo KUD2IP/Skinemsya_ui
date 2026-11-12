@@ -23,7 +23,7 @@ import {
   RefreshIconButton,
   Screen,
   Sheet,
-  Skeleton,
+  SkeletonList,
   Stack,
   toast,
 } from '@/shared/ui';
@@ -84,11 +84,7 @@ export function GroupMembersScreen() {
       headerAction={<RefreshIconButton refreshing={refreshing} onRefresh={() => void refresh()} />}
     >
       {isLoading ? (
-        <Stack gap={2}>
-          <Skeleton className={css.rowSkeleton} radius="md" />
-          <Skeleton className={css.rowSkeleton} radius="md" />
-          <Skeleton className={css.rowSkeleton} radius="md" />
-        </Stack>
+        <SkeletonList rows={4} leading={44} trailing={false} />
       ) : isError ? (
         <EmptyState
           title="Не удалось загрузить участников"
@@ -120,6 +116,7 @@ export function GroupMembersScreen() {
               <MemberRow
                 key={member.id}
                 member={member}
+                currentUserId={user?.id}
                 onRemove={
                   isOwner && member.role !== 'OWNER'
                     ? (next) => {

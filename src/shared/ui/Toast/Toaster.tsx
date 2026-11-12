@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { Icon } from '@/shared/ui/Icon';
 import { useToastStore, type ToastItem } from './toast.store';
 import * as css from './Toast.css';
-import { cx, microTween, overlayFade, overlayTween } from '@/shared/lib';
+import { cx, overlayFade } from '@/shared/lib';
 
 const toneIcons = {
   success: CheckCircle,
@@ -23,23 +23,17 @@ function ToastRow({ item, onDismiss }: { item: ToastItem; onDismiss: () => void 
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: -10, scale: 0.96 }}
-      animate={{ opacity: 1, y: 0, scale: 1, transition: overlayTween }}
-      exit={{ opacity: 0, y: -6, scale: 0.97, transition: overlayFade }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1, transition: overlayFade }}
+      exit={{ opacity: 0, transition: overlayFade }}
       className={cx(css.toastBase, css.tone[item.tone])}
       role="status"
       onClick={onDismiss}
     >
-      <motion.span
-        className={css.toastInner}
-        key={item.revision}
-        initial={{ opacity: 0.75, scale: 0.98 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={microTween}
-      >
+      <span className={css.toastInner}>
         <Icon icon={ToneIcon} size="sm" className={css.toastIcon} />
         <span className={css.toastMessage}>{item.message}</span>
-      </motion.span>
+      </span>
     </motion.div>
   );
 }

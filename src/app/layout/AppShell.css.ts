@@ -1,12 +1,19 @@
-import { style } from '@vanilla-extract/css';
+import { keyframes, style } from '@vanilla-extract/css';
 import { breakpoints, vars } from '@/shared/theme';
+
+const routeIn = keyframes({
+  from: { opacity: 0 },
+  to: { opacity: 1 },
+});
 
 export const shell = style({
   display: 'flex',
   flexDirection: 'column',
   flex: 1,
   width: '100%',
-  minHeight: vars.layout.appHeight,
+  minHeight: 0,
+  height: '100%',
+  overflow: 'hidden',
   margin: '0 auto',
   '@media': {
     [breakpoints.lg]: {
@@ -38,10 +45,16 @@ export const routePage = style({
   flexDirection: 'column',
   flex: 1,
   minHeight: 0,
-  overflowX: 'hidden',
-  overflowY: 'auto',
-  WebkitOverflowScrolling: 'touch',
-  overscrollBehavior: 'contain',
+  overflow: 'hidden',
+  overscrollBehavior: 'none',
   background: vars.color.bg.base,
   pointerEvents: 'auto',
+  animationName: routeIn,
+  animationDuration: vars.motion.durationFast,
+  animationTimingFunction: vars.motion.easeStandard,
+  '@media': {
+    '(prefers-reduced-motion: reduce)': {
+      animationName: 'none',
+    },
+  },
 });

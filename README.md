@@ -20,7 +20,7 @@
 - **vanilla-extract** — типобезопасная дизайн-система в виде токенов (без Tailwind).
 - **Ark UI** — доступные headless-примитивы, поверх которых построены собственные компоненты.
 - **Motion** — плавные анимации и переходы.
-- **Phosphor Icons (duotone)** — фирменный набор иконок.
+- **Phosphor Icons (bold)** — фирменный набор иконок.
 - **Rive** — анимированный экран загрузки.
 - **@telegram-apps/sdk-react** — интеграция с Telegram Mini Apps.
 - **TanStack Query / Router**, **Zustand**, **react-hook-form + zod**, **ky** — данные, роутинг, состояние, формы, HTTP.

@@ -26,6 +26,7 @@ import {
   Screen,
   Sheet,
   Skeleton,
+  SkeletonCard,
   Stack,
   toast,
   useAnySheetOpen,
@@ -234,9 +235,10 @@ export function EventPositionsScreen({
     >
       {isLoading ? (
         <Stack gap={4}>
-          <Skeleton height={120} radius="lg" />
-          <Skeleton height={88} radius="lg" />
-          <Skeleton height={88} radius="lg" />
+          <Skeleton height={10} radius="full" />
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
         </Stack>
       ) : isError ? (
         <EmptyState
