@@ -49,7 +49,7 @@ export function LandingHero() {
           </motion.p>
           <motion.h1 className={css.title} variants={reduced ? undefined : landingItem}>
             <span className={css.titleAmount}>{amount}</span> на четверых.{' '}
-            <span className={css.titleAccent}>Никто не считал вручную.</span>
+            <span className={css.titleAccent}>Разделили счёт без ручных расчётов.</span>
           </motion.h1>
           <motion.p className={css.subtitle} variants={reduced ? undefined : landingItem}>
             Скинемся — в Telegram для совместных трат. Создаёте сбор, каждый отмечает свою долю — с

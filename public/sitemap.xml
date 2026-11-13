@@ -2,6 +2,11 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://skinemsya-vse.ru/</loc>
-    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://skinemsya-vse.ru/legal/offer</loc>
+  </url>
+  <url>
+    <loc>https://skinemsya-vse.ru/legal/privacy</loc>
   </url>
 </urlset>
