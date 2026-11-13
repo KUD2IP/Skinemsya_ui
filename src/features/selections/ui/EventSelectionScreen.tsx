@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearch } from '@tanstack/react-router';
-import { CaretLeft } from '@phosphor-icons/react';
 import type { EventResponse, PositionResponse } from '@/shared/api';
 import { positionKeys, receiptKeys, useEventReceiptsQuery, usePositionsQuery } from '@/features/positions/api/queries';
 import { eventKeys } from '@/features/events/api/queries';
@@ -12,10 +11,9 @@ import { eventStatusLabel, formatMoney, haptics, positionUnitPriceKopecks, useSc
 import {
   Button,
   EmptyState,
-  Icon,
-  IconButton,
   RefreshIconButton,
   Screen,
+  ScreenBack,
   SkeletonList,
   Stack,
   toast,
@@ -290,14 +288,7 @@ export function EventSelectionScreen({
       <Screen
         title={event.name}
         subtitle={eventStatusLabel(event.status)}
-        headerLeading={
-          <IconButton
-            aria-label="Назад"
-            onClick={() => void handleBack()}
-          >
-            <Icon icon={CaretLeft} weight="bold" />
-          </IconButton>
-        }
+        headerLeading={<ScreenBack onBack={() => void handleBack()} />}
         refreshing={refreshing && !isLoading}
         headerAction={<RefreshIconButton refreshing={refreshing} onRefresh={() => void refresh()} />}
       >
@@ -321,17 +312,10 @@ export function EventSelectionScreen({
     <Screen
       title={event.name}
       subtitle={eventStatusLabel(event.status)}
-      headerLeading={
-        <IconButton
-          aria-label="Назад"
-            onClick={() => void handleBack()}
-          >
-            <Icon icon={CaretLeft} weight="bold" />
-          </IconButton>
-        }
-        refreshing={refreshing && !isLoading}
-        headerAction={<RefreshIconButton refreshing={refreshing} onRefresh={() => void refresh()} />}
-      >
+      headerLeading={<ScreenBack onBack={() => void handleBack()} />}
+      refreshing={refreshing && !isLoading}
+      headerAction={<RefreshIconButton refreshing={refreshing} onRefresh={() => void refresh()} />}
+    >
       {isLoading ? (
         <SkeletonList rows={3} />
       ) : isError ? (

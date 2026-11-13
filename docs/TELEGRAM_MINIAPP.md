@@ -22,7 +22,8 @@ export function initTelegram() {
   backButton.mount();
 
   miniApp.ready();        // сообщаем Telegram, что готовы к показу
-  viewport.expand();      // разворачиваем на всю высоту
+  viewport.expand();      // разворачиваем на всю высоту, если fullscreen недоступен
+  viewport.requestFullscreen(); // Bot API 8.0: край в край. Не все точки входа это принимают сразу
   viewport.bindCssVars(); // --tg-viewport-* в :root
   themeParams.bindCssVars();
 }
@@ -112,7 +113,7 @@ miniApp.setBackgroundColor('#0A0F0D');
 ## 5. Системные кнопки
 
 ### BackButton
-Управляем нативной кнопкой «назад» из роутинга: показываем на вложенных экранах, скрываем на корневом.
+На вложенных экранах системная кнопка слева сверху — стрелка «назад». Пока экран сменяется другим вложенным, стрелку не скрываем: иначе Telegram на миг рисует крестик «Закрыть». Крестик остаётся только на «Группах» и «Профиле». Вне Telegram стрелка остаётся в шапке страницы.
 
 ```ts
 import { backButton } from '@telegram-apps/sdk-react';

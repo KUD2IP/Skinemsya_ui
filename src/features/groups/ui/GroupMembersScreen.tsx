@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { CaretLeft } from '@phosphor-icons/react';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import {
   flattenPageItems,
@@ -18,10 +17,9 @@ import type { GroupMemberViewResponse } from '@/shared/api';
 import {
   Button,
   EmptyState,
-  Icon,
-  IconButton,
   RefreshIconButton,
   Screen,
+  ScreenBack,
   Sheet,
   SkeletonList,
   Stack,
@@ -71,14 +69,11 @@ export function GroupMembersScreen() {
     <Screen
       title="Участники"
       headerLeading={
-        <IconButton
-          aria-label="Назад"
-          onClick={() =>
+        <ScreenBack
+          onBack={() =>
             void navigate({ to: '/groups/$groupId', params: { groupId: groupIdParam } })
           }
-        >
-          <Icon icon={CaretLeft} weight="bold" />
-        </IconButton>
+        />
       }
       refreshing={refreshing && !isLoading}
       headerAction={<RefreshIconButton refreshing={refreshing} onRefresh={() => void refresh()} />}

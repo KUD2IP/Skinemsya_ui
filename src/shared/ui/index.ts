@@ -31,6 +31,7 @@ export type { BadgeProps } from './Badge';
 export { EmptyState } from './EmptyState';
 export type { EmptyStateProps } from './EmptyState';
 export { Screen } from './Screen';
+export { ScreenBack } from './ScreenBack';
 export type { ScreenProps } from './Screen';
 export { PhoneInput, DEFAULT_PHONE_COUNTRY_ID } from './PhoneInput';
 export { TabBar } from './TabBar';

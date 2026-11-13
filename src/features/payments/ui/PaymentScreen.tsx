@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { CaretLeft, Copy } from '@phosphor-icons/react';
+import { Copy } from '@phosphor-icons/react';
 import type { EventResponse, PaymentStatus } from '@/shared/api';
 import { useUploadFile } from '@/features/files/api/queries';
 import { FilePreview } from '@/features/files/ui/FilePreview';
@@ -13,6 +13,7 @@ import {
   IconButton,
   RefreshIconButton,
   Screen,
+  ScreenBack,
   Skeleton,
   SkeletonCard,
   Stack,
@@ -169,12 +170,9 @@ export function PaymentScreen({
       title={event.name}
       subtitle="Скинуть"
       headerLeading={
-        <IconButton
-          aria-label="Назад"
-          onClick={() => void navigate({ to: '/groups/$groupId', params: { groupId: String(groupId) } })}
-        >
-          <Icon icon={CaretLeft} weight="bold" />
-        </IconButton>
+        <ScreenBack
+          onBack={() => void navigate({ to: '/groups/$groupId', params: { groupId: String(groupId) } })}
+        />
       }
       refreshing={refreshing && !isLoading}
       headerAction={<RefreshIconButton refreshing={refreshing} onRefresh={() => void refresh()} />}

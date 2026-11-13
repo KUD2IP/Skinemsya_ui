@@ -4,6 +4,8 @@ import {
   bindViewportCssVars,
   expandViewport,
   init,
+  isFullscreen,
+  requestFullscreen,
   miniAppReady,
   mountBackButton,
   mountMiniAppSync,
@@ -14,6 +16,15 @@ import {
 } from '@telegram-apps/sdk-react';
 
 const APP_BG = '#0A0F0D';
+
+function enterFullscreen() {
+  try {
+    if (!requestFullscreen.isAvailable() || isFullscreen()) return;
+    void Promise.resolve(requestFullscreen.ifAvailable()).catch(() => undefined);
+  } catch (error) {
+    if (import.meta.env.DEV) console.warn('[telegram] fullscreen skipped:', error);
+  }
+}
 
 function tryRun(label: string, run: () => void) {
   try {
@@ -58,6 +69,9 @@ export async function initTelegram(): Promise<void> {
   });
 
   tryRun('ready', () => miniAppReady());
+  enterFullscreen();
+  // Часть клиентов отклоняет fullscreen без жеста, если миниапп открыли не из меню бота.
+  window.addEventListener('pointerdown', enterFullscreen, { capture: true, once: true });
 
   // Свайп вниз у верхнего края сворачивает Mini App. На обычных экранах это случайное закрытие.
   tryRun('verticalSwipes', () => {

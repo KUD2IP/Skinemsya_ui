@@ -61,6 +61,9 @@ export const headerLeading = style({
   alignItems: 'center',
   alignSelf: 'center',
   marginLeft: `calc(${vars.space[2]} * -1)`,
+  selectors: {
+    '&:empty': { display: 'none' },
+  },
 });
 
 export const headerMain = style({

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearch } from '@tanstack/react-router';
-import { CaretDown, CaretLeft, CaretRight } from '@phosphor-icons/react';
+import { CaretDown, CaretRight } from '@phosphor-icons/react';
 import { PayerDashboardScreen, debtKeys, useParticipantsStatusQuery } from '@/features/debts';
 import { useEventDebtsQuery } from '@/features/debts/api/queries';
 import { groupKeys, useGroupMembersQuery } from '@/features/groups/api/queries';
@@ -25,9 +25,9 @@ import {
   Card,
   EmptyState,
   Icon,
-  IconButton,
   RefreshIconButton,
   Screen,
+  ScreenBack,
   Stack,
 } from '@/shared/ui';
 import {
@@ -115,12 +115,9 @@ function CompletedEventSummary({
       title={event.name}
       subtitle={`${eventStatusLabel(event.status)} · ${formatDateTime(event.updatedAt)}`}
       headerLeading={
-        <IconButton
-          aria-label="Назад"
-          onClick={() => void navigate({ to: '/groups/$groupId', params: { groupId: String(groupId) } })}
-        >
-          <Icon icon={CaretLeft} weight="bold" />
-        </IconButton>
+        <ScreenBack
+          onBack={() => void navigate({ to: '/groups/$groupId', params: { groupId: String(groupId) } })}
+        />
       }
       refreshing={refreshing}
       headerAction={<RefreshIconButton refreshing={refreshing} onRefresh={() => void refresh()} />}
@@ -223,12 +220,9 @@ function PayerWaitScreen({
       title={event.name}
       subtitle={eventStatusLabel(event.status)}
       headerLeading={
-        <IconButton
-          aria-label="Назад"
-          onClick={() => void navigate({ to: '/groups/$groupId', params: { groupId: String(groupId) } })}
-        >
-          <Icon icon={CaretLeft} weight="bold" />
-        </IconButton>
+        <ScreenBack
+          onBack={() => void navigate({ to: '/groups/$groupId', params: { groupId: String(groupId) } })}
+        />
       }
       refreshing={refreshing}
       headerAction={<RefreshIconButton refreshing={refreshing} onRefresh={() => void refresh()} />}
@@ -276,12 +270,9 @@ export function EventDetailScreen({ groupId, eventId, currentUserId }: EventDeta
       <Screen
         title="Сбор"
         headerLeading={
-          <IconButton
-            aria-label="Назад"
-            onClick={() => void navigate({ to: '/groups/$groupId', params: { groupId: String(groupId) } })}
-          >
-            <Icon icon={CaretLeft} weight="bold" />
-          </IconButton>
+          <ScreenBack
+            onBack={() => void navigate({ to: '/groups/$groupId', params: { groupId: String(groupId) } })}
+          />
         }
       >
         <EventDetailSkeleton />
@@ -294,12 +285,9 @@ export function EventDetailScreen({ groupId, eventId, currentUserId }: EventDeta
       <Screen
         title="Сбор"
         headerLeading={
-          <IconButton
-            aria-label="Назад"
-            onClick={() => void navigate({ to: '/groups/$groupId', params: { groupId: String(groupId) } })}
-          >
-            <Icon icon={CaretLeft} weight="bold" />
-          </IconButton>
+          <ScreenBack
+            onBack={() => void navigate({ to: '/groups/$groupId', params: { groupId: String(groupId) } })}
+          />
         }
       >
         <EmptyState
@@ -320,12 +308,9 @@ export function EventDetailScreen({ groupId, eventId, currentUserId }: EventDeta
       <Screen
         title={event.name}
         headerLeading={
-          <IconButton
-            aria-label="Назад"
-            onClick={() => void navigate({ to: '/groups/$groupId', params: { groupId: String(groupId) } })}
-          >
-            <Icon icon={CaretLeft} weight="bold" />
-          </IconButton>
+          <ScreenBack
+            onBack={() => void navigate({ to: '/groups/$groupId', params: { groupId: String(groupId) } })}
+          />
         }
       >
         {joining ? (

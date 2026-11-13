@@ -1,15 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { CaretLeft } from '@phosphor-icons/react';
 import { isApiError } from '@/shared/api';
 import type { AdminUserResponse } from '@/shared/api';
 import {
   Button,
   EmptyState,
-  Icon,
-  IconButton,
   Input,
   Screen,
+  ScreenBack,
   Stack,
   toast,
 } from '@/shared/ui';
@@ -56,11 +54,7 @@ export function AdminScreen() {
   return (
     <Screen
       title="Люди"
-      headerLeading={
-        <IconButton aria-label="Назад" onClick={() => void navigate({ to: '/profile' })}>
-          <Icon icon={CaretLeft} weight="bold" />
-        </IconButton>
-      }
+      headerLeading={<ScreenBack onBack={() => void navigate({ to: '/profile' })} />}
     >
       <Stack gap={3}>
         <Input

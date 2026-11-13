@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { CaretLeft, PencilSimple, SignOut, Trash, UserPlus } from '@phosphor-icons/react';
+import { PencilSimple, SignOut, Trash, UserPlus } from '@phosphor-icons/react';
 import { groupKeys, useDeleteGroup, useGroupQuery, useLeaveGroup } from '../api/queries';
 import { eventKeys } from '@/features/events/api/queries';
 import { LEAVE_BLOCKED_BY_TRANSFER } from '@/features/events/model/eventRoster';
@@ -16,9 +16,9 @@ import {
   Button,
   EmptyState,
   Icon,
-  IconButton,
   RefreshIconButton,
   Screen,
+  ScreenBack,
   Sheet,
   Stack,
   toast,
@@ -118,11 +118,7 @@ export function GroupDetailScreen({
       title={group?.name ?? 'Группа'}
       subtitle={group ? groupSubtitle(group.type, isOwner) : undefined}
       refreshing={refreshing && !isLoading}
-      headerLeading={
-        <IconButton aria-label="Назад" onClick={() => void navigate({ to: '/' })}>
-          <Icon icon={CaretLeft} weight="bold" />
-        </IconButton>
-      }
+      headerLeading={<ScreenBack onBack={() => void navigate({ to: '/' })} />}
       headerAction={<RefreshIconButton refreshing={refreshing} onRefresh={() => void refresh()} />}
     >
       {isLoading ? (

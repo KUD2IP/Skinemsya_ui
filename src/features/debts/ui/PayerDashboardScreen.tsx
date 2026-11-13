@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { CaretDown, CaretLeft, CaretRight } from '@phosphor-icons/react';
+import { CaretDown, CaretRight } from '@phosphor-icons/react';
 import type { DebtResponse, EventResponse } from '@/shared/api';
 import { groupKeys, useGroupMembersQuery } from '@/features/groups/api/queries';
 import {
@@ -15,9 +15,9 @@ import {
   Button,
   EmptyState,
   Icon,
-  IconButton,
   RefreshIconButton,
   Screen,
+  ScreenBack,
   SkeletonCard,
   SkeletonList,
   Stack,
@@ -246,12 +246,9 @@ export function PayerDashboardScreen({
       title={event.name}
       subtitle={eventStatusLabel(event.status)}
       headerLeading={
-        <IconButton
-          aria-label="Назад"
-          onClick={() => void navigate({ to: '/groups/$groupId', params: { groupId: String(groupId) } })}
-        >
-          <Icon icon={CaretLeft} weight="bold" />
-        </IconButton>
+        <ScreenBack
+          onBack={() => void navigate({ to: '/groups/$groupId', params: { groupId: String(groupId) } })}
+        />
       }
       refreshing={refreshing && !isLoading}
       headerAction={<RefreshIconButton refreshing={refreshing} onRefresh={() => void refresh()} />}

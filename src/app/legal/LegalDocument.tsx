@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
-import { CaretLeft } from '@phosphor-icons/react';
-import { Icon, IconButton, Screen } from '@/shared/ui';
+import { Screen, ScreenBack } from '@/shared/ui';
 
 function goBack() {
   if (window.history.length > 1) {
@@ -14,11 +13,7 @@ export function LegalDocument({ title, children }: { title: string; children: Re
   return (
     <Screen
       title={title}
-      headerLeading={
-        <IconButton aria-label="Назад" onClick={goBack}>
-          <Icon icon={CaretLeft} weight="bold" />
-        </IconButton>
-      }
+      headerLeading={<ScreenBack onBack={goBack} />}
     >
       {children}
     </Screen>

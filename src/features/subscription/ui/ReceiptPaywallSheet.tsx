@@ -188,8 +188,8 @@ export function ReceiptPaywallSheet({
       <Stack gap={3}>
         <p className={css.price}>{price}</p>
         <p className={css.note}>
-          30 дней. Карта и СБП оплачивают один период, следующий — отдельной оплатой. Звёзды
-          продлеваются в Telegram, отмена в профиле.{' '}
+          30 дней. Оплата откроется в браузере: там карта, СБП и Сбер. Следующий период
+          оплачивается заново. Звёзды продлеваются в Telegram, отмена в профиле.{' '}
           <a className={css.offerLink} href="/legal/offer">
             Оферта
           </a>
@@ -199,20 +199,6 @@ export function ReceiptPaywallSheet({
           </a>
         </p>
         {widgetToken ? <div id="yookassa-widget" className={css.widget} /> : null}
-        {widgetToken && primaryMethod === 'YOOKASSA' ? (
-          <p className={css.note}>
-            Если ваш банк не открывается из приложения, перейдите на{' '}
-            <button
-              type="button"
-              className={css.fallbackLink}
-              disabled={waiting}
-              onClick={() => void pay('YOOKASSA', true)}
-            >
-              страницу оплаты
-            </button>
-            , заплатите там и вернитесь обратно.
-          </p>
-        ) : null}
         {!widgetToken && primaryMethod === 'YOOKASSA' ? (
           <Button
             type="button"

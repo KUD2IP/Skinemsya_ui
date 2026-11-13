@@ -15,7 +15,7 @@ export const root = recipe({
     justifyContent: 'center',
     gap: vars.space[7],
     background: vars.color.bg.base,
-    backgroundImage: vars.gradient.glowSpot,
+    backgroundImage: vars.gradient.glowWash,
     backgroundRepeat: 'no-repeat',
     backgroundPosition: 'center top',
     padding: vars.space[5],
@@ -44,13 +44,18 @@ export const stage = style({
   aspectRatio: '555 / 720',
 });
 
-/** Ореол, вспыхивающий в момент, когда знак собрался. */
+/** Круглый ореол. Прямоугольник со скруглением после blur оставлял квадратную кромку. */
 export const halo = style({
   position: 'absolute',
-  inset: '-18%',
+  left: '50%',
+  top: '50%',
+  width: '180%',
+  aspectRatio: '1',
+  marginLeft: '-90%',
+  marginTop: '-90%',
   borderRadius: vars.radius.full,
-  background: `radial-gradient(circle, color-mix(in srgb, ${vars.color.accent} 34%, transparent), transparent 66%)`,
-  filter: 'blur(26px)',
+  background: vars.splashHalo,
+  filter: `blur(${vars.space[8]})`,
   pointerEvents: 'none',
 });
 

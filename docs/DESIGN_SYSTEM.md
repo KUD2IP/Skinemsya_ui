@@ -96,6 +96,7 @@
 | `gradient.surface` | `linear-gradient(180deg, #16201C 0%, #101714 100%)` | Карточки-герои |
 | `gradient.glowSpot` | `radial-gradient(circle at 50% 0%, rgba(47,211,122,0.18), transparent 70%)` | Компактное свечение (сплэш, чек) |
 | `gradient.glowWash` | `radial-gradient(ellipse 90% 100% at 50% 0%, rgba(47,211,122,0.16) 0%, rgba(47,211,122,0) 100%)` | Длинное свечение шапки экрана: гаснет в тот же зелёный с нулевой альфой, без тёмной полосы |
+| `splashHalo` | `radial-gradient(circle, rgba(47,211,122,0.34) 0%, rgba(47,211,122,0) 72%)` | Круглый ореол знака на сплэше, без квадратной кромки |
 
 ### 2.7 Light theme
 

@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useMutationState } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
-import { CaretLeft, Trash } from '@phosphor-icons/react';
+import { Trash } from '@phosphor-icons/react';
 import type { EventResponse, PositionResponse } from '@/shared/api';
 import { useUploadFile } from '@/features/files/api/queries';
 import { useProfileQuery } from '@/features/profile/api/queries';
@@ -24,6 +24,7 @@ import {
   IconButton,
   RefreshIconButton,
   Screen,
+  ScreenBack,
   Sheet,
   Skeleton,
   SkeletonCard,
@@ -223,12 +224,9 @@ export function EventPositionsScreen({
       title={event.name}
       subtitle={eventStatusLabel(event.status)}
       headerLeading={
-        <IconButton
-          aria-label="Назад"
-          onClick={() => void navigate({ to: '/groups/$groupId', params: { groupId: String(groupId) } })}
-        >
-          <Icon icon={CaretLeft} weight="bold" />
-        </IconButton>
+        <ScreenBack
+          onBack={() => void navigate({ to: '/groups/$groupId', params: { groupId: String(groupId) } })}
+        />
       }
       refreshing={refreshing && !isLoading}
       headerAction={<RefreshIconButton refreshing={refreshing} onRefresh={() => void refresh()} />}

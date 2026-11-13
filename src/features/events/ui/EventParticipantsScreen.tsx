@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { CaretLeft, Trash } from '@phosphor-icons/react';
+import { Trash } from '@phosphor-icons/react';
 import { telegramPhotoUrl } from '@/features/auth';
 import { debtKeys, useEventDebtsQuery, useParticipantsStatusQuery } from '@/features/debts';
 import { groupKeys, useGroupMembersQuery, useGroupQuery } from '@/features/groups/api/queries';
@@ -16,6 +16,7 @@ import {
   IconButton,
   RefreshIconButton,
   Screen,
+  ScreenBack,
   Sheet,
   SkeletonList,
   Stack,
@@ -182,17 +183,14 @@ export function EventParticipantsScreen({
       title="Участники"
       subtitle={event ? eventCapacityLabel(event) : undefined}
       headerLeading={
-        <IconButton
-          aria-label="Назад"
-          onClick={() =>
+        <ScreenBack
+          onBack={() =>
             void navigate({
               to: '/groups/$groupId/events/$eventId',
               params: { groupId: String(groupId), eventId: String(eventId) },
             })
           }
-        >
-          <Icon icon={CaretLeft} weight="bold" />
-        </IconButton>
+        />
       }
       refreshing={refreshing && !isLoading}
       headerAction={<RefreshIconButton refreshing={refreshing} onRefresh={() => void refresh()} />}

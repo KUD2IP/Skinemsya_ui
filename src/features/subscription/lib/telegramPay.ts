@@ -1,7 +1,7 @@
 type InvoiceStatus = 'paid' | 'cancelled' | 'failed' | 'pending';
 
 type TelegramWebApp = {
-  openLink?: (url: string, options?: { try_instant_view?: boolean }) => void;
+  openLink?: (url: string, options?: { try_instant_view?: boolean; try_browser?: boolean }) => void;
   openInvoice?: (url: string, callback?: (status: InvoiceStatus) => void) => void;
 };
 
@@ -12,7 +12,7 @@ function webApp(): TelegramWebApp | undefined {
 export function openExternal(url: string) {
   const app = webApp();
   if (app?.openLink) {
-    app.openLink(url);
+    app.openLink(url, { try_browser: true });
     return;
   }
   window.open(url, '_blank', 'noopener');

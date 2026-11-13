@@ -183,6 +183,8 @@ export const vars = createGlobalTheme(':root', {
       'calc(max(env(safe-area-inset-bottom), var(--tg-safe-area-inset-bottom, 0px), var(--tg-viewport-safe-area-inset-bottom, 0px)) + max(var(--tg-content-safe-area-inset-bottom, 0px), var(--tg-viewport-content-safe-area-inset-bottom, 0px)))',
     appHeight: 'var(--tg-viewport-stable-height, 100dvh)',
   },
+  /** Ореол сплэша. Конечный цвет — тот же зелёный с нулевой альфой, без квадратной кромки. */
+  splashHalo: 'radial-gradient(circle, rgba(47,211,122,0.34) 0%, rgba(47,211,122,0) 72%)',
 });
 
 export const breakpoints = {

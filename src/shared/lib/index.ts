@@ -24,6 +24,7 @@ export {
 } from './motion';
 export { useTransientWillChange } from './useTransientWillChange';
 export { haptics } from './haptics';
+export { bindTelegramBackButton, useTelegramBack } from './telegramBack';
 export {
   formatMoney,
   formatPhone,
