@@ -34,6 +34,7 @@ export function LandingCta({
   return (
     <div className={css.root({ compact })}>
       <Button
+        className={css.button}
         variant="primary"
         size={size}
         fullWidth={fullWidth}

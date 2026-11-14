@@ -6,12 +6,13 @@ import {
   sellerRequisitesLine,
 } from '@/shared/config';
 import { LandingMark } from '../components/LandingMark';
+import { useLandingScrollToTop } from '../lib/scrollRoot';
 import * as css from './LandingFooter.css';
 
 const PAGE_LINKS = [
   { href: '#story', label: 'Как это работает' },
-  { href: '#subscription', label: 'Подписка' },
-  { href: '/legal/offer', label: 'Оферта' },
+  { href: '#details', label: 'Вопросы' },
+  { href: '#subscription', label: 'Стоимость' },
 ] as const;
 
 interface ContactLink {
@@ -44,6 +45,7 @@ function contactLinks(): ContactLink[] {
 export function LandingFooter() {
   const contacts = contactLinks();
   const year = new Date().getFullYear();
+  const scrollToTop = useLandingScrollToTop();
 
   return (
     <footer className={css.root}>
@@ -54,8 +56,7 @@ export function LandingFooter() {
             <span className={css.brandName}>Скинемся</span>
           </a>
           <p className={css.brandText}>
-            Совместные траты в Telegram. Сбор, доли каждого и подтверждение переводов — без
-            отдельного приложения.
+            Один чек, понятные доли и подтверждённые переводы. Всё внутри Telegram.
           </p>
         </div>
 
@@ -103,7 +104,7 @@ export function LandingFooter() {
         <a className={css.legalLink} href="/legal/privacy">
           Конфиденциальность
         </a>
-        <a className={css.legalLink} href="#top">
+        <a className={css.legalLink} href="#top" onClick={scrollToTop}>
           Наверх
         </a>
       </div>

@@ -13,7 +13,6 @@ export const root = style({
   paddingTop: vars.layout.safeTop,
   background: vars.color.bg.base,
   borderBottom: `1px solid ${vars.color.border.subtle}`,
-  boxShadow: `0 8px 24px color-mix(in srgb, ${vars.color.bg.base} 55%, transparent)`,
   transition: `border-color ${vars.motion.durationBase} ${vars.motion.easeStandard}`,
 });
 

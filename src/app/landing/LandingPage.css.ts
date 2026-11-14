@@ -18,7 +18,7 @@ export const root = style({
   minWidth: 0,
   width: '100%',
   maxWidth: '100%',
-  background: `radial-gradient(ellipse 90% 45% at 50% -8%, color-mix(in srgb, ${vars.color.accent} 5%, transparent), transparent 55%), ${vars.color.bg.base}`,
+  background: vars.color.bg.base,
   overflowY: 'auto',
   overflowX: 'hidden',
   overscrollBehavior: 'contain',

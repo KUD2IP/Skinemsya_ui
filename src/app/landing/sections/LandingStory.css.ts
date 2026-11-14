@@ -4,21 +4,30 @@ import { vars, breakpoints } from '@/shared/theme';
 export const intro = style({
   display: 'flex',
   flexDirection: 'column',
-  gap: vars.space[5],
+  gap: vars.space[4],
+});
+
+export const kicker = style({
+  fontFamily: vars.font.mono,
+  fontSize: vars.fontSize.caption,
+  lineHeight: vars.lineHeight.caption,
+  color: vars.color.text.secondary,
+  textTransform: 'uppercase',
+  letterSpacing: '0.06em',
 });
 
 export const introTitle = style({
   fontFamily: vars.font.display,
   fontSize: vars.fontSize.landingLg,
   lineHeight: vars.lineHeight.landingLg,
-  fontWeight: 700,
-  letterSpacing: '-0.03em',
+  fontWeight: 650,
+  letterSpacing: '-0.035em',
   color: vars.color.text.primary,
-  maxWidth: '20ch',
+  maxWidth: '24ch',
 });
 
 export const introText = style({
-  maxWidth: '46ch',
+  maxWidth: '48ch',
   fontSize: vars.fontSize.bodyLg,
   lineHeight: 1.55,
   color: vars.color.text.secondary,
@@ -31,7 +40,7 @@ export const grid = style({
   '@media': {
     [breakpoints.xl]: {
       gridTemplateColumns: `minmax(0, 1fr) ${vars.layout.landingStoryCol}`,
-      columnGap: vars.space[8],
+      columnGap: vars.space[10],
     },
   },
 });
@@ -42,16 +51,13 @@ export const beats = style({
   position: 'relative',
   display: 'flex',
   flexDirection: 'column',
-  gap: vars.space[12],
+  gap: vars.space[10],
   minWidth: 0,
   '@media': {
-    [mobile]: { gap: vars.space[10] },
-    /** Запас снизу: sticky-телефон должен оставаться закреплённым, пока последняя сцена в центре. */
-    [breakpoints.xl]: { gap: 0, paddingBottom: '26vh' },
+    [breakpoints.xl]: { gap: 0, paddingBottom: '12vh' },
   },
 });
 
-/** Дорожка таймлайна: серый рельс под всеми отметками времени. */
 export const rail = style({
   display: 'none',
   '@media': {
@@ -67,11 +73,10 @@ export const rail = style({
   },
 });
 
-/** Заполнение рельса по мере прокрутки вечера. */
 export const railFill = style({
   position: 'absolute',
   inset: 0,
-  background: `linear-gradient(to bottom, ${vars.color.accent}, ${vars.color.green[600]})`,
+  background: vars.color.accent,
   transformOrigin: 'top center',
 });
 
@@ -81,28 +86,27 @@ export const beat = style({
   gridTemplateColumns: `${vars.space[12]} minmax(0, 1fr)`,
   columnGap: vars.space[5],
   alignItems: 'start',
-  transition: `opacity 0.55s ${vars.motion.easeStandard}`,
+  paddingTop: vars.space[6],
+  borderTop: `1px solid ${vars.color.border.subtle}`,
+  transition: `opacity ${vars.motion.durationSlow} ${vars.motion.easeStandard}`,
   '@media': {
     [mobile]: {
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'stretch',
       width: '100%',
-      gap: vars.space[5],
-      padding: vars.space[5],
-      borderRadius: vars.radius.xl,
-      background: vars.color.bg.surface,
-      border: `1px solid ${vars.color.border.subtle}`,
+      gap: vars.space[4],
     },
     [breakpoints.xl]: {
-      minHeight: '62vh',
+      minHeight: '52vh',
       alignContent: 'center',
       columnGap: vars.space[7],
+      paddingTop: 0,
+      borderTop: 'none',
     },
   },
 });
 
-/** Отметка времени вечера вместо порядкового номера — держит сюжет, а не нумерует «шаги». */
 export const beatTime = style({
   position: 'relative',
   fontFamily: vars.font.mono,
@@ -110,7 +114,7 @@ export const beatTime = style({
   fontSize: vars.fontSize.bodySm,
   lineHeight: vars.lineHeight.h3,
   fontWeight: 500,
-  color: vars.color.text.muted,
+  color: vars.color.text.secondary,
   whiteSpace: 'nowrap',
   paddingLeft: vars.space[7],
   '@media': {
@@ -122,7 +126,6 @@ export const beatTime = style({
   },
 });
 
-/** Точка на рельсе напротив отметки времени. */
 export const beatDot = style({
   display: 'none',
   '@media': {
@@ -136,7 +139,7 @@ export const beatDot = style({
       borderRadius: vars.radius.full,
       background: vars.color.bg.base,
       border: `1px solid ${vars.color.border.strong}`,
-      transition: `background 0.55s ${vars.motion.easeStandard}, border-color 0.55s ${vars.motion.easeStandard}, box-shadow 0.55s ${vars.motion.easeStandard}`,
+      transition: `background ${vars.motion.durationSlow} ${vars.motion.easeStandard}, border-color ${vars.motion.durationSlow} ${vars.motion.easeStandard}`,
     },
   },
 });
@@ -146,7 +149,6 @@ export const beatDotActive = style({
     [breakpoints.lg]: {
       background: vars.color.accent,
       borderColor: vars.color.accent,
-      boxShadow: vars.shadow.glowSoft,
     },
   },
 });
@@ -163,29 +165,23 @@ export const beatTitle = style({
   fontSize: vars.fontSize.landingMd,
   lineHeight: vars.lineHeight.landingMd,
   fontWeight: 600,
-  letterSpacing: '-0.02em',
+  letterSpacing: '-0.025em',
   color: vars.color.text.primary,
 });
 
 export const beatText = style({
-  maxWidth: '42ch',
+  maxWidth: '40ch',
   fontSize: vars.fontSize.bodyLg,
-  lineHeight: 1.6,
+  lineHeight: 1.55,
   color: vars.color.text.secondary,
 });
 
 export const beatFact = style({
   display: 'flex',
   alignItems: 'baseline',
+  flexWrap: 'wrap',
   gap: vars.space[3],
   marginTop: vars.space[1],
-  '@media': {
-    [mobile]: {
-      marginTop: vars.space[2],
-      paddingTop: vars.space[4],
-      borderTop: `1px solid ${vars.color.border.subtle}`,
-    },
-  },
   fontFamily: vars.font.mono,
   fontFeatureSettings: '"tnum"',
   fontSize: vars.fontSize.bodySm,
@@ -194,10 +190,9 @@ export const beatFact = style({
 });
 
 export const beatFactLabel = style({
-  color: vars.color.text.muted,
+  color: vars.color.text.secondary,
 });
 
-/** Телефон под текстом — только на узких экранах и при reduced motion. */
 export const beatPhone = style({
   marginTop: vars.space[6],
   display: 'flex',
@@ -208,8 +203,7 @@ export const beatPhone = style({
       alignSelf: 'stretch',
       width: '100%',
       marginTop: vars.space[3],
-      paddingTop: vars.space[5],
-      justifyContent: 'center',
+      paddingTop: vars.space[4],
     },
     [breakpoints.xl]: { display: 'none' },
   },
@@ -242,26 +236,12 @@ export const stickyInner = style({
   justifyContent: 'center',
   alignItems: 'center',
   minHeight: `calc(100dvh - ${vars.size.controlMd} - ${vars.space[12]})`,
-  perspective: '1600px',
-});
-
-export const stickyGlow = style({
-  position: 'absolute',
-  inset: 0,
-  margin: 'auto',
-  width: '380px',
-  height: '380px',
-  borderRadius: vars.radius.full,
-  background: `color-mix(in srgb, ${vars.color.accent} 12%, transparent)`,
-  filter: 'blur(90px)',
-  pointerEvents: 'none',
 });
 
 const phoneOuter = `calc(${vars.layout.landingPhoneWidth} + ${vars.layout.landingPhoneBezel} * 2)`;
 const phoneOuterLg = `calc(${vars.layout.landingPhoneWidthLg} + ${vars.layout.landingPhoneBezel} * 2)`;
 
 export const phoneStage = style({
-  transformStyle: 'preserve-3d',
   width: '100%',
   maxWidth: phoneOuter,
   marginInline: 'auto',

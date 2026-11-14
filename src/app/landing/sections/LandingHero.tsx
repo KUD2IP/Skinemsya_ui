@@ -1,42 +1,19 @@
-import { useRef } from 'react';
-import { motion, useScroll, useSpring, useTransform } from 'motion/react';
-import { landingScrollSpring } from '../lib/landingMotion';
-import { ArrowDown } from '@phosphor-icons/react';
-import { usePrefersReducedMotion } from '@/shared/lib';
+import { motion } from 'motion/react';
+import { ArrowDown, Check } from '@phosphor-icons/react';
+import { formatMoney, usePrefersReducedMotion } from '@/shared/lib';
 import { LandingCta } from '../components/LandingCta';
-import { LandingDemo } from '../components/LandingDemo';
-import { LandingPhone } from '../components/LandingPhone';
 import { LandingReceipt } from '../components/LandingReceipt';
 import { LandingSection } from '../components/LandingSection';
 import { landingItem, landingStagger } from '../lib/landingMotion';
-import { useLandingScrollRef } from '../lib/scrollRoot';
-import { useCountUp } from '../lib/useCountUp';
-import { DINNER } from '../lib/storyData';
+import { DINNER, DINNER_SHARES } from '../lib/storyData';
 import * as css from './LandingHero.css';
-
-const TOTAL_RUB = DINNER.total / 100;
 
 export function LandingHero() {
   const reduced = usePrefersReducedMotion();
-  const scrollRef = useLandingScrollRef();
-  const sectionRef = useRef<HTMLDivElement>(null);
-
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    container: scrollRef ?? undefined,
-    offset: ['start start', 'end start'],
-  });
-  const smoothScroll = useSpring(scrollYProgress, landingScrollSpring);
-  const receiptY = useTransform(smoothScroll, [0, 1], ['0px', '-64px']);
-  const phoneY = useTransform(smoothScroll, [0, 1], ['0px', '32px']);
-  const phoneTilt = useTransform(smoothScroll, [0, 1], ['-5deg', '2deg']);
-
-  const counted = useCountUp(TOTAL_RUB, sectionRef);
-  const amount = `${counted.toLocaleString('ru-RU')}\u00A0₽`;
 
   return (
     <LandingSection className={css.hero}>
-      <div className={css.grid} ref={sectionRef}>
+      <div className={css.grid}>
         <motion.div
           className={css.copy}
           variants={reduced ? undefined : landingStagger}
@@ -48,45 +25,70 @@ export function LandingHero() {
             {DINNER.when} · ужин на четверых
           </motion.p>
           <motion.h1 className={css.title} variants={reduced ? undefined : landingItem}>
-            <span className={css.titleAmount}>{amount}</span> на четверых.{' '}
-            <span className={css.titleAccent}>Разделили счёт без ручных расчётов.</span>
+            <span className={css.titleLine}>Один ужин.</span>
+            <span className={css.titleLine}>Четыре доли.</span>
+            <span className={css.titleAccent}>Ноль калькуляторов.</span>
           </motion.h1>
           <motion.p className={css.subtitle} variants={reduced ? undefined : landingItem}>
-            Скинемся — в Telegram для совместных трат. Создаёте сбор, каждый отмечает свою долю — с
-            чека или вручную — и сразу видно, кому сколько перевести и кто уже скинул.
+            Загрузите чек или добавьте позиции вручную. Каждый отметит своё, а Скинемся покажет,
+            кому и сколько перевести. Прямо в Telegram.
           </motion.p>
           <motion.div className={css.ctaBlock} variants={reduced ? undefined : landingItem}>
             <LandingCta size="lg" showHint={false} fullWidth />
-            <p className={css.trust}>
-              Открывается в Telegram · на наш пример ушло около трёх минут
-            </p>
+            <p className={css.trust}>Деление вручную — бесплатно · без отдельного приложения</p>
           </motion.div>
           <motion.a
             className={css.scrollHint}
             href="#story"
             variants={reduced ? undefined : landingItem}
           >
-            <span>Как это выглядело в тот вечер</span>
+            <span>Посмотреть, как делится чек</span>
             <ArrowDown size={16} weight="bold" />
           </motion.a>
         </motion.div>
 
-        <div className={css.visual}>
-          <div className={css.visualStack}>
-            <motion.div className={css.receipt} style={reduced ? undefined : { y: receiptY }}>
-              <LandingReceipt limit={5} />
-            </motion.div>
-            <motion.div
-              className={css.phoneWrap}
-              style={reduced ? undefined : { y: phoneY, rotateY: phoneTilt }}
-            >
-              <div className={css.glow} aria-hidden />
-              <LandingPhone>
-                <LandingDemo variant="payer" />
-              </LandingPhone>
-            </motion.div>
-          </div>
-        </div>
+        <motion.div
+          className={css.visual}
+          variants={reduced ? undefined : landingItem}
+          initial={reduced ? false : 'hidden'}
+          animate={reduced ? undefined : 'visible'}
+        >
+          <figure className={css.board}>
+            <div className={css.receipt}>
+              <LandingReceipt />
+            </div>
+            <div className={css.settlement}>
+              <div className={css.settlementHead}>
+                <span>Разделено</span>
+                <span>4 / 4</span>
+              </div>
+              <div className={css.shares}>
+                {DINNER_SHARES.map((share, index) => (
+                  <div className={css.share} key={share.name}>
+                    <span className={css.shareIndex}>0{index + 1}</span>
+                    <span className={css.shareName}>
+                      {share.name}
+                      {share.name === DINNER.payer ? (
+                        <span className={css.payerNote}>платил за всех</span>
+                      ) : null}
+                    </span>
+                    <span className={css.shareAmount}>{formatMoney(share.amount)}</span>
+                  </div>
+                ))}
+              </div>
+              <div className={css.settlementTotal}>
+                <span className={css.settlementCheck}>
+                  <Check size={16} weight="bold" aria-hidden />
+                  Сходится с чеком
+                </span>
+                <span>{formatMoney(DINNER.total)}</span>
+              </div>
+            </div>
+            <figcaption className={css.caption}>
+              Свои позиции + равная доля общих. Всё складывается автоматически.
+            </figcaption>
+          </figure>
+        </motion.div>
       </div>
     </LandingSection>
   );

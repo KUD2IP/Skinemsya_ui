@@ -1,12 +1,12 @@
 import { useRef, useState } from 'react';
-import { AnimatePresence, motion, useScroll, useSpring, useTransform } from 'motion/react';
+import { AnimatePresence, motion, useScroll, useSpring } from 'motion/react';
 import { cx, useMediaQuery, usePrefersReducedMotion } from '@/shared/lib';
 import { LandingDemo } from '../components/LandingDemo';
 import type { LandingDemoVariant } from '../components/LandingDemo';
 import { LandingPhone } from '../components/LandingPhone';
 import { LandingReveal } from '../components/LandingReveal';
 import { LandingSection } from '../components/LandingSection';
-import { landingBeatFade, landingScreenSwap, landingScrollSpring } from '../lib/landingMotion';
+import { landingBeatFade, landingScreenSwap } from '../lib/landingMotion';
 import { useLandingScrollRef } from '../lib/scrollRoot';
 import * as css from './LandingStory.css';
 
@@ -22,8 +22,8 @@ interface Beat {
 const BEATS: Beat[] = [
   {
     time: '21:40',
-    title: 'Собрали позиции',
-    text: 'Марк собрал список трат. Можно загрузить чек — позиции появятся из него. Можно добавить их вручную: ужин, парк, такси.',
+    title: 'Добавили позиции',
+    text: 'Марк загрузил чек. Общий чай отметил «На всех» — он разделится поровну.',
     factLabel: 'В списке',
     fact: '8 позиций',
     variant: 'positions',
@@ -31,23 +31,23 @@ const BEATS: Beat[] = [
   {
     time: '21:45',
     title: 'Каждый отметил своё',
-    text: 'Аня взяла две Калифорнии и одну гёдзу. Чай пили все — он помечен «На всех» и разделился сам, без обсуждений.',
+    text: 'Аня выбрала роллы и гёдза. Её сумма обновилась сразу, без калькулятора.',
     factLabel: 'У Ани вышло',
     fact: '1 480 ₽',
     variant: 'picks',
   },
   {
     time: '21:47',
-    title: 'Видно, кто сколько скидывает',
-    text: 'Марк платил за всех и теперь видит три суммы со статусами. Не нужно листать переписку и сверять, кто уже перевёл.',
+    title: 'Появились доли',
+    text: 'Марк видит сумму и статус каждого. Напомнить о переводе можно одной кнопкой.',
     factLabel: 'Собирается Марку',
     fact: '3 350 ₽',
     variant: 'payer',
   },
   {
     time: '21:52',
-    title: 'Перевели и подтвердили',
-    text: 'Реквизиты Марка уже на экране — перевод обычный, через банк. Аня нажала «Отправил», Марк подтвердил получение.',
+    title: 'Подтвердили переводы',
+    text: 'Аня перевела через банк и нажала «Отправил». Марк подтвердил получение.',
     factLabel: 'Напоминаний в чате',
     fact: '0',
     variant: 'pay',
@@ -66,19 +66,17 @@ export function LandingStory() {
     container: scrollRef ?? undefined,
     offset: ['start 70%', 'end 60%'],
   });
-  const smoothScroll = useSpring(scrollYProgress, landingScrollSpring);
   const railScale = useSpring(scrollYProgress, { stiffness: 120, damping: 28, mass: 0.75 });
-  const phoneTilt = useTransform(smoothScroll, [0, 1], ['-4deg', '4deg']);
 
   const activeVariant = BEATS[active].variant;
 
   return (
     <LandingSection id="story">
       <LandingReveal className={css.intro}>
-        <h2 className={css.introTitle}>Как прошёл тот вечер</h2>
+        <p className={css.kicker}>Тот же ужин, шаг за шагом</p>
+        <h2 className={css.introTitle}>От первой позиции до последнего перевода</h2>
         <p className={css.introText}>
-          Ниже — ужин на четверых. Тот же путь у любого сбора: позиции, доли каждого и подтверждённые
-          переводы.
+          Компания остаётся в Telegram. Позиции, доли и статусы всегда перед глазами.
         </p>
       </LandingReveal>
 
@@ -98,7 +96,7 @@ export function LandingStory() {
               animate={
                 reduced || !timelineFocus
                   ? undefined
-                  : { opacity: index === active ? 1 : 0.36 }
+                  : { opacity: index === active ? 1 : 0.48 }
               }
               transition={reduced || !timelineFocus ? undefined : landingBeatFade}
               onViewportEnter={reduced ? undefined : () => setActive(index)}
@@ -131,23 +129,22 @@ export function LandingStory() {
         {reduced ? null : (
           <div className={css.stickyCol}>
             <div className={css.stickyInner}>
-              <div className={css.stickyGlow} aria-hidden />
-              <motion.div className={css.phoneStage} style={{ rotateY: phoneTilt }}>
+              <div className={css.phoneStage}>
                 <LandingPhone>
                   <AnimatePresence mode="wait" initial={false}>
                     <motion.div
                       key={activeVariant}
                       className={css.phoneScreen}
-                      initial={{ opacity: 0, y: reduced ? 0 : 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: reduced ? 0 : -6 }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
                       transition={landingScreenSwap}
                     >
                       <LandingDemo variant={activeVariant} />
                     </motion.div>
                   </AnimatePresence>
                 </LandingPhone>
-              </motion.div>
+              </div>
             </div>
           </div>
         )}

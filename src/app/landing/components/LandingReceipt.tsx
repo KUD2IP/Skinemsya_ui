@@ -52,6 +52,9 @@ export function LandingReceipt({ limit, className }: LandingReceiptProps) {
         <span>ИТОГО</span>
         <span className={css.totalValue}>{formatMoney(DINNER.total)}</span>
       </motion.div>
+      <motion.p className={css.footnote} variants={reduced ? undefined : receiptLine}>
+        Общие позиции делятся на всех
+      </motion.p>
     </motion.div>
   );
 }

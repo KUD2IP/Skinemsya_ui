@@ -69,6 +69,7 @@ Always reference via `vars` from `@/shared/theme`. Key values (full list in [doc
 - Backgrounds: `bg.base #0A0F0D`, `bg.surface #101714`, `bg.elevated #16201C`, `bg.inset #0C120F`
 - Brand green: `green.500 #21A038` (primary), hover `#1B8A30`, active `#16762A`, accent `#2FD37A`
 - Text: `text.primary #EAF2EE`, `text.secondary #9DB3AA`, `text.muted #6B8078`, `text.inverse #06120C`
+- Landing paper: `paper.base #F2EBDD`, `paper.ink #19221D`, `paper.secondary #5D675F`, `paper.line #C9BFAE`
 - Semantic: success `#21A038`, warning `#E5A33B`, danger `#E5484D`
 - Radius: `md 12`, `lg 16`, `xl 20`, `2xl 28`, `full`
 - Spacing base 4px (`space.5 = 16`)

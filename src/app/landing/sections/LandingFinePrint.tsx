@@ -1,31 +1,29 @@
+import { Accordion } from '@ark-ui/react/accordion';
+import { Plus } from '@phosphor-icons/react';
 import { LandingReveal } from '../components/LandingReveal';
 import { LandingSection } from '../components/LandingSection';
 import * as css from './LandingFinePrint.css';
 
 const ITEMS = [
   {
+    value: 'install',
     q: 'Нужно что-то устанавливать?',
-    a: 'Нет. Скинемся открывается внутри Telegram как Mini App — без магазина приложений и отдельной регистрации.',
+    a: 'Нет. Скинемся открывается внутри Telegram — без магазина приложений и отдельной регистрации.',
   },
   {
-    q: 'Почему именно Telegram?',
-    a: 'Компания уже в чате. Бот приходит туда, где договариваются об ужине, а не зовёт всех в новое приложение.',
-  },
-  {
+    value: 'unequal',
     q: 'Как делить не поровну?',
     a: 'Каждый отмечает свои позиции. Общее помечается «На всех» и делится автоматически — чаевые так же.',
   },
   {
-    q: 'Как именно отдают деньги?',
-    a: 'Перевод обычный, через банк: реквизиты плательщика уже на экране. После перевода жмёте «Отправил».',
+    value: 'money',
+    q: 'Как переводят деньги?',
+    a: 'Обычным переводом через банк. Реквизиты плательщика уже на экране, сервис не принимает деньги участников.',
   },
   {
-    q: 'А если кто-то ещё не выбрал?',
-    a: 'Его доля появится, когда он закончит выбор. Остальные уже видят свои суммы и могут переводить — ждать всех не нужно.',
-  },
-  {
-    q: 'Кто подтверждает, что деньги пришли?',
-    a: 'Плательщик. Статусы простые: не скинул, ждёт проверки, подтверждено. Если перевод не дошёл — «Не пришло».',
+    value: 'confirmation',
+    q: 'Кто подтверждает перевод?',
+    a: 'Плательщик. После перевода участник нажимает «Отправил», а плательщик подтверждает получение или отмечает проблему.',
   },
 ] as const;
 
@@ -34,18 +32,26 @@ export function LandingFinePrint() {
     <LandingSection id="details">
       <LandingReveal>
         <div className={css.head}>
-          <h2 className={css.title}>Подробности</h2>
+          <p className={css.kicker}>Без мелкого шрифта</p>
+          <h2 className={css.title}>Коротко о важном</h2>
         </div>
       </LandingReveal>
       <LandingReveal>
-        <div className={css.grid}>
+        <Accordion.Root className={css.root} collapsible>
           {ITEMS.map((item) => (
-            <div className={css.item} key={item.q}>
-              <p className={css.question}>{item.q}</p>
-              <p className={css.answer}>{item.a}</p>
-            </div>
+            <Accordion.Item className={css.item} value={item.value} key={item.value}>
+              <Accordion.ItemTrigger className={css.trigger}>
+                <span>{item.q}</span>
+                <Accordion.ItemIndicator className={css.indicator}>
+                  <Plus size={20} weight="bold" aria-hidden />
+                </Accordion.ItemIndicator>
+              </Accordion.ItemTrigger>
+              <Accordion.ItemContent className={css.content}>
+                <p className={css.answer}>{item.a}</p>
+              </Accordion.ItemContent>
+            </Accordion.Item>
           ))}
-        </div>
+        </Accordion.Root>
       </LandingReveal>
     </LandingSection>
   );

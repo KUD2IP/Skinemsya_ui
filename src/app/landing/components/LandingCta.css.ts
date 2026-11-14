@@ -23,6 +23,15 @@ export const root = recipe({
   defaultVariants: { compact: false },
 });
 
+export const button = style({
+  boxShadow: 'none',
+  selectors: {
+    '&:focus-visible': {
+      boxShadow: `0 0 0 3px ${vars.color.focusRing}`,
+    },
+  },
+});
+
 export const hint = style({
   fontSize: vars.fontSize.bodySm,
   lineHeight: vars.lineHeight.bodySm,

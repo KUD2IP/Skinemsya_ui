@@ -25,6 +25,12 @@ export const vars = createGlobalTheme(':root', {
       inverse: '#06120C',
       link: '#3BE07A',
     },
+    paper: {
+      base: '#F2EBDD',
+      ink: '#19221D',
+      secondary: '#5D675F',
+      line: '#C9BFAE',
+    },
     green: {
       50: '#E8FBEE',
       100: '#C6F4D5',
@@ -193,6 +199,6 @@ export const breakpoints = {
   md: 'screen and (min-width: 480px)',
   lg: 'screen and (min-width: 768px)',
   xl: 'screen and (min-width: 1024px)',
-  /** Хватает места под композицию «бумажный чек + телефон» на лендинге. */
+  /** Хватает места для широкой композиции чека и итогов на лендинге. */
   wide: 'screen and (min-width: 1180px)',
 } as const;

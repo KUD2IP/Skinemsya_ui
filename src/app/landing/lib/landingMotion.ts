@@ -65,9 +65,3 @@ export const receiptRoll: Variants = {
   hidden: {},
   visible: { transition: { staggerChildren: 0.07, delayChildren: 0.12 } },
 };
-
-/** Цифра на табло: въезжает снизу. */
-export const rollDigit: Variants = {
-  hidden: { y: '100%', opacity: 0 },
-  visible: { y: '0%', opacity: 1, transition: { duration: 0.42, ease: easeOut } },
-};
