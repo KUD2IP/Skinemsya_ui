@@ -166,6 +166,25 @@ Query: `?page=0&size=20`.
 
 Ответ `201`: `EventResponse` (статус `DRAFT`).
 
+#### `POST /api/v1/events/one-off`
+Создание одноразового сбора без видимой группы. Создатель автоматически становится плательщиком.
+
+Запрос:
+```json
+{
+  "name": "Ужин",
+  "description": "Необязательно, ≤ 5000",
+  "expectedParticipantCount": 4
+}
+```
+
+Ответ `201`: `EventResponse` со `oneOff: true`. Для участников используется защищённая ссылка из `GET /api/v1/events/{eventId}/invite-link`.
+
+#### `GET /api/v1/events/one-off`
+Отдельный список одноразовых сборов текущего пользователя (новые сверху, пагинация `?page=0&size=20`). Параметра текстового поиска нет: Mini App фильтрует уже загруженные страницы по названию и показывает поле, когда сборов больше трёх. Служебные `ONE_OFF`-группы не попадают в `GET /api/v1/groups`.
+
+Ответ `200`: `PageResult<EventResponse>`.
+
 #### `GET /api/v1/groups/{groupId}/events`
 Список сборов группы (новые сверху, пагинация).
 
@@ -237,7 +256,7 @@ export interface UpdateProfileRequest {
   notificationSettings?: string;
 }
 
-export type GroupType = 'CHAT_LINKED' | 'STANDALONE';
+export type GroupType = 'CHAT_LINKED' | 'STANDALONE' | 'ONE_OFF';
 export type GroupRole = 'OWNER' | 'MEMBER';
 export type EventStatus = 'DRAFT' | 'DISTRIBUTION' | 'CALCULATED' | 'COMPLETED';
 
@@ -276,6 +295,11 @@ export interface EventResponse {
   payerId: number;
   createdBy: number;
   status: EventStatus;
+  payerRequisitesReady: boolean;
+  expectedParticipantCount: number;
+  joinedCount: number;
+  currentUserJoined: boolean;
+  oneOff: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -284,12 +308,20 @@ export interface CreateEventRequest {
   name: string;
   description?: string;
   payerId: number;
+  expectedParticipantCount: number;
+}
+
+export interface CreateOneOffEventRequest {
+  name: string;
+  description?: string;
+  expectedParticipantCount: number;
 }
 
 export interface UpdateEventRequest {
   name: string;
   description?: string;
   payerId: number;
+  expectedParticipantCount: number;
 }
 
 export interface ApiErrorResponse {
@@ -455,7 +487,7 @@ function ProfileScreen() {
 | `DELETE` | `/positions/{id}` | удаление |
 | `POST` | `/positions/{id}/mark-shared` | `{ forAll: true }` — «На всех» |
 | `POST` | `/events/{eventId}/receipts` | `{ fileId }` — ML-парсинг чека |
-| `GET` | `/events/{eventId}/receipts` | список чеков сбора (участники) |
+| `GET` | `/events/{eventId}/receipts` | список всех чеков сбора (участники). В Mini App они открываются одной кнопкой «Посмотреть чек», внутри — «Чек 1», «Чек 2» |
 | `POST` | `/events/{eventId}/receipts/{id}/split-tips` | разделить чаевые |
 | `GET` | `/files/{fileId}/content?sharedAccess=true` | изображение чека для участников сбора |
 | `POST` | `/events/{eventId}/send-to-distribution` | запустить сбор → `DISTRIBUTION` (допускается 1 участник) |

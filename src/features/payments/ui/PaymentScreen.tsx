@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from '@tanstack/react-router';
 import { Copy } from '@phosphor-icons/react';
 import type { EventResponse, PaymentStatus } from '@/shared/api';
 import { useUploadFile } from '@/features/files/api/queries';
@@ -13,7 +12,6 @@ import {
   IconButton,
   RefreshIconButton,
   Screen,
-  ScreenBack,
   Skeleton,
   SkeletonCard,
   Stack,
@@ -27,6 +25,7 @@ import { SelectionSummary } from '@/features/selections/ui/SelectionSummary';
 import { selectionItemsForUser } from '@/features/selections/model/selectionSummary';
 import { EventCapacityBar } from '@/features/events/ui/EventCapacityBar';
 import { DeleteEventControl } from '@/features/events/ui/DeleteEventControl';
+import { EventListBack } from '@/features/events/ui/EventListBack';
 import { RevertToDraftControl } from '@/features/events/ui/RevertToDraftControl';
 import { useSelectionReopen } from '@/features/selections/model/useSelectionReopen';
 import { preferredBankLabel } from '@/features/profile/model/banks';
@@ -60,7 +59,6 @@ export function PaymentScreen({
   debtId,
   currentUserId,
 }: PaymentScreenProps) {
-  const navigate = useNavigate();
   const { data: details, isLoading, isError, refetch } = usePaymentDetailsQuery(debtId);
   const { data: positions } = usePositionsQuery(eventId);
   const { data: debts } = useEventDebtsQuery(eventId);
@@ -169,11 +167,7 @@ export function PaymentScreen({
     <Screen
       title={event.name}
       subtitle="Скинуть"
-      headerLeading={
-        <ScreenBack
-          onBack={() => void navigate({ to: '/groups/$groupId', params: { groupId: String(groupId) } })}
-        />
-      }
+      headerLeading={<EventListBack groupId={groupId} oneOff={event.oneOff} />}
       refreshing={refreshing && !isLoading}
       headerAction={<RefreshIconButton refreshing={refreshing} onRefresh={() => void refresh()} />}
     >

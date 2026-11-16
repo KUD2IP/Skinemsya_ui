@@ -46,6 +46,7 @@ export function mockEvent(status: EventResponse['status']): EventResponse {
     expectedParticipantCount: DINNER.guests,
     joinedCount: DINNER.guests,
     currentUserJoined: true,
+    oneOff: false,
     createdAt: NOW,
     updatedAt: NOW,
   };

@@ -9,7 +9,7 @@ The user-facing documentation is in Russian under `docs/`. This file is the Engl
 ## 0. TL;DR (read this first)
 
 - This is a **Telegram Mini App** for shared expenses ("Скинемся"). Frontend: **React + Vite + TypeScript**.
-- **Only build features that exist in the backend** (`../skinemsya_java`). Source of truth: [docs/API.md](docs/API.md). Today only **auth + profile** exist.
+- **Only build API-backed features that exist in the backend** (`../skinemsya_java`). Source of truth: [docs/API.md](docs/API.md). Local-only onboarding may use explicit mock scenarios, but must never imitate server mutations.
 - **Never use Tailwind.** Never use default palettes (slate/zinc/gray) or default icon sets (Lucide/Heroicons). Styling is **vanilla-extract tokens only**.
 - **Use design tokens** from `src/shared/theme` for every color/size/timing. No hardcoded values. See [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md).
 - **Reuse components** from `src/shared/ui`. Put new reusable components there.
@@ -34,7 +34,7 @@ Before writing code, load the relevant docs:
 
 ## 2. Hard rules (do NOT violate)
 
-1. **No backend-less features.** If an endpoint is not listed in [docs/API.md](docs/API.md) and not present in `../skinemsya_java` controllers, do **not** build it, do **not** invent it, do **not** add mock APIs to fake it. Stop and report that the backend is missing.
+1. **No backend-less API features.** If an endpoint is not listed in [docs/API.md](docs/API.md) and not present in `../skinemsya_java` controllers, do **not** build it, do **not** invent it, do **not** add mock APIs to fake it. Stop and report that the backend is missing. An explicitly requested local demo is allowed when it performs no server mutations.
 2. **No Tailwind. No utility-class styling.** Styling is done with **vanilla-extract** (`*.css.ts`) consuming theme tokens.
 3. **No default AI-looking palettes.** Never introduce `slate/zinc/gray-500`, generic blue accents, or raw hex in components. Use tokens (`vars.color.*`). The brand color is Sber-style green on a dark green-tinted background.
 4. **No default icon packs.** Use `@phosphor-icons/react` via the `Icon` adapter, weight **bold**. Duotone draws a second plate that reads as a gray disc on this dark background. No Lucide/Heroicons/Material.

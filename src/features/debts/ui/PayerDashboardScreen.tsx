@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from '@tanstack/react-router';
 import { CaretDown, CaretRight } from '@phosphor-icons/react';
 import type { DebtResponse, EventResponse } from '@/shared/api';
 import { groupKeys, useGroupMembersQuery } from '@/features/groups/api/queries';
@@ -17,7 +16,6 @@ import {
   Icon,
   RefreshIconButton,
   Screen,
-  ScreenBack,
   SkeletonCard,
   SkeletonList,
   Stack,
@@ -26,6 +24,7 @@ import {
 import { eventKeys, useCloseEvent } from '@/features/events/api/queries';
 import { EventCapacityBar } from '@/features/events/ui/EventCapacityBar';
 import { DeleteEventControl } from '@/features/events/ui/DeleteEventControl';
+import { EventListBack } from '@/features/events/ui/EventListBack';
 import { RevertToDraftControl } from '@/features/events/ui/RevertToDraftControl';
 import { FilePreview } from '@/features/files/ui/FilePreview';
 import { positionKeys, usePositionsQuery } from '@/features/positions/api/queries';
@@ -116,7 +115,6 @@ export function PayerDashboardScreen({
   event,
   currentUserId,
 }: PayerDashboardScreenProps) {
-  const navigate = useNavigate();
   const { data: status, isLoading, isError } = useParticipantsStatusQuery(eventId);
   const { data: debts, refetch: refetchDebts } = useEventDebtsQuery(eventId);
   const { refresh, refreshing } = useScreenRefresh([
@@ -245,11 +243,7 @@ export function PayerDashboardScreen({
     <Screen
       title={event.name}
       subtitle={eventStatusLabel(event.status)}
-      headerLeading={
-        <ScreenBack
-          onBack={() => void navigate({ to: '/groups/$groupId', params: { groupId: String(groupId) } })}
-        />
-      }
+      headerLeading={<EventListBack groupId={groupId} oneOff={event.oneOff} />}
       refreshing={refreshing && !isLoading}
       headerAction={<RefreshIconButton refreshing={refreshing} onRefresh={() => void refresh()} />}
     >

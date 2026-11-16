@@ -80,7 +80,7 @@ export const tabIndicator = style({
   top: vars.space[2],
   bottom: vars.space[2],
   left: vars.space[2],
-  width: `calc((100% - ${vars.space[2]} * 3) / 2)`,
+  width: `calc((100% - ${vars.space[2]} * 4) / 3)`,
   borderRadius: vars.radius.lg,
   background: vars.color.green[900],
   boxShadow: `inset 0 0 0 1px ${vars.color.border.subtle}`,

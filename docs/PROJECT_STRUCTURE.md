@@ -2,7 +2,7 @@
 
 Архитектура — **доменно-ориентированная** (feature-sliced по смыслу). Код делится по бизнес-доменам, а всё переиспользуемое выносится в общий слой `shared`. Цель — чтобы по структуре было сразу понятно, «что есть в приложении», и чтобы домены не зависели друг от друга напрямую.
 
-> Важно: домен в `features/` создаётся **только если для него есть API на бэке** (см. [API.md](API.md)). Реализованы: `auth`, `profile`, `groups`, `events`, `files`, `positions`, `selections`, `debts`, `payments`.
+> Важно: домен в `features/` создаётся **только если для него есть API на бэке** (см. [API.md](API.md)). Реализованы: `auth`, `profile`, `groups`, `events`, `files`, `positions`, `selections`, `debts`, `payments`. Отдельный `onboarding` содержит только локальное демо и подсказки, не имитирует API и не создаёт данные.
 
 ---
 
@@ -15,6 +15,7 @@ skinemsya_ui/
 │   ├── app/                    # инициализация приложения
 │   │   ├── providers/          # QueryClient, Router, Theme, Telegram провайдеры
 │   │   ├── router/             # объявление маршрутов
+│   │   ├── demo/               # общие безопасные мок-сцены для Mini App и лендинга
 │   │   ├── AppSplash.tsx       # анимированный экран загрузки (Rive)
 │   │   └── App.tsx             # корневой компонент
 │   │
@@ -35,7 +36,8 @@ skinemsya_ui/
 │   │   ├── positions/
 │   │   ├── selections/
 │   │   ├── debts/
-│   │   └── payments/
+│   │   ├── payments/
+│   │   └── onboarding/          # локальный тур и одноразовые подсказки, без API
 │   │
 │   ├── assets/                 # шрифты, rive/lottie, изображения
 │   └── main.tsx                # точка входа

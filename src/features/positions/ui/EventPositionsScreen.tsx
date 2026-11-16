@@ -1,7 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useMutationState } from '@tanstack/react-query';
-import { useNavigate } from '@tanstack/react-router';
-import { Trash } from '@phosphor-icons/react';
 import type { EventResponse, PositionResponse } from '@/shared/api';
 import { useUploadFile } from '@/features/files/api/queries';
 import { useProfileQuery } from '@/features/profile/api/queries';
@@ -9,6 +7,8 @@ import { EditProfileSheet } from '@/features/profile/ui/EditProfileSheet';
 import { eventKeys, useSendToDistribution } from '@/features/events/api/queries';
 import { EventCapacityBar } from '@/features/events/ui/EventCapacityBar';
 import { DeleteEventControl } from '@/features/events/ui/DeleteEventControl';
+import { EventListBack } from '@/features/events/ui/EventListBack';
+import { ContextHint } from '@/features/onboarding';
 import { isApiError } from '@/shared/api';
 import { ReceiptPaywallSheet, useSubscriptionQuery } from '@/features/subscription';
 import {
@@ -20,11 +20,8 @@ import {
 import {
   Button,
   EmptyState,
-  Icon,
-  IconButton,
   RefreshIconButton,
   Screen,
-  ScreenBack,
   Sheet,
   Skeleton,
   SkeletonCard,
@@ -47,7 +44,7 @@ import {
 import { AddPositionSheet } from './AddPositionSheet';
 import { EditPositionSheet } from './EditPositionSheet';
 import { ReceiptParseStage } from './ReceiptParseStage';
-import { ReceiptPreview } from './ReceiptPreview';
+import { ReceiptGallery } from './ReceiptGallery';
 import {
   AddManualButton,
   PositionCard,
@@ -70,7 +67,6 @@ export function EventPositionsScreen({
   event,
   currentUserId,
 }: EventPositionsScreenProps) {
-  const navigate = useNavigate();
   const { data: positions, isLoading, isError, refetch } = usePositionsQuery(eventId);
   const { data: receipts } = useEventReceiptsQuery(eventId);
   const { refresh, refreshing } = useScreenRefresh([
@@ -145,7 +141,7 @@ export function EventPositionsScreen({
 
   const beforeOpenReceipt = () => {
     if (!subscription.data) return subscription.isError;
-    if (!subscription.data.active) {
+    if (!subscription.data.active && subscription.data.freeParsesRemaining <= 0) {
       setPaywallOpen(true);
       return false;
     }
@@ -170,6 +166,7 @@ export function EventPositionsScreen({
         setParsePhase('success');
         haptics.success();
         toast.success('Чек обработан');
+        void subscription.refetch();
       }
     } catch (error) {
       if (isApiError(error) && error.code === 'SUBSCRIPTION_REQUIRED') {
@@ -223,11 +220,7 @@ export function EventPositionsScreen({
     <Screen
       title={event.name}
       subtitle={eventStatusLabel(event.status)}
-      headerLeading={
-        <ScreenBack
-          onBack={() => void navigate({ to: '/groups/$groupId', params: { groupId: String(groupId) } })}
-        />
-      }
+      headerLeading={<EventListBack groupId={groupId} oneOff={event.oneOff} />}
       refreshing={refreshing && !isLoading}
       headerAction={<RefreshIconButton refreshing={refreshing} onRefresh={() => void refresh()} />}
     >
@@ -252,6 +245,9 @@ export function EventPositionsScreen({
           {parsing ? <ReceiptParseStage /> : null}
           <div className={parsing ? css.screenBodyHidden : css.screenBody}>
             <EventCapacityBar event={event} currentUserId={currentUserId} />
+            <ContextHint id="positions">
+              Добавьте чек или позиции вручную, пригласите участников по ссылке и запустите сбор.
+            </ContextHint>
             <div className={css.uploadRow}>
               <ReceiptUploadButton
                 className={css.uploadAction}
@@ -266,27 +262,22 @@ export function EventPositionsScreen({
               />
               <AddManualButton className={css.uploadAction} onClick={() => setAdding(true)} />
             </div>
-            <p className={css.photoHint}>Снимите чек целиком, при ровном освещении</p>
+            <p className={css.photoHint}>
+              {subscription.data && !subscription.data.active && subscription.data.freeParsesRemaining > 0
+                ? 'Первый удачный чек бесплатно. Если фото не разобралось, попытка остаётся.'
+                : 'Снимите чек целиком, при ровном освещении'}
+            </p>
 
-            {event.status === 'DRAFT' && receipts && receipts.length > 0 ? (
-              <Stack gap={2}>
-                {receipts.map((receipt) => (
-                  <div key={receipt.id} className={css.receiptRow}>
-                    <div className={css.receiptPreview}>
-                      <ReceiptPreview fileId={receipt.fileId} variant="thumbnail" />
-                    </div>
-                    <IconButton
-                      aria-label="Удалить чек"
-                      disabled={discardReceipt.isPending}
-                      onClick={() => void handleDiscard(receipt.id)}
-                    >
-                      <Icon icon={Trash} />
-                    </IconButton>
-                  </div>
-                ))}
-              </Stack>
-            ) : receipts?.[0] ? (
-              <ReceiptPreview fileId={receipts[0].fileId} variant="thumbnail" />
+            {receipts && receipts.length > 0 ? (
+              <ReceiptGallery
+                receipts={receipts}
+                onDiscard={
+                  event.status === 'DRAFT' ? (receiptId) => void handleDiscard(receiptId) : undefined
+                }
+                discardPendingId={
+                  discardReceipt.isPending ? (discardReceipt.variables ?? null) : null
+                }
+              />
             ) : null}
 
             {parsePhase === 'success' ? (
@@ -295,8 +286,10 @@ export function EventPositionsScreen({
             {parsePhase === 'failed' ? (
               <div className={css.bannerError}>
                 {parseError ?? 'Не увидели позиции. Снимите чек целиком, без бликов'}
-                {subscription.data?.currentPeriodEnd ? (
+                {subscription.data?.active ? (
                   <p>Оплачены 30 дней распознавания, не один снимок.</p>
+                ) : subscription.data && subscription.data.freeParsesRemaining > 0 ? (
+                  <p>Бесплатная попытка не сгорела. Снимите чек ещё раз.</p>
                 ) : null}
                 <Stack gap={2}>
                   <Button type="button" variant="secondary" size="sm" onClick={() => setAdding(true)}>

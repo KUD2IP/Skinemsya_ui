@@ -60,6 +60,7 @@ const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
 const GROUP_TYPE_LABELS: Record<GroupType, string> = {
   STANDALONE: 'Своя группа',
   CHAT_LINKED: 'Из чата',
+  ONE_OFF: 'Разовый сбор',
 };
 
 export function formatDateTime(iso: string): string {

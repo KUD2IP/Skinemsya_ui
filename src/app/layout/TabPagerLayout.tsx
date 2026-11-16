@@ -1,4 +1,5 @@
 import { useRouterState } from '@tanstack/react-router';
+import { OneOffEventsScreen } from '@/features/events';
 import { GroupsScreen } from '@/features/groups';
 import { ProfileScreen } from '@/features/profile';
 import { TabBar, useAnySheetOpen } from '@/shared/ui';
@@ -6,7 +7,8 @@ import * as css from './TabPagerLayout.css';
 
 const TAB_INDEX: Record<string, number> = {
   '/': 0,
-  '/profile': 1,
+  '/groups': 1,
+  '/profile': 2,
 };
 
 export function TabPagerLayout() {
@@ -22,11 +24,17 @@ export function TabPagerLayout() {
             className={css.tabPage({ active: activeIndex === 0 })}
             aria-hidden={activeIndex !== 0}
           >
-            <GroupsScreen />
+            <OneOffEventsScreen />
           </div>
           <div
             className={css.tabPage({ active: activeIndex === 1 })}
             aria-hidden={activeIndex !== 1}
+          >
+            <GroupsScreen />
+          </div>
+          <div
+            className={css.tabPage({ active: activeIndex === 2 })}
+            aria-hidden={activeIndex !== 2}
           >
             <ProfileScreen />
           </div>

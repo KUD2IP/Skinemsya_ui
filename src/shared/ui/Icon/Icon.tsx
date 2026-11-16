@@ -1,13 +1,8 @@
 import type { Icon as PhosphorIcon, IconWeight } from '@phosphor-icons/react';
-import { vars } from '@/shared/theme';
+import { cx } from '@/shared/lib';
+import { glyph } from './Icon.css';
 
 type IconSize = 'sm' | 'md' | 'lg';
-
-const SIZE: Record<IconSize, string> = {
-  sm: vars.size.iconSm,
-  md: vars.size.iconMd,
-  lg: vars.size.iconLg,
-};
 
 export interface IconProps {
   icon: PhosphorIcon;
@@ -28,5 +23,7 @@ export function Icon({
   color = 'currentColor',
   className,
 }: IconProps) {
-  return <Glyph size={SIZE[size]} weight={weight} color={color} className={className} />;
+  return (
+    <Glyph weight={weight} color={color} className={cx(glyph[size], className)} />
+  );
 }

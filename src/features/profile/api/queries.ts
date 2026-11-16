@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, toApiError } from '@/shared/api';
+import { warmImage } from '@/shared/lib';
 import type { UpdateProfileRequest, UserResponse } from '@/shared/api';
 
 export const profileKeys = {
@@ -11,7 +12,9 @@ export function useProfileQuery() {
     queryKey: profileKeys.me,
     queryFn: async () => {
       try {
-        return await api.get('users/me').json<UserResponse>();
+        const user = await api.get('users/me').json<UserResponse>();
+        warmImage(user.photoUrl);
+        return user;
       } catch (error) {
         throw await toApiError(error);
       }

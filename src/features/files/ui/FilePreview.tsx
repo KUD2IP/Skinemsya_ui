@@ -15,25 +15,77 @@ interface LoadedFile {
   mimeType: string;
 }
 
-async function loadFilePreview(fileId: number): Promise<LoadedFile> {
-  let mimeType = 'application/octet-stream';
-  try {
-    const meta = await api
-      .get(`files/${fileId}`, { searchParams: { sharedAccess: 'true' } })
-      .json<{ mimeType: string }>();
-    mimeType = meta.mimeType || mimeType;
-  } catch {
-    // metadata may be unavailable; fall back to blob type below
-  }
+const resolvedFiles = new Map<number, LoadedFile>();
+const inflightFiles = new Map<number, Promise<LoadedFile>>();
 
-  const blob = await api
+function peekLoadedFile(fileId: number): LoadedFile | null {
+  return resolvedFiles.get(fileId) ?? null;
+}
+
+/** Один запрос содержимого, повторные открытия берут уже скачанный файл. */
+export function loadFilePreview(fileId: number): Promise<LoadedFile> {
+  const ready = resolvedFiles.get(fileId);
+  if (ready) return Promise.resolve(ready);
+  const pending = inflightFiles.get(fileId);
+  if (pending) return pending;
+
+  const request = api
     .get(`files/${fileId}/content`, { searchParams: { sharedAccess: 'true' } })
-    .blob();
+    .blob()
+    .then((blob) => {
+      const file: LoadedFile = {
+        objectUrl: URL.createObjectURL(blob),
+        mimeType: blob.type || 'application/octet-stream',
+      };
+      resolvedFiles.set(fileId, file);
+      inflightFiles.delete(fileId);
+      return file;
+    })
+    .catch((error: unknown) => {
+      inflightFiles.delete(fileId);
+      throw error;
+    });
 
-  return {
-    objectUrl: URL.createObjectURL(blob),
-    mimeType: mimeType !== 'application/octet-stream' ? mimeType : blob.type || mimeType,
-  };
+  inflightFiles.set(fileId, request);
+  return request;
+}
+
+function useLoadedFile(fileId: number) {
+  const cached = peekLoadedFile(fileId);
+  const [file, setFile] = useState<LoadedFile | null>(cached);
+  const [loading, setLoading] = useState(cached == null);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    const ready = peekLoadedFile(fileId);
+    if (ready) {
+      setFile(ready);
+      setLoading(false);
+      setError(false);
+      return;
+    }
+
+    let cancelled = false;
+    setLoading(true);
+    setError(false);
+    void loadFilePreview(fileId).then(
+      (loaded) => {
+        if (cancelled) return;
+        setFile(loaded);
+        setLoading(false);
+      },
+      () => {
+        if (cancelled) return;
+        setError(true);
+        setLoading(false);
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [fileId]);
+
+  return { file, loading, error };
 }
 
 function PreviewContent({ file }: { file: LoadedFile }) {
@@ -43,40 +95,22 @@ function PreviewContent({ file }: { file: LoadedFile }) {
   return <img src={file.objectUrl} alt="Файл" className={css.fullImage} />;
 }
 
+/** Содержимое файла без своей кнопки и шторки. Берёт уже скачанный файл, если он есть. */
+export function FileBody({ fileId }: { fileId: number }) {
+  const { file, loading, error } = useLoadedFile(fileId);
+  if (loading) return <Skeleton height={320} radius="lg" />;
+  if (error || !file) return <p className={css.error}>Не удалось загрузить файл</p>;
+  return <PreviewContent file={file} />;
+}
+
 export function FilePreview({
   fileId,
   variant = 'thumbnail',
   linkLabel = 'Посмотреть',
   sheetTitle = 'Файл',
 }: FilePreviewProps) {
-  const [file, setFile] = useState<LoadedFile | null>(null);
+  const { file, loading, error } = useLoadedFile(fileId);
   const [fullscreen, setFullscreen] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    let loaded: LoadedFile | null = null;
-    let cancelled = false;
-
-    void (async () => {
-      setLoading(true);
-      setError(false);
-      try {
-        loaded = await loadFilePreview(fileId);
-        if (cancelled) return;
-        setFile(loaded);
-      } catch {
-        if (!cancelled) setError(true);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-      if (loaded) URL.revokeObjectURL(loaded.objectUrl);
-    };
-  }, [fileId]);
 
   const openSheet = () => {
     if (!error) setFullscreen(true);

@@ -1,5 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react';
-import { PencilSimple, Users } from '@phosphor-icons/react';
+import { PencilSimple, Trash, Users } from '@phosphor-icons/react';
 import type { PositionResponse } from '@/shared/api';
 import { formatMoney, haptics, positionUnitPriceKopecks } from '@/shared/lib';
 import { Badge, Button, Icon } from '@/shared/ui';
@@ -84,7 +84,7 @@ export function PositionCard({
       <div className={css.actions}>
         {onEdit ? (
           <ActionButton
-            leftIcon={<Icon icon={PencilSimple} size="md" />}
+            leftIcon={<Icon icon={PencilSimple} size="sm" />}
             onClick={() => onEdit(position)}
           >
             Изменить
@@ -106,7 +106,11 @@ export function PositionCard({
           </ActionButton>
         )}
         {onDelete ? (
-          <ActionButton loading={deleting} onClick={() => onDelete(position.id)}>
+          <ActionButton
+            leftIcon={<Icon icon={Trash} size="sm" />}
+            loading={deleting}
+            onClick={() => onDelete(position.id)}
+          >
             Удалить
           </ActionButton>
         ) : (

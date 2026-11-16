@@ -74,6 +74,7 @@ export function useConfirmDebtor(debtId: number, eventId: number, groupId: numbe
       void queryClient.invalidateQueries({ queryKey: debtKeys.summary() });
       void queryClient.invalidateQueries({ queryKey: eventKeys.detail(eventId) });
       void queryClient.invalidateQueries({ queryKey: eventKeys.byGroup(groupId) });
+      void queryClient.invalidateQueries({ queryKey: eventKeys.oneOff() });
     },
   });
 }
@@ -94,6 +95,7 @@ export function useConfirmAll(eventId: number, groupId: number) {
       void queryClient.invalidateQueries({ queryKey: debtKeys.summary() });
       void queryClient.invalidateQueries({ queryKey: eventKeys.detail(eventId) });
       void queryClient.invalidateQueries({ queryKey: eventKeys.byGroup(groupId) });
+      void queryClient.invalidateQueries({ queryKey: eventKeys.oneOff() });
     },
   });
 }
@@ -128,6 +130,7 @@ export function useConfirmPayer(eventId: number, groupId: number) {
       void queryClient.invalidateQueries({ queryKey: debtKeys.summary() });
       void queryClient.invalidateQueries({ queryKey: eventKeys.detail(eventId) });
       void queryClient.invalidateQueries({ queryKey: eventKeys.byGroup(groupId) });
+      void queryClient.invalidateQueries({ queryKey: eventKeys.oneOff() });
     },
   });
 }
@@ -159,6 +162,7 @@ export function useDispute(eventId: number, groupId: number) {
       void queryClient.invalidateQueries({ queryKey: debtKeys.summary() });
       void queryClient.invalidateQueries({ queryKey: eventKeys.detail(eventId) });
       void queryClient.invalidateQueries({ queryKey: eventKeys.byGroup(groupId) });
+      void queryClient.invalidateQueries({ queryKey: eventKeys.oneOff() });
     },
   });
 }

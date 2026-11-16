@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useSearch } from '@tanstack/react-router';
+import { useSearch } from '@tanstack/react-router';
 import { CaretDown, CaretRight } from '@phosphor-icons/react';
 import { PayerDashboardScreen, debtKeys, useParticipantsStatusQuery } from '@/features/debts';
 import { useEventDebtsQuery } from '@/features/debts/api/queries';
 import { groupKeys, useGroupMembersQuery } from '@/features/groups/api/queries';
 import { EventPositionsScreen } from '@/features/positions';
+import { EventListBack } from './EventListBack';
 import { positionKeys, usePositionsQuery } from '@/features/positions/api/queries';
 import { PaymentScreen } from '@/features/payments';
 import { EventSelectionScreen } from '@/features/selections/ui/EventSelectionScreen';
@@ -27,7 +28,6 @@ import {
   Icon,
   RefreshIconButton,
   Screen,
-  ScreenBack,
   Stack,
 } from '@/shared/ui';
 import {
@@ -55,7 +55,6 @@ function CompletedEventSummary({
   event: EventResponse;
   currentUserId?: number;
 }) {
-  const navigate = useNavigate();
   const { data: debts } = useEventDebtsQuery(event.id);
   const { data: members } = useGroupMembersQuery(groupId);
   const { data: positions } = usePositionsQuery(event.id);
@@ -115,18 +114,13 @@ function CompletedEventSummary({
       title={event.name}
       subtitle={`${eventStatusLabel(event.status)} · ${formatDateTime(event.updatedAt)}`}
       headerLeading={
-        <ScreenBack
-          onBack={() => void navigate({ to: '/groups/$groupId', params: { groupId: String(groupId) } })}
-        />
+        <EventListBack groupId={groupId} oneOff={event?.oneOff} />
       }
       refreshing={refreshing}
       headerAction={<RefreshIconButton refreshing={refreshing} onRefresh={() => void refresh()} />}
     >
       <Stack gap={6}>
         <EventCapacityBar event={event} currentUserId={currentUserId} />
-        {event.description ? (
-          <p className={css.description}>{event.description}</p>
-        ) : null}
 
         <Stack gap={3}>
           <span className={css.meta}>Итоги по участникам</span>
@@ -193,7 +187,6 @@ function PayerWaitScreen({
   event: EventResponse;
   currentUserId?: number;
 }) {
-  const navigate = useNavigate();
   const { data: positions } = usePositionsQuery(event.id);
   const { data: debts } = useEventDebtsQuery(event.id);
   const { refresh, refreshing } = useScreenRefresh([
@@ -220,9 +213,7 @@ function PayerWaitScreen({
       title={event.name}
       subtitle={eventStatusLabel(event.status)}
       headerLeading={
-        <ScreenBack
-          onBack={() => void navigate({ to: '/groups/$groupId', params: { groupId: String(groupId) } })}
-        />
+        <EventListBack groupId={groupId} oneOff={event?.oneOff} />
       }
       refreshing={refreshing}
       headerAction={<RefreshIconButton refreshing={refreshing} onRefresh={() => void refresh()} />}
@@ -251,7 +242,6 @@ function PayerWaitScreen({
 }
 
 export function EventDetailScreen({ groupId, eventId, currentUserId }: EventDetailScreenProps) {
-  const navigate = useNavigate();
   const { edit } = useSearch({ from: '/app/groups/$groupId/events/$eventId' });
   const { data: event, isLoading, isError, refetch } = useEventQuery(eventId);
   const join = useJoinEvent(eventId, groupId);
@@ -269,11 +259,7 @@ export function EventDetailScreen({ groupId, eventId, currentUserId }: EventDeta
     return (
       <Screen
         title="Сбор"
-        headerLeading={
-          <ScreenBack
-            onBack={() => void navigate({ to: '/groups/$groupId', params: { groupId: String(groupId) } })}
-          />
-        }
+        headerLeading={<EventListBack groupId={groupId} />}
       >
         <EventDetailSkeleton />
       </Screen>
@@ -285,9 +271,7 @@ export function EventDetailScreen({ groupId, eventId, currentUserId }: EventDeta
       <Screen
         title="Сбор"
         headerLeading={
-          <ScreenBack
-            onBack={() => void navigate({ to: '/groups/$groupId', params: { groupId: String(groupId) } })}
-          />
+          <EventListBack groupId={groupId} oneOff={event?.oneOff} />
         }
       >
         <EmptyState
@@ -308,9 +292,7 @@ export function EventDetailScreen({ groupId, eventId, currentUserId }: EventDeta
       <Screen
         title={event.name}
         headerLeading={
-          <ScreenBack
-            onBack={() => void navigate({ to: '/groups/$groupId', params: { groupId: String(groupId) } })}
-          />
+          <EventListBack groupId={groupId} oneOff={event?.oneOff} />
         }
       >
         {joining ? (

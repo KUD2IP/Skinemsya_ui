@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useEventQuery } from '@/features/events/api/queries';
-import { resolveEventIdFromTelegram } from '../lib/initData';
+import { resolveDemoFromTelegram, resolveEventIdFromTelegram } from '../lib/initData';
 import { useSessionStore } from '../model/session.store';
 
 /** Обрабатывает chatBootstrap и deep link event_{id} после авторизации. */
@@ -12,10 +12,17 @@ export function ChatBootstrapHandler() {
   const handled = useRef(false);
 
   const initEventId = resolveEventIdFromTelegram();
+  const openDemo = resolveDemoFromTelegram();
   const { data: deepLinkEvent, isLoading: deepLinkLoading } = useEventQuery(initEventId ?? 0);
 
   useEffect(() => {
     if (handled.current) return;
+
+    if (openDemo) {
+      handled.current = true;
+      void navigate({ to: '/demo' });
+      return;
+    }
 
     const bootstrap = consumeChatBootstrap();
     if (bootstrap) {
@@ -69,6 +76,7 @@ export function ChatBootstrapHandler() {
     deepLinkLoading,
     initEventId,
     navigate,
+    openDemo,
   ]);
 
   return null;

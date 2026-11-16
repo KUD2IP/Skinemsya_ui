@@ -3,7 +3,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider } from '@tanstack/react-router';
 import { MotionConfig } from 'motion/react';
 import { router } from '@/app/router/router';
-import { bindKeyboardInset, bindTelegramBackButton, overlayTween } from '@/shared/lib';
+import { telegramPhotoUrl } from '@/features/auth';
+import { bindKeyboardInset, bindTelegramBackButton, overlayTween, warmImage } from '@/shared/lib';
 import { QueryVisibilitySync } from './QueryVisibilitySync';
 
 function createQueryClient() {
@@ -23,6 +24,9 @@ export function AppProviders() {
 
   useEffect(() => bindKeyboardInset(), []);
   useEffect(() => bindTelegramBackButton(), []);
+  useEffect(() => {
+    warmImage(telegramPhotoUrl());
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

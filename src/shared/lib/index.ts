@@ -77,6 +77,7 @@ export { useScreenRefresh } from './useScreenRefresh';
 export { bindKeyboardInset, readKeyboardInset, scrollFieldIntoView } from './keyboardInset';
 export { lockAppFrame } from './lockAppFrame';
 export { useBodyScrollLock } from './useBodyScrollLock';
+export { warmImage, warmImages } from './warmImage';
 export { scrollElementIntoContainer } from './scrollElementIntoContainer';
 export {
   normalizeTelegramUsername,

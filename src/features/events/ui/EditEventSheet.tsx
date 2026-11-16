@@ -10,7 +10,7 @@ import {
 import type { EventResponse } from '@/shared/api';
 import { isApiError } from '@/shared/api';
 import { haptics } from '@/shared/lib';
-import { Button, FieldGroup, Input, Sheet, Stack, Textarea, toast } from '@/shared/ui';
+import { Button, FieldGroup, Input, Sheet, Stack, toast } from '@/shared/ui';
 import { CountField } from './CountField';
 
 interface EditEventSheetProps {
@@ -31,7 +31,6 @@ export function EditEventSheet({ open, onOpenChange, event }: EditEventSheetProp
     resolver: zodResolver(eventFormSchema),
     defaultValues: {
       name: event.name,
-      description: event.description ?? '',
       expectedParticipantCount: event.expectedParticipantCount,
     },
   });
@@ -40,7 +39,6 @@ export function EditEventSheet({ open, onOpenChange, event }: EditEventSheetProp
     if (open) {
       reset({
         name: event.name,
-        description: event.description ?? '',
         expectedParticipantCount: event.expectedParticipantCount,
       });
     }
@@ -64,9 +62,6 @@ export function EditEventSheet({ open, onOpenChange, event }: EditEventSheetProp
         <Stack gap={6}>
           <FieldGroup label="Название" error={errors.name?.message}>
             <Input invalid={Boolean(errors.name)} {...register('name')} />
-          </FieldGroup>
-          <FieldGroup label="Описание" error={errors.description?.message}>
-            <Textarea invalid={Boolean(errors.description)} {...register('description')} />
           </FieldGroup>
           <FieldGroup
             label="Сколько человек"

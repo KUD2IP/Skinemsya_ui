@@ -1,11 +1,12 @@
 import { Link, useRouterState } from '@tanstack/react-router';
-import { UsersThree, UserCircle } from '@phosphor-icons/react';
+import { Receipt, UsersThree, UserCircle } from '@phosphor-icons/react';
 import { Icon } from '@/shared/ui/Icon';
 import { haptics } from '@/shared/lib';
 import * as css from './TabBar.css';
 
 const tabs = [
-  { to: '/', label: 'Группы', icon: UsersThree },
+  { to: '/', label: 'Сборы', icon: Receipt },
+  { to: '/groups', label: 'Группы', icon: UsersThree },
   { to: '/profile', label: 'Профиль', icon: UserCircle },
 ] as const;
 
@@ -20,7 +21,7 @@ export function TabBar({ hidden = false, activeIndex }: TabBarProps) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const resolvedIndex =
     activeIndex ??
-    (pathname.startsWith('/profile') ? 1 : 0);
+    (pathname.startsWith('/profile') ? 2 : pathname.startsWith('/groups') ? 1 : 0);
 
   return (
     <nav

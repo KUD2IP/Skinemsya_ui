@@ -15,6 +15,7 @@ import { EventParticipantsPage } from '@/app/pages/EventParticipantsPage';
 import { OfferPage } from '@/app/legal/OfferPage';
 import { PrivacyPage } from '@/app/legal/PrivacyPage';
 import { AdminPage } from '@/app/pages/AdminPage';
+import { DemoTourScreen } from '@/features/onboarding';
 
 const rootRoute = createRootRoute({
   component: function RootLayout() {
@@ -62,6 +63,11 @@ const groupsRoute = createRoute({
   path: '/',
 });
 
+const groupListRoute = createRoute({
+  getParentRoute: () => tabLayoutRoute,
+  path: '/groups',
+});
+
 const profileRoute = createRoute({
   getParentRoute: () => tabLayoutRoute,
   path: '/profile',
@@ -94,6 +100,12 @@ const adminRoute = createRoute({
   component: AdminPage,
 });
 
+const demoRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/demo',
+  component: DemoTourScreen,
+});
+
 const eventParticipantsRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/groups/$groupId/events/$eventId/participants',
@@ -105,12 +117,13 @@ const routeTree = rootRoute.addChildren([
   offerRoute,
   privacyRoute,
   appRoute.addChildren([
-    tabLayoutRoute.addChildren([groupsRoute, profileRoute]),
+    tabLayoutRoute.addChildren([groupsRoute, groupListRoute, profileRoute]),
     groupDetailRoute,
     groupMembersRoute,
     eventDetailRoute,
     eventParticipantsRoute,
     adminRoute,
+    demoRoute,
   ]),
 ]);
 

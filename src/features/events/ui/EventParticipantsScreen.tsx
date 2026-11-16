@@ -125,7 +125,11 @@ export function EventParticipantsScreen({
     try {
       await leave.mutateAsync();
       haptics.success();
-      await navigate({ to: '/groups/$groupId', params: { groupId: String(groupId) } });
+      await navigate(
+        event?.oneOff
+          ? { to: '/' }
+          : { to: '/groups/$groupId', params: { groupId: String(groupId) } },
+      );
     } catch (error) {
       haptics.error();
       const explanation = leaveBlockedMessage(error, 'Не удалось выйти из сбора');

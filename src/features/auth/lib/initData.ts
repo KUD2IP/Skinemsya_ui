@@ -60,3 +60,19 @@ export function resolveEventIdFromTelegram(): number | null {
     return null;
   }
 }
+
+export function resolveDemoFromTelegram(): boolean {
+  const raw = getInitDataRaw();
+  if (raw) {
+    try {
+      if (new URLSearchParams(raw).get('start_param') === 'demo') return true;
+    } catch {
+      return false;
+    }
+  }
+  try {
+    return retrieveLaunchParams().tgWebAppStartParam === 'demo';
+  } catch {
+    return false;
+  }
+}

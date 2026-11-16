@@ -3,7 +3,7 @@ import { useNavigate, useSearch } from '@tanstack/react-router';
 import type { EventResponse, PositionResponse } from '@/shared/api';
 import { positionKeys, receiptKeys, useEventReceiptsQuery, usePositionsQuery } from '@/features/positions/api/queries';
 import { eventKeys } from '@/features/events/api/queries';
-import { ReceiptPreview } from '@/features/positions/ui/ReceiptPreview';
+import { ReceiptGallery } from '@/features/positions/ui/ReceiptGallery';
 import { PaymentScreen } from '@/features/payments/ui/PaymentScreen';
 import { debtKeys, useParticipantsStatusQuery, useEventDebtsQuery } from '@/features/debts/api/queries';
 import { isApiError } from '@/shared/api';
@@ -21,6 +21,7 @@ import {
 import { EventCapacityBar } from '@/features/events/ui/EventCapacityBar';
 import { DeleteEventControl } from '@/features/events/ui/DeleteEventControl';
 import { RevertToDraftControl } from '@/features/events/ui/RevertToDraftControl';
+import { ContextHint } from '@/features/onboarding';
 import { useCompleteSelection, useReopenSelection, useUpdateSelections } from '../api/queries';
 import {
   leftoverQuantity,
@@ -251,7 +252,11 @@ export function EventSelectionScreen({
 
   const handleBack = async () => {
     if (!edit) {
-      await navigate({ to: '/groups/$groupId', params: { groupId: String(groupId) } });
+      await navigate(
+        event.oneOff
+          ? { to: '/' }
+          : { to: '/groups/$groupId', params: { groupId: String(groupId) } },
+      );
       return;
     }
     if (!hasUnsavedChanges || !canReopen) {
@@ -330,11 +335,10 @@ export function EventSelectionScreen({
       ) : (
         <>
           <EventCapacityBar event={event} currentUserId={currentUserId} />
-          {receipts?.[0] ? (
-            <div className={css.receiptLink}>
-              <ReceiptPreview fileId={receipts[0].fileId} variant="link" />
-            </div>
-          ) : null}
+          <ContextHint id="selection">
+            Выберите свои позиции. Общие делятся автоматически, а итог виден до подтверждения.
+          </ContextHint>
+          {receipts?.length ? <ReceiptGallery receipts={receipts} /> : null}
           <div className={css.body}>
             {nonSharedPositions.map((position) => {
               const qty = quantities[position.id] ?? 0;

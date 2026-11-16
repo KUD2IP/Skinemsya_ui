@@ -11,7 +11,7 @@ import { EditGroupSheet } from './EditGroupSheet';
 import { GroupMembersPreview } from './GroupMembersPreview';
 import { GroupDetailSkeleton } from './GroupDetailSkeleton';
 import * as css from './GroupsScreen.css';
-import { isApiError } from '@/shared/api';
+import { isApiError, type GroupResponse } from '@/shared/api';
 import {
   Button,
   EmptyState,
@@ -48,7 +48,7 @@ function leaveGroupError(error: unknown): string {
   return error.message || 'Не удалось выйти из группы';
 }
 
-function groupSubtitle(groupType: 'CHAT_LINKED' | 'STANDALONE', isOwner: boolean): string {
+function groupSubtitle(groupType: GroupResponse['type'], isOwner: boolean): string {
   const parts = [groupTypeLabel(groupType)];
   if (isOwner) parts.push('Вы владелец');
   return parts.join(' · ');
@@ -90,7 +90,7 @@ export function GroupDetailScreen({
       await leaveGroup.mutateAsync(groupId);
       haptics.success();
       toast.saved('Вы вышли из группы');
-      void navigate({ to: '/' });
+      void navigate({ to: '/groups' });
     } catch (error) {
       haptics.error();
       const explanation = leaveGroupError(error);
@@ -104,7 +104,7 @@ export function GroupDetailScreen({
       await deleteGroup.mutateAsync(groupId);
       haptics.success();
       toast.saved('Группа удалена');
-      void navigate({ to: '/' });
+      void navigate({ to: '/groups' });
     } catch (error) {
       haptics.error();
       toast.error(isApiError(error) ? error.message : 'Не удалось удалить группу');
@@ -118,7 +118,7 @@ export function GroupDetailScreen({
       title={group?.name ?? 'Группа'}
       subtitle={group ? groupSubtitle(group.type, isOwner) : undefined}
       refreshing={refreshing && !isLoading}
-      headerLeading={<ScreenBack onBack={() => void navigate({ to: '/' })} />}
+      headerLeading={<ScreenBack onBack={() => void navigate({ to: '/groups' })} />}
       headerAction={<RefreshIconButton refreshing={refreshing} onRefresh={() => void refresh()} />}
     >
       {isLoading ? (

@@ -2,6 +2,7 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tansta
 import { api, toApiError } from '@/shared/api';
 import type {
   CreateEventRequest,
+  CreateOneOffEventRequest,
   EventResponse,
   InviteLinkResponse,
   PageResult,
@@ -16,6 +17,7 @@ const PAGE_SIZE = 20;
 
 export const eventKeys = {
   all: ['events'] as const,
+  oneOff: () => [...eventKeys.all, 'one-off'] as const,
   byGroup: (groupId: number) => [...eventKeys.all, 'group', groupId] as const,
   detail: (eventId: number) => [...eventKeys.all, 'detail', eventId] as const,
 };
@@ -48,6 +50,42 @@ export function useGroupEventsQuery(groupId: number) {
       return page.items;
     },
     enabled: groupId > 0,
+  });
+}
+
+async function fetchOneOffEventsPage(page: number): Promise<PageResult<EventResponse>> {
+  try {
+    return await api
+      .get('events/one-off', { searchParams: { page, size: PAGE_SIZE } })
+      .json<PageResult<EventResponse>>();
+  } catch (error) {
+    throw await toApiError(error);
+  }
+}
+
+export function useOneOffEventsInfiniteQuery() {
+  return useInfiniteQuery({
+    queryKey: eventKeys.oneOff(),
+    queryFn: ({ pageParam }) => fetchOneOffEventsPage(pageParam),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => (pageHasMore(lastPage) ? lastPage.page + 1 : undefined),
+  });
+}
+
+export function useCreateOneOffEvent() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (body: CreateOneOffEventRequest) => {
+      try {
+        return await api.post('events/one-off', { json: body }).json<EventResponse>();
+      } catch (error) {
+        throw await toApiError(error);
+      }
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(eventKeys.detail(data.id), data);
+      void queryClient.invalidateQueries({ queryKey: eventKeys.oneOff() });
+    },
   });
 }
 
@@ -91,6 +129,7 @@ export function useCreateEvent(groupId: number) {
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: eventKeys.byGroup(groupId) });
+      void queryClient.invalidateQueries({ queryKey: eventKeys.oneOff() });
     },
   });
 }
@@ -108,6 +147,7 @@ export function useUpdateEvent(eventId: number, groupId: number) {
     onSuccess: (data) => {
       queryClient.setQueryData(eventKeys.detail(eventId), data);
       void queryClient.invalidateQueries({ queryKey: eventKeys.byGroup(groupId) });
+      void queryClient.invalidateQueries({ queryKey: eventKeys.oneOff() });
     },
   });
 }
@@ -127,6 +167,7 @@ export function useUpdateExpectedParticipants(eventId: number, groupId: number) 
     onSuccess: (data) => {
       queryClient.setQueryData(eventKeys.detail(eventId), data);
       void queryClient.invalidateQueries({ queryKey: eventKeys.byGroup(groupId) });
+      void queryClient.invalidateQueries({ queryKey: eventKeys.oneOff() });
       void queryClient.invalidateQueries({ queryKey: debtKeys.participants(eventId) });
       void queryClient.invalidateQueries({ queryKey: debtKeys.byEvent(eventId) });
     },
@@ -146,6 +187,7 @@ export function useDeleteEvent(groupId: number) {
     onSuccess: (_data, eventId) => {
       void queryClient.removeQueries({ queryKey: eventKeys.detail(eventId) });
       void queryClient.invalidateQueries({ queryKey: eventKeys.byGroup(groupId) });
+      void queryClient.invalidateQueries({ queryKey: eventKeys.oneOff() });
     },
   });
 }
@@ -165,6 +207,7 @@ export function useRemoveEventParticipant(eventId: number, groupId: number) {
     onSuccess: (data) => {
       queryClient.setQueryData(eventKeys.detail(eventId), data);
       void queryClient.invalidateQueries({ queryKey: eventKeys.byGroup(groupId) });
+      void queryClient.invalidateQueries({ queryKey: eventKeys.oneOff() });
       void queryClient.invalidateQueries({ queryKey: debtKeys.participants(eventId) });
       void queryClient.invalidateQueries({ queryKey: debtKeys.byEvent(eventId) });
     },
@@ -184,6 +227,7 @@ export function useSendToDistribution(eventId: number, groupId: number) {
     onSuccess: (data) => {
       queryClient.setQueryData(eventKeys.detail(eventId), data);
       void queryClient.invalidateQueries({ queryKey: eventKeys.byGroup(groupId) });
+      void queryClient.invalidateQueries({ queryKey: eventKeys.oneOff() });
     },
   });
 }
@@ -201,6 +245,7 @@ export function useJoinEvent(eventId: number, groupId: number) {
     onSuccess: (data) => {
       queryClient.setQueryData(eventKeys.detail(eventId), data);
       void queryClient.invalidateQueries({ queryKey: eventKeys.byGroup(groupId) });
+      void queryClient.invalidateQueries({ queryKey: eventKeys.oneOff() });
       void queryClient.invalidateQueries({ queryKey: debtKeys.participants(eventId) });
       void queryClient.invalidateQueries({ queryKey: debtKeys.byEvent(eventId) });
     },
@@ -220,6 +265,7 @@ export function useLeaveEvent(eventId: number, groupId: number) {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: eventKeys.detail(eventId) });
       void queryClient.invalidateQueries({ queryKey: eventKeys.byGroup(groupId) });
+      void queryClient.invalidateQueries({ queryKey: eventKeys.oneOff() });
     },
   });
 }
@@ -237,6 +283,7 @@ export function useRevertToDraft(eventId: number, groupId: number) {
     onSuccess: (data) => {
       queryClient.setQueryData(eventKeys.detail(eventId), data);
       void queryClient.invalidateQueries({ queryKey: eventKeys.byGroup(groupId) });
+      void queryClient.invalidateQueries({ queryKey: eventKeys.oneOff() });
       void queryClient.invalidateQueries({ queryKey: positionKeys.byEvent(eventId) });
       void queryClient.invalidateQueries({ queryKey: debtKeys.byEvent(eventId) });
       void queryClient.invalidateQueries({ queryKey: debtKeys.participants(eventId) });
@@ -258,6 +305,7 @@ export function useCloseEvent(eventId: number, groupId: number) {
     onSuccess: (data) => {
       queryClient.setQueryData(eventKeys.detail(eventId), data);
       void queryClient.invalidateQueries({ queryKey: eventKeys.byGroup(groupId) });
+      void queryClient.invalidateQueries({ queryKey: eventKeys.oneOff() });
     },
   });
 }

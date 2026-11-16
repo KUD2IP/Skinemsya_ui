@@ -21,7 +21,6 @@ import {
   Sheet,
   Skeleton,
   Stack,
-  Textarea,
   toast,
 } from '@/shared/ui';
 
@@ -56,7 +55,7 @@ export function CreateEventSheet({
     formState: { errors, isSubmitting },
   } = useForm<EventFormValues>({
     resolver: zodResolver(eventFormSchema),
-    defaultValues: { name: '', description: '', expectedParticipantCount: 2 },
+    defaultValues: { name: '', expectedParticipantCount: 2 },
   });
 
   const payerOptions = useMemo(
@@ -97,7 +96,7 @@ export function CreateEventSheet({
   });
 
   const handleClosed = () => {
-    reset({ name: '', description: '', expectedParticipantCount: 2 });
+    reset({ name: '', expectedParticipantCount: 2 });
     setPayerId(0);
   };
 
@@ -111,9 +110,6 @@ export function CreateEventSheet({
               invalid={Boolean(errors.name)}
               {...register('name')}
             />
-          </FieldGroup>
-          <FieldGroup label="Описание" hint="Необязательно" error={errors.description?.message}>
-            <Textarea placeholder="Детали сбора" invalid={Boolean(errors.description)} {...register('description')} />
           </FieldGroup>
           <FieldGroup
             label="Сколько человек"

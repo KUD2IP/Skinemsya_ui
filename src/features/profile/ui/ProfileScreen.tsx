@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { ArrowClockwise, Bank, CaretRight, Phone, Users } from '@phosphor-icons/react';
+import { ArrowClockwise, Bank, CaretRight, Phone, PlayCircle, Users } from '@phosphor-icons/react';
 import { useAdminMeQuery } from '@/features/admin';
 import { telegramPhotoUrl } from '@/features/auth';
 import { ReceiptPaywallSheet, useCancelSubscription, useSubscriptionQuery } from '@/features/subscription';
@@ -121,6 +121,21 @@ export function ProfileScreen() {
             </Stack>
 
             <Stack gap={3}>
+              <span className={css.sectionLabel}>Знакомство</span>
+              <Card padding="none">
+                <List>
+                  <ListItem
+                    leading={<Icon icon={PlayCircle} />}
+                    title="Как это работает"
+                    subtitle="Полный цикл на примере ужина"
+                    trailing={<Icon icon={CaretRight} size="sm" />}
+                    onClick={() => void navigate({ to: '/demo' })}
+                  />
+                </List>
+              </Card>
+            </Stack>
+
+            <Stack gap={3}>
               <span className={css.sectionLabel}>Подписка</span>
               <Card>
                 {admin.data?.admin && !subscription.data?.currentPeriodEnd ? (
@@ -163,7 +178,11 @@ export function ProfileScreen() {
                     <span className={css.subscriptionTitle}>
                       {formatMoney(subscription.data?.priceKopecks ?? 4900)} за 30 дней
                     </span>
-                    <span className={css.heroMeta}>Только для чтения фото чека</span>
+                    <span className={css.heroMeta}>
+                      {subscription.data?.freeParsesRemaining
+                        ? 'Первый удачный чек бесплатно, дальше — подписка'
+                        : 'Только для чтения фото чека'}
+                    </span>
                     <Button type="button" fullWidth onClick={() => setPaywallOpen(true)}>
                       Оформить подписку
                     </Button>

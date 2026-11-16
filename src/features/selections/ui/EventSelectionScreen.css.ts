@@ -10,10 +10,6 @@ export const body = style({
   paddingBottom: stickyActionBarInset,
 });
 
-export const receiptLink = style({
-  marginBottom: vars.space[2],
-});
-
 export const row = style({
   display: 'flex',
   flexDirection: 'column',

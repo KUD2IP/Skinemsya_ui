@@ -1,6 +1,6 @@
 /** Глубина маршрута в стеке навигации (0 = корень вкладок). */
 export function routeDepth(pathname: string): number {
-  if (pathname === '/' || pathname === '/profile') return 0;
+  if (pathname === '/' || pathname === '/groups' || pathname === '/profile') return 0;
   if (pathname.includes('/events/')) return 2;
   if (pathname.startsWith('/groups/')) return 1;
   return 0;
@@ -14,9 +14,11 @@ export function routeDirection(from: string, to: string): number {
   if (toDepth > fromDepth) return 1;
   if (toDepth < fromDepth) return -1;
 
-  if (from === '/' && to === '/profile') return 1;
-  if (from === '/profile' && to === '/') return -1;
+  const fromTab = TAB_ORDER.indexOf(from);
+  const toTab = TAB_ORDER.indexOf(to);
+  if (fromTab >= 0 && toTab >= 0) return Math.sign(toTab - fromTab);
   return 0;
 }
 
-export const TAB_PATHS = new Set(['/', '/profile']);
+const TAB_ORDER = ['/', '/groups', '/profile'];
+export const TAB_PATHS = new Set(TAB_ORDER);

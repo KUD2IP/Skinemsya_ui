@@ -17,6 +17,8 @@ export function Avatar({ src, name, size, tone, className }: AvatarProps) {
       className={cx(avatar({ size, tone }), className)}
       src={src}
       alt={name ?? ''}
+      decoding="sync"
+      referrerPolicy="no-referrer"
       onError={() => setFailed(true)}
     />
   ) : (

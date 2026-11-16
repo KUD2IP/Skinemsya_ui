@@ -34,7 +34,11 @@ export function DeleteEventControl({
       await deleteEvent.mutateAsync(event.id);
       haptics.success();
       toast.saved('Сбор удалён');
-      void navigate({ to: '/groups/$groupId', params: { groupId: String(groupId) } });
+      void navigate(
+        event.oneOff
+          ? { to: '/' }
+          : { to: '/groups/$groupId', params: { groupId: String(groupId) } },
+      );
     } catch (error) {
       haptics.error();
       toast.error(isApiError(error) ? error.message : 'Не удалось удалить сбор');

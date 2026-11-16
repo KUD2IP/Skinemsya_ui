@@ -12,7 +12,7 @@ import type {
 } from '@/shared/api';
 import { pageHasMore } from '@/shared/api/dto';
 import { eventKeys } from '@/features/events/api/queries';
-import { normalizeTelegramUsername } from '@/shared/lib';
+import { normalizeTelegramUsername, warmImages } from '@/shared/lib';
 
 const PAGE_SIZE = 20;
 const MEMBERS_PICKER_SIZE = 100;
@@ -139,9 +139,11 @@ async function fetchMembersPage(
   size: number,
 ): Promise<PageResult<GroupMemberViewResponse>> {
   try {
-    return await api
+    const pageResult = await api
       .get(`groups/${groupId}/members`, { searchParams: { page, size } })
       .json<PageResult<GroupMemberViewResponse>>();
+    warmImages(pageResult.items.map((member) => member.photoUrl));
+    return pageResult;
   } catch (error) {
     throw await toApiError(error);
   }

@@ -46,7 +46,7 @@ export interface UpdateProfileRequest {
   notificationSettings?: string;
 }
 
-export type GroupType = 'CHAT_LINKED' | 'STANDALONE';
+export type GroupType = 'CHAT_LINKED' | 'STANDALONE' | 'ONE_OFF';
 export type GroupRole = 'OWNER' | 'MEMBER';
 export type EventStatus = 'DRAFT' | 'DISTRIBUTION' | 'CALCULATED' | 'COMPLETED';
 
@@ -106,6 +106,7 @@ export interface EventResponse {
   expectedParticipantCount: number;
   joinedCount: number;
   currentUserJoined: boolean;
+  oneOff: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -114,6 +115,12 @@ export interface CreateEventRequest {
   name: string;
   description?: string;
   payerId: number;
+  expectedParticipantCount: number;
+}
+
+export interface CreateOneOffEventRequest {
+  name: string;
+  description?: string;
   expectedParticipantCount: number;
 }
 
@@ -205,6 +212,8 @@ export interface SubscriptionResponse {
   stars: number;
   yookassaAvailable: boolean;
   starsAvailable: boolean;
+  /** Сколько удачных чтений чека ещё можно сделать без подписки. Неудачное фото не уменьшает число. */
+  freeParsesRemaining: number;
 }
 
 export interface SubscriptionCheckoutRequest {
