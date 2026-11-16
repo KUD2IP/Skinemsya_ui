@@ -9,6 +9,7 @@ interface InviteLinkButtonProps {
   link?: InviteLinkResponse;
   isLoading?: boolean;
   isError?: boolean;
+  className?: string;
 }
 
 function telegramShareUrl(url: string, text: string): string {
@@ -38,6 +39,7 @@ export function InviteLinkButton({
   link,
   isLoading,
   isError,
+  className,
 }: InviteLinkButtonProps) {
   const share = async () => {
     if (!link?.url) {
@@ -70,6 +72,7 @@ export function InviteLinkButton({
     <Button
       type="button"
       variant="secondary"
+      className={className}
       leftIcon={<Icon icon={UserPlus} size="sm" />}
       loading={isLoading}
       disabled={isError && !link?.url}

@@ -1,8 +1,10 @@
 import { useNavigate } from '@tanstack/react-router';
 import { UsersThree } from '@phosphor-icons/react';
+import { InviteLinkButton } from '@/features/groups/ui/InviteLinkButton';
 import type { EventResponse } from '@/shared/api';
-import { haptics } from '@/shared/lib';
+import { cx, haptics } from '@/shared/lib';
 import { Icon } from '@/shared/ui';
+import { useEventInviteLinkQuery } from '../api/queries';
 import { eventCapacityLabel } from '../model/eventRoster';
 import * as css from './EventCapacityBar.css';
 
@@ -13,9 +15,11 @@ interface EventCapacityBarProps {
 
 export function EventCapacityBar({ event }: EventCapacityBarProps) {
   const navigate = useNavigate();
+  const showInvite = event.oneOff && event.status !== 'COMPLETED';
+  const inviteLink = useEventInviteLinkQuery(event.id, showInvite);
 
-  return (
-    <div className={css.panel}>
+  const participants = (
+    <div className={cx(css.panel, showInvite && css.panelGrow)}>
       <button
         type="button"
         className={css.previewRow}
@@ -33,6 +37,20 @@ export function EventCapacityBar({ event }: EventCapacityBarProps) {
         <span className={css.previewTitle}>Участники</span>
         <span className={css.previewMeta}>{eventCapacityLabel(event)}</span>
       </button>
+    </div>
+  );
+
+  if (!showInvite) return participants;
+
+  return (
+    <div className={css.withInvite}>
+      {participants}
+      <InviteLinkButton
+        className={css.inviteButton}
+        link={inviteLink.data}
+        isLoading={inviteLink.isLoading}
+        isError={inviteLink.isError}
+      />
     </div>
   );
 }

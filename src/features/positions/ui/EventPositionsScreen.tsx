@@ -262,11 +262,13 @@ export function EventPositionsScreen({
               />
               <AddManualButton className={css.uploadAction} onClick={() => setAdding(true)} />
             </div>
-            <p className={css.photoHint}>
-              {subscription.data && !subscription.data.active && subscription.data.freeParsesRemaining > 0
-                ? 'Первый удачный чек бесплатно. Если фото не разобралось, попытка остаётся.'
-                : 'Снимите чек целиком, при ровном освещении'}
-            </p>
+            {receipts && receipts.length > 0 ? null : (
+              <p className={css.photoHint}>
+                {subscription.data && !subscription.data.active && subscription.data.freeParsesRemaining > 0
+                  ? 'Первый удачный чек бесплатно. Если фото не разобралось, попытка остаётся.'
+                  : 'Снимите чек целиком, при ровном освещении'}
+              </p>
+            )}
 
             {receipts && receipts.length > 0 ? (
               <ReceiptGallery

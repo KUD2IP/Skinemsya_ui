@@ -34,9 +34,36 @@ export const previewIcon = style({
   color: vars.color.green[400],
 });
 
+export const withInvite = style({
+  display: 'flex',
+  alignItems: 'stretch',
+  gap: vars.space[3],
+  minWidth: 0,
+});
+
+export const panelGrow = style({
+  flex: '1 1 auto',
+  minWidth: 0,
+});
+
+export const inviteButton = style({
+  flexShrink: 0,
+  selectors: {
+    '&&': {
+      height: 'auto',
+      minHeight: vars.size.controlMd,
+      paddingInline: vars.space[4],
+      fontSize: vars.fontSize.bodySm,
+    },
+  },
+});
+
 export const previewTitle = style({
   flex: 1,
   minWidth: 0,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
   fontSize: vars.fontSize.bodySm,
   fontWeight: 500,
   color: vars.color.text.primary,

@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { AnimatePresence, motion } from 'motion/react';
-import { ArrowLeft, ArrowRight, Check } from '@phosphor-icons/react';
 import { DemoScenario, type DemoScenarioVariant } from '@/app/demo/DemoScenario';
-import { fade, haptics } from '@/shared/lib';
-import { Button, Card, Icon, Screen, ScreenBack } from '@/shared/ui';
+import { cx, fade, haptics } from '@/shared/lib';
+import { Button, Card, Screen, ScreenBack } from '@/shared/ui';
 import * as css from './DemoTourScreen.css';
 
 const steps: Array<{
@@ -54,6 +53,12 @@ export function DemoTourScreen() {
     setStepIndex((current) => Math.min(current + 1, steps.length - 1));
   };
 
+  const rewind = () => {
+    if (stepIndex === 0) return;
+    haptics.tap();
+    setStepIndex((current) => Math.max(0, current - 1));
+  };
+
   return (
     <Screen
       title="Как это работает"
@@ -81,44 +86,38 @@ export function DemoTourScreen() {
           ))}
         </div>
 
-        <Card padding="lg">
-          <span className={css.eyebrow}>Пример · без сохранения данных</span>
-          <h2 className={css.stepTitle}>{step.title}</h2>
-          <p className={css.stepDescription}>{step.description}</p>
-        </Card>
+        <div className={css.stage}>
+          <Card padding="lg">
+            <span className={css.eyebrow}>Пример · без сохранения данных</span>
+            <h2 className={css.stepTitle}>{step.title}</h2>
+            <p className={css.stepDescription}>{step.description}</p>
+          </Card>
 
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div
-            key={step.variant}
-            variants={fade}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-          >
-            <DemoScenario variant={step.variant} onAdvance={advance} />
-          </motion.div>
-        </AnimatePresence>
-
-        <div className={css.actions}>
-          {stepIndex > 0 ? (
-            <Button
-              type="button"
-              variant="secondary"
-              leftIcon={<Icon icon={ArrowLeft} size="sm" />}
-              onClick={() => setStepIndex((current) => Math.max(0, current - 1))}
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={step.variant}
+              variants={fade}
+              initial="initial"
+              animate="animate"
+              exit="exit"
             >
-              Назад
-            </Button>
-          ) : null}
-          <Button
+              <DemoScenario variant={step.variant} onAdvance={advance} />
+            </motion.div>
+          </AnimatePresence>
+
+          <button
             type="button"
-            fullWidth
-            leftIcon={isLast ? <Icon icon={Check} size="sm" /> : undefined}
-            rightIcon={!isLast ? <Icon icon={ArrowRight} size="sm" /> : undefined}
+            className={cx(css.tapZone, css.tapBack)}
+            aria-label="Предыдущий шаг"
+            disabled={stepIndex === 0}
+            onClick={rewind}
+          />
+          <button
+            type="button"
+            className={cx(css.tapZone, css.tapForward)}
+            aria-label={isLast ? 'Перейти к сборам' : 'Следующий шаг'}
             onClick={advance}
-          >
-            {isLast ? 'Перейти к сборам' : 'Далее'}
-          </Button>
+          />
         </div>
       </div>
     </Screen>

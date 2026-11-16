@@ -71,8 +71,39 @@ export const stepDescription = style({
   lineHeight: vars.lineHeight.bodySm,
 });
 
-export const actions = style({
+export const stage = style({
+  position: 'relative',
   display: 'flex',
-  justifyContent: 'flex-end',
-  gap: vars.space[3],
+  flexDirection: 'column',
+  gap: vars.space[5],
+});
+
+export const tapZone = style({
+  position: 'absolute',
+  zIndex: 1,
+  top: 0,
+  bottom: 0,
+  margin: 0,
+  padding: 0,
+  border: 0,
+  background: 'transparent',
+  cursor: 'pointer',
+  touchAction: 'pan-y',
+  selectors: {
+    '&:disabled': { cursor: 'default' },
+    '&:focus-visible': {
+      outline: `2px solid ${vars.color.focusRing}`,
+      outlineOffset: `calc(${vars.space[1]} * -1)`,
+    },
+  },
+});
+
+export const tapBack = style({
+  left: 0,
+  width: '30%',
+});
+
+export const tapForward = style({
+  right: 0,
+  width: '70%',
 });

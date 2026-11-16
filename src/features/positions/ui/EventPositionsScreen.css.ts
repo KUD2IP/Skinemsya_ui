@@ -131,6 +131,7 @@ export const photoHint = style({
   fontSize: vars.fontSize.caption,
   lineHeight: vars.lineHeight.caption,
   color: vars.color.text.secondary,
+  textAlign: 'center',
 });
 
 export const hiddenInput = style({
